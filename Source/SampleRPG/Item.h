@@ -4,7 +4,90 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/DataTable.h"
 #include "Item.generated.h"
+
+UENUM(BlueprintType)
+enum class EItemClass : uint8
+{
+	EIC_Equip UMETA(DisplayName = "Equip"),
+	EIC_Consume UMETA(DisplayName = "Consume"),
+	EIC_Normal UMETA(DisplayName = "Normal"),
+
+	EIC_MAX
+};
+
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	EIT_Weapon UMETA(DisplayName = "Weapon"),
+	EIT_Shield UMETA(DisplayName = "Shield"),
+	EIT_Armor UMETA(DisplayName = "Armor"),
+	EIT_Ring UMETA(DisplayName = "Ring"),
+	EIT_Potion UMETA(DisplayName = "Potion"),
+	EIT_MAX
+};
+
+// 헤더파일 : #include "Engine/DataTable.h"
+
+USTRUCT(BlueprintType)
+struct FItemTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	int32 ItemID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	EItemClass ItemClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	EItemType ItemType = EItemType::EIT_Armor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	FText Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	FString Description;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	bool bIsDroppable = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	bool bIsSellable = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	int32 MaxCount;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	float Damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	float Deffence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	int32 Strength;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	int32 Dexterity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	int32 Intelligence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	float DurationTime;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	UStaticMesh* Mesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	class USkeletalMesh* EquipMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	UTexture2D* Icon;
+};
 
 UCLASS()
 class SAMPLERPG_API AItem : public AActor
@@ -16,18 +99,13 @@ public:
 	AItem();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
-	int32 ItemId;
+	int32 ID; // 해당 ID로 아이템 데이터 테이블의 정보를 가져올 것이다.
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
+	int32 Count; // 현재 개수
 
 	class UDataTable* ItemTable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
-	FString Desc;
-
-	/*
-		Item들의 기본베이스
-
-		기본 엔티티 : 콜리젼(반응 영역), 메쉬(아이템의 형태), 파티클(평소 파티클, 반응 파티클), 사운드(반응 사운드), 회전(회젼 여부, 회전 속도)
-	*/
+	FItemTable* ItemTableRow;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item|Collision")
 	class USphereComponent* Collision; // 영역에 들어왔는지 체크
@@ -35,20 +113,20 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item|Mesh")
 	class UStaticMeshComponent* Mesh; // 아이템의 모습(코인, 검등의 모습)
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Particle")
-	//class UParticleSystemComponent* IdleParticle; // 평소 파티클
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Particle")
+	class UParticleSystemComponent* IdleParticle; // 평소 파티클
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Particle")
-	//class UParticleSystem* InteractParticle; // 반응시 보여줄 파티클
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Particle")
+	class UParticleSystem* InteractParticle; // 반응시 보여줄 파티클
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Sound")
-	//class USoundCue* InteractSound; // 반응시 들려줄 사운드
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Sound")
+	class USoundCue* InteractSound; // 반응시 들려줄 사운드
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Property")
-	//bool bIsRotate; // 메쉬가 회전 할것인가?
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Property")
+	bool bIsRotate; // 메쉬가 회전 할것인가?
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Property")
-	//float RotateSpeed; // 회전 속도
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Property")
+	float RotateSpeed; // 회전 속도
 
 protected:
 	// Called when the game starts or when spawned
@@ -58,12 +136,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	//void RotateItem(float DeltaTime);
+	void RotateItem(float DeltaTime);
 
-	//UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
-	//virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	//UFUNCTION()
-	//virtual void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	UFUNCTION()
+	virtual void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 };

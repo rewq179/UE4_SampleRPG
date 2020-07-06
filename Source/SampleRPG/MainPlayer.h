@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Item.h"
 #include "MainPlayer.generated.h"
 
 UENUM(BlueprintType) // 해당 Enum을 사용하기 위해선 표시해줘야한다.
@@ -14,6 +15,47 @@ enum class EMovementState : uint8
 
 	EMS_MAX
 };
+
+USTRUCT(BlueprintType)
+struct FPlayerStatusTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	int32 Level;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	int32 Exp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	float MaxHP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
+	float CurHP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	float MaxStamina;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
+	float CurStamina;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MainCharacter|Status")
+	float Damage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MainCharacter|Status")
+	float Deffence;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MainCharacter|Status")
+	int32 Strength;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MainCharacter|Status")
+	int32 Dexterity;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MainCharacter|Status")
+	int32 Intelligence;
+};
+
 
 UCLASS()
 class SAMPLERPG_API AMainPlayer : public ACharacter
@@ -36,11 +78,69 @@ public:
 
 #pragma region Status
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
-		float NormalSpeed; // 일반 달리기 Max 속도
+	float NormalSpeed; // 일반 달리기 Max 속도
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
-		float SprintSpeed; // 스피린트 Max 속도
+	float SprintSpeed; // 스피린트 Max 속도
 
+	class UDataTable* PlayerStatusTable;
+	FPlayerStatusTable* PlayerStatusTableRow;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	int32 Level;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	int32 MaxExp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	int32 CurExp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	float MaxHP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	float CurHP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	float MaxStamina;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	float CurStamina;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	float Damage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	float Deffence;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	int32 Strength;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	int32 Dexterity;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	int32 Intelligence;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	float IncDamage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	float IncDeffence;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	int32 IncStrength;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	int32 IncDexterity;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
+	int32 IncIntelligence;
+
+	void TakeDamage(float Damage);
+	void Death();
+	void LevelUP();
+	void SetLevelStatus(int CurLevel);
 #pragma endregion
 
 #pragma region Camera
@@ -59,6 +159,23 @@ public:
 #pragma endregion
 
 #pragma region Inventory
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Inventory")
+	TArray<AItem*> Inventory;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Equipment")
+	TArray<AItem*> Equipments;
+
+	void AddItem(AItem* Item);
+	void RemoveItem(AItem* Item);
+
+	void EquipItem(AItem* Item);
+	void UnEquipItem(AItem* Item);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Equipment")
+	int32 Gold;
+
+	FORCEINLINE void AddGold(int32 Value) { Gold += Value; }
+	FORCEINLINE void RemoveGold(int32 Value) { Gold -= Value; }
 
 	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Item")
 	//	class AWeapon* EquipWeapon;
@@ -89,6 +206,9 @@ public:
 
 	void LeftShiftKeyDown();
 	void LeftShiftKeyUp();
+
+	void ToggleInventoryUI();
+	void InteractObject();
 
 	void LeftClickDown(); // 마우스 좌클릭
 

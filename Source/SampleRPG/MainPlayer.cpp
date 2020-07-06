@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "UObject/ConstructorHelpers.h"
 
 // Sets default values
 AMainPlayer::AMainPlayer()
@@ -55,8 +56,14 @@ AMainPlayer::AMainPlayer()
 	SprintSpeed = 1000.f;
 #pragma endregion
 
+	// #include "UObject/ConstructorHelpers.h"
 
+	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("DataTable'/Game/DataTable/PlayerStatusTable.PlayerStatusTable'"));
 
+	if (DataTable.Succeeded())
+	{
+		PlayerStatusTable = DataTable.Object;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -64,6 +71,7 @@ void AMainPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	SetLevelStatus(1);
 }
 
 // Called every frame
@@ -83,6 +91,7 @@ void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	// 헤더파일 : #include "GameFramework/PlayerController.h"
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AMainPlayer::LeftClickDown);
+	PlayerInputComponent->BindAction("InventoryUI", IE_Pressed, this, &AMainPlayer::ToggleInventoryUI);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMainPlayer::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
@@ -132,6 +141,73 @@ void AMainPlayer::LeftShiftKeyUp()
 
 #pragma endregion
 
+#pragma region Status
+void AMainPlayer::TakeDamage(float Damage)
+{
+	int total = Damage - Deffence;
+
+	if (total > 0)
+	{
+		CurHP -= total;
+
+		if (CurHP <= 0)
+		{
+			Death();
+		}
+	}
+}
+
+void AMainPlayer::Death()
+{
+	CurHP = MaxHP;
+
+	UE_LOG(LogTemp, Warning, TEXT("Player Die!"));
+
+}
+
+void AMainPlayer::LevelUP()
+{
+	
+}
+
+void AMainPlayer::SetLevelStatus(int CurLevel)
+{
+	if (PlayerStatusTable)
+	{
+		UE_LOG(LogTemp, Log, TEXT("AAAAAAAAA"));
+
+		PlayerStatusTableRow = PlayerStatusTable->FindRow<FPlayerStatusTable>(FName(*(FString::FormatAsNumber(CurLevel - 1))), FString(""));
+	}
+
+	if (PlayerStatusTableRow)
+	{
+		UE_LOG(LogTemp, Log, TEXT("HIO"));
+	}
+
+	Level = (*PlayerStatusTableRow).Level;
+	MaxExp = (*PlayerStatusTableRow).Exp;
+	CurExp = 0;
+	MaxHP = (*PlayerStatusTableRow).MaxHP;
+	CurHP = (*PlayerStatusTableRow).CurHP;
+	MaxStamina = (*PlayerStatusTableRow).MaxStamina;
+	CurStamina = (*PlayerStatusTableRow).CurStamina;
+	Damage = (*PlayerStatusTableRow).Damage;
+	Deffence = (*PlayerStatusTableRow).Deffence;
+	Strength = (*PlayerStatusTableRow).Strength;
+	Dexterity = (*PlayerStatusTableRow).Dexterity;
+	Intelligence = (*PlayerStatusTableRow).Intelligence;
+}
+
+#pragma endregion
+
+
+#pragma region UI
+void AMainPlayer::ToggleInventoryUI()
+{
+	
+}
+
+#pragma endregion
 
 
 void AMainPlayer::MoveForward(float Value)
@@ -170,6 +246,35 @@ void AMainPlayer::MoveRight(float Value)
 }
 
 void AMainPlayer::LeftClickDown()
+{
+
+}
+
+
+void AMainPlayer::AddItem(AItem* Item)
+{
+	for (int32 Index = 0; Index != Inventory.Num(); Index++)
+	{
+		if (Inventory[Index]->ID == Item->ID)
+		{
+			Inventory[Index]->Count += Item->Count;
+		}
+	}
+
+	Inventory.Add(Item);
+}
+
+void AMainPlayer::RemoveItem(AItem* Item)
+{
+
+}
+
+void AMainPlayer::EquipItem(AItem* Item)
+{
+
+}
+
+void AMainPlayer::UnEquipItem(AItem* Item)
 {
 
 }
