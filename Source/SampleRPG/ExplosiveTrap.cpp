@@ -2,6 +2,9 @@
 
 #include "ExplosiveTrap.h"
 #include "MainPlayer.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
+#include "Engine/World.h"
 
 // Sets default values
 AExplosiveTrap::AExplosiveTrap()
@@ -27,7 +30,19 @@ void AExplosiveTrap::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 
 		if (Player)
 		{
+			if (InteractParticle)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), InteractParticle, GetActorLocation(), FRotator(0.f), true);
+			}
+
+			if (InteractSound)
+			{
+				UGameplayStatics::PlaySound2D(this, InteractSound);
+			}
+
 			Player->TakeDamage(Damage);
+
+			Destroy();
 		}
 	}
 }

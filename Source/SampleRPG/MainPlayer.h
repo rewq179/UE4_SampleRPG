@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Item.h"
+#include "Blueprint/UserWidget.h"
+#include "MainPlayerController.h"
 #include "MainPlayer.generated.h"
 
 UENUM(BlueprintType) // 해당 Enum을 사용하기 위해선 표시해줘야한다.
@@ -65,7 +67,6 @@ class SAMPLERPG_API AMainPlayer : public ACharacter
 public:
 	// Sets default values for this character's properties
 	AMainPlayer();
-
 
 #pragma region MovementState
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")

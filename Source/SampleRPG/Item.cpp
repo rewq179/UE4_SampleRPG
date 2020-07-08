@@ -3,6 +3,7 @@
 #include "Item.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
@@ -30,6 +31,9 @@ AItem::AItem()
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(GetRootComponent());
+	EquipMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("EquipMesh"));
+	EquipMesh->SetupAttachment(GetRootComponent());
+
 
 	IdleParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("IdleParticle"));
 	IdleParticle->SetupAttachment(GetRootComponent());
@@ -44,10 +48,7 @@ void AItem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (ItemTable)
-	{
-		ItemTableRow = ItemTable->FindRow<FItemTable>(FName(*(FString::FormatAsNumber(ID))), FString(""));
-	}
+	SetItemData();
 
 	// 유니티의 TriggerEnter와 Exit 역할 // 꼭 바인딩 해줘야한다.
 	Collision->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnOverlapBegin);
@@ -60,6 +61,43 @@ void AItem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	RotateItem(DeltaTime);
+}
+
+void AItem::SetItemData()
+{
+	if (ItemTable)
+	{
+		FItemTable* ItemTableRow = ItemTable->FindRow<FItemTable>(FName(*(FString::FormatAsNumber(ID))), FString(""));
+
+		if (ItemTableRow)
+		{
+			ItemTableValue.Name = (*ItemTableRow).Name;
+
+			ItemTableValue.ItemID = (*ItemTableRow).ItemID;
+			ItemTableValue.ItemClass = (*ItemTableRow).ItemClass;
+			ItemTableValue.ItemType = (*ItemTableRow).ItemType;
+			ItemTableValue.Name = (*ItemTableRow).Name;
+			ItemTableValue.Description = (*ItemTableRow).Description;
+			ItemTableValue.bIsDroppable = (*ItemTableRow).bIsDroppable;
+			ItemTableValue.bIsSellable = (*ItemTableRow).bIsSellable;
+			ItemTableValue.MaxCount = (*ItemTableRow).MaxCount;
+			ItemTableValue.Damage = (*ItemTableRow).Damage;
+			ItemTableValue.Deffence = (*ItemTableRow).Deffence;
+			ItemTableValue.Strength = (*ItemTableRow).Strength;
+			ItemTableValue.Dexterity = (*ItemTableRow).Dexterity;
+			ItemTableValue.Intelligence = (*ItemTableRow).Intelligence;
+
+			//Mesh = Cast<UStaticMeshComponent>((*ItemTableRow).Mesh);
+			Mesh->SetStaticMesh((*ItemTableRow).Mesh);
+
+			if (ItemTableValue.ItemClass == EItemClass::EIC_Equip && (*ItemTableRow).EquipMesh != nullptr)
+			{
+				EquipMesh->SetSkeletalMesh((*ItemTableRow).EquipMesh);
+			}
+
+			Icon = (*ItemTableRow).Icon;
+		}
+	}
 }
 
 void AItem::RotateItem(float DeltaTime)
@@ -84,7 +122,6 @@ void AItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 		if(Main)
 		{
 			Main->AddItem(this);
-			Main->AddGold(300);
 
 			Destroy();
 		}

@@ -174,16 +174,9 @@ void AMainPlayer::SetLevelStatus(int CurLevel)
 {
 	if (PlayerStatusTable)
 	{
-		UE_LOG(LogTemp, Log, TEXT("AAAAAAAAA"));
-
 		PlayerStatusTableRow = PlayerStatusTable->FindRow<FPlayerStatusTable>(FName(*(FString::FormatAsNumber(CurLevel - 1))), FString(""));
 	}
-
-	if (PlayerStatusTableRow)
-	{
-		UE_LOG(LogTemp, Log, TEXT("HIO"));
-	}
-
+	
 	Level = (*PlayerStatusTableRow).Level;
 	MaxExp = (*PlayerStatusTableRow).Exp;
 	CurExp = 0;

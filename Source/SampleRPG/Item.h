@@ -36,7 +36,6 @@ struct FItemTable : public FTableRowBase
 	GENERATED_BODY()
 
 public:
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
 	int32 ItemID;
 
@@ -105,13 +104,25 @@ public:
 	int32 Count; // 현재 개수
 
 	class UDataTable* ItemTable;
-	FItemTable* ItemTableRow;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
+	FItemTable ItemTableValue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
+	UStaticMeshComponent* Mesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
+	USkeletalMeshComponent* EquipMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
+	UTexture2D* Icon;
+
+	void SetItemData();
+#pragma endregion
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item|Collision")
 	class USphereComponent* Collision; // 영역에 들어왔는지 체크
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item|Mesh")
-	class UStaticMeshComponent* Mesh; // 아이템의 모습(코인, 검등의 모습)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Particle")
 	class UParticleSystemComponent* IdleParticle; // 평소 파티클
