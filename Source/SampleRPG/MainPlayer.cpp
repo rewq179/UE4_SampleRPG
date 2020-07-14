@@ -2,11 +2,19 @@
 
 #include "MainPlayer.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
+
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 #include "UObject/ConstructorHelpers.h"
+
+#include "Animation/AnimInstance.h"
 
 // Sets default values
 AMainPlayer::AMainPlayer()
@@ -64,12 +72,15 @@ AMainPlayer::AMainPlayer()
 	{
 		PlayerStatusTable = DataTable.Object;
 	}
+
+	Equipments.Init(nullptr, 10); 
 }
 
 // Called when the game starts or when spawned
 void AMainPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
 
 	SetLevelStatus(1);
 }
@@ -90,11 +101,12 @@ void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	// 헤더파일 : #include "GameFramework/PlayerController.h"
 
-	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AMainPlayer::LeftClickDown);
-	PlayerInputComponent->BindAction("InventoryUI", IE_Pressed, this, &AMainPlayer::ToggleInventoryUI);
+	PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AMainPlayer::LeftClickDown);
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMainPlayer::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Roll", IE_Pressed, this, &AMainPlayer::Roll);
+
+	// PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMainPlayer::Jump);
+	// PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AMainPlayer::LeftShiftKeyDown);
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AMainPlayer::LeftShiftKeyUp);
@@ -106,7 +118,42 @@ void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAxis("UpDownView", this, &APawn::AddControllerPitchInput);
 }
 
-#pragma region Sprint
+#pragma region Movement/Roll
+void AMainPlayer::MoveForward(float Value)
+{
+	if (Value != 0.f && Controller && !bIsAttackAnim)
+	{
+		FRotator Rotation = Controller->GetControlRotation(); // 현재 캐릭터의 회전 매트릭스를 구한다.
+		FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+
+		FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		// FRotationMatrix : (0,0,0)과 비교해 각 축들이 얼마나 회전 되어있는지를 계산한다.
+		// GetUnitAxis : GetSacledAxis의 결과를 단위 벡터(길이를 1로 변환)하여 돌려주는 함수다.
+
+		AddMovementInput(Direction, Value);
+
+		/*
+			다른 방법 :
+
+			FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X);
+			AddMovementInput(Direction, Value);
+		*/
+	}
+}
+
+void AMainPlayer::MoveRight(float Value)
+{
+	if (Value != 0.f && Controller && !bIsAttackAnim)
+	{
+		FRotator Rotation = Controller->GetControlRotation();
+		FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+
+		FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		AddMovementInput(Direction, Value);
+	}
+}
+
 void AMainPlayer::SetMovementState(EMovementState State) // 캐릭터상태에따라 최대속도가 변화됨
 {
 	MovementState = State;
@@ -138,19 +185,72 @@ void AMainPlayer::LeftShiftKeyUp()
 	bIsSprint = false;
 }
 
+void AMainPlayer::Roll()
+{
+	if (!bIsRoll)
+	{
+		bIsRoll = true;
 
+		PlayMontage(FName("Roll"), 1.f);
+	}
+}
+
+void AMainPlayer::RollEnd()
+{
+	bIsRoll = false;
+}
 #pragma endregion
 
 #pragma region Status
+void AMainPlayer::AddExp(int32 Exp)
+{
+	Status.CurExp += Exp;
+
+	CheckLevelUP();
+}
+
+void AMainPlayer::CheckLevelUP()
+{
+	while (Status.CurExp >= Status.MaxExp)
+	{
+		int32 Exp = Status.CurExp - Status.MaxExp;
+
+		SetLevelStatus(Status.Level + 1);
+		
+		Status.CurExp = Exp;
+	}
+}
+
+void AMainPlayer::SetLevelStatus(int32 CurLevel)
+{
+	if (PlayerStatusTable)
+	{
+		PlayerStatusTableRow = PlayerStatusTable->FindRow<FPlayerStatusTable>(FName(*(FString::FormatAsNumber(CurLevel - 1))), FString(""));
+	}
+	
+	Status.Level = (*PlayerStatusTableRow).Level;
+	Status.MaxExp = (*PlayerStatusTableRow).MaxExp;
+	Status.CurExp = (*PlayerStatusTableRow).CurExp;
+	Status.MaxHP = (*PlayerStatusTableRow).MaxHP;
+	Status.CurHP = (*PlayerStatusTableRow).CurHP;
+	Status.MaxStamina = (*PlayerStatusTableRow).MaxStamina;
+	Status.CurStamina = (*PlayerStatusTableRow).CurStamina;
+	Status.Damage = (*PlayerStatusTableRow).Damage;
+	Status.Deffence = (*PlayerStatusTableRow).Deffence;
+	Status.Strength = (*PlayerStatusTableRow).Strength;
+	Status.Dexterity = (*PlayerStatusTableRow).Dexterity;
+	Status.Intelligence = (*PlayerStatusTableRow).Intelligence;
+}
+
 void AMainPlayer::TakeDamage(float Damage)
 {
-	int total = Damage - Deffence;
+	int total = Damage - Status.Deffence;
 
 	if (total > 0)
 	{
-		CurHP -= total;
+		Status.CurHP -= total;
 
-		if (CurHP <= 0)
+		if (Status.CurHP <= 0)
 		{
 			Death();
 		}
@@ -159,101 +259,132 @@ void AMainPlayer::TakeDamage(float Damage)
 
 void AMainPlayer::Death()
 {
-	CurHP = MaxHP;
+	Status.CurHP = Status.MaxHP;
 
 	UE_LOG(LogTemp, Warning, TEXT("Player Die!"));
 
 }
 
-void AMainPlayer::LevelUP()
-{
-	
-}
-
-void AMainPlayer::SetLevelStatus(int CurLevel)
-{
-	if (PlayerStatusTable)
-	{
-		PlayerStatusTableRow = PlayerStatusTable->FindRow<FPlayerStatusTable>(FName(*(FString::FormatAsNumber(CurLevel - 1))), FString(""));
-	}
-	
-	Level = (*PlayerStatusTableRow).Level;
-	MaxExp = (*PlayerStatusTableRow).Exp;
-	CurExp = 0;
-	MaxHP = (*PlayerStatusTableRow).MaxHP;
-	CurHP = (*PlayerStatusTableRow).CurHP;
-	MaxStamina = (*PlayerStatusTableRow).MaxStamina;
-	CurStamina = (*PlayerStatusTableRow).CurStamina;
-	Damage = (*PlayerStatusTableRow).Damage;
-	Deffence = (*PlayerStatusTableRow).Deffence;
-	Strength = (*PlayerStatusTableRow).Strength;
-	Dexterity = (*PlayerStatusTableRow).Dexterity;
-	Intelligence = (*PlayerStatusTableRow).Intelligence;
-}
-
 #pragma endregion
 
 
-#pragma region UI
-void AMainPlayer::ToggleInventoryUI()
-{
-	
-}
-
-#pragma endregion
-
-
-void AMainPlayer::MoveForward(float Value)
-{
-	if (Value != 0.f && Controller)
-	{
-		FRotator Rotation = Controller->GetControlRotation(); // 현재 캐릭터의 회전 매트릭스를 구한다.
-		FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
-
-		FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		// FRotationMatrix : (0,0,0)과 비교해 각 축들이 얼마나 회전 되어있는지를 계산한다.
-		// GetUnitAxis : GetSacledAxis의 결과를 단위 벡터(길이를 1로 변환)하여 돌려주는 함수다.
-
-		AddMovementInput(Direction, Value);
-
-		/*
-			다른 방법 :
-
-			FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X);
-			AddMovementInput(Direction, Value);
-		*/
-	}
-}
-
-void AMainPlayer::MoveRight(float Value)
-{
-	if (Value != 0.f && Controller)
-	{
-		FRotator Rotation = Controller->GetControlRotation();
-		FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
-
-		FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		AddMovementInput(Direction, Value);
-	}
-}
-
+#pragma region Interact/Attack Mouse Button 
 void AMainPlayer::LeftClickDown()
 {
+	bIsLeftClickDown = true;
 
-}
-
-
-void AMainPlayer::AddItem(AItem* Item)
-{
-	for (int32 Index = 0; Index != Inventory.Num(); Index++)
+	if (RecentItem)
 	{
-		if (Inventory[Index]->ID == Item->ID)
+		RecentItem->SetItemState(EItemState::EIS_Inv);
+
+		if (RecentItem->ItemTableValue.ItemType == EItemType::EIT_Weapon)
 		{
-			Inventory[Index]->Count += Item->Count;
+			RecentItem->IgnoreStaticMesh();
+			RecentItem->ItemOwner = this;
+			RecentItem->SetCombatCollisionEnabled(false);
+			EquipItem(RecentItem);
 		}
+
+		else
+		{
+			AddItem(RecentItem);
+		}
+
+		RecentItem = nullptr;
 	}
 
+	else if (Equipments[0])
+	{
+		if (!bIsAttackAnim)
+		{
+			PlayAttackAnim();
+		}
+	}
+}
+
+void AMainPlayer::LeftClickUp()
+{
+	bIsLeftClickDown = false;
+}
+#pragma endregion
+
+#pragma region AttackFunction
+
+void AMainPlayer::PlayAttackAnim()
+{
+	// 헤더파일 : #include "Engine/SkeletalMeshSocket.h"
+
+	PlayMontage(FName("Attack_1"), 2.f);
+}
+
+void AMainPlayer::AttackDamage()
+{
+	for (auto Monster : TargetMonsters)
+	{
+		Monster->TakeDamage(GetTotalDamage());
+	}
+
+	if (Equipments[0]->AttackSound)
+	{
+		UGameplayStatics::PlaySound2D(this, Equipments[0]->AttackSound);
+	}
+}
+
+void AMainPlayer::AttackStart()
+{
+	bIsAttackAnim = true;
+
+	Equipments[0]->SetCombatCollisionEnabled(true);
+}
+
+void AMainPlayer::AttackEnd()
+{
+	bIsAttackAnim = false;
+
+	Equipments[0]->SetCombatCollisionEnabled(false);
+	TargetMonsters.Empty();
+
+}
+#pragma endregion
+
+
+#pragma region Inventory Function
+void AMainPlayer::AddItem(AItem* Item) 
+{
+	/*
+		원리 :  인벤토리를 훑어서 아이템이 존재하는지 확인한다.
+
+		if) O : Item의 Count를 증가한다. Count가 Max를 넘어가면 새로운 공간에 Item을 배치한다.
+		if) X : 새로운 공간에 해당 Item을 배치한다.
+	*/
+
+	for (int32 Index = 0; Index != Inventory.Num(); Index++)
+	{
+		if (Inventory[Index]->ItemID == Item->ItemID)
+		{
+			int32 TotalCount = Inventory[Index]->Count + Item->Count;
+			int32 MaxCount = Item->ItemTableValue.MaxCount;
+
+			if (TotalCount <= MaxCount) 
+			{
+				Inventory[Index]->Count += Item->Count;
+			}
+
+			else
+			{ 
+				Inventory[Index]->Count = MaxCount;
+
+				Item->Count = TotalCount - MaxCount;
+				Item->ItemOwner = this;
+				Inventory.Add(Item);
+
+				//UE_LOG(LogTemp, Log, TEXT("Apple Count : %d // A2 Count : %d"), Inventory[0]->Count, Inventory[1]->Count);
+			}
+
+			return;
+		}
+	}
+	
 	Inventory.Add(Item);
 }
 
@@ -262,12 +393,111 @@ void AMainPlayer::RemoveItem(AItem* Item)
 
 }
 
-void AMainPlayer::EquipItem(AItem* Item)
+void AMainPlayer::EquipItem(AItem* NewItem)
 {
+	/*
+		0:무기, 1:방패, 2:헬멧, 3:갑옷, 4:어깨방어구, 5:장갑, 6:하의, 7:신발, 8:악세 1, 9:악세 2
+	*/
 
+	int slotIndex = GetEquipmentIndex(NewItem);
+
+	// 헤더파일 : #include "Engine/SkeletalMeshSocket.h"
+
+	const USkeletalMeshSocket* RightHandSocket = GetMesh()->GetSocketByName("RightHandSocket");
+
+	if (RightHandSocket)
+	{
+		RightHandSocket->AttachActor(NewItem, GetMesh());
+
+		if (Equipments[slotIndex])
+		{
+			AItem* OldItem = Equipments[slotIndex];
+			WasStatusChangedByEquip(OldItem, false);
+		}
+
+		Equipments[slotIndex] = NewItem;
+		WasStatusChangedByEquip(NewItem, true);
+	}
+
+	if (Equipments[0]->UseSound)
+	{
+		UGameplayStatics::PlaySound2D(this, Equipments[0]->UseSound);
+	}
+}
+
+void AMainPlayer::WasStatusChangedByEquip(AItem* Item, bool IsEquip)
+{
+	if (IsEquip)
+	{
+		IncDamage += Item->ItemTableValue.Damage;
+		IncDeffence += Item->ItemTableValue.Deffence;
+		IncStrength += Item->ItemTableValue.Strength;
+		IncDexterity += Item->ItemTableValue.Dexterity;
+		IncIntelligence += Item->ItemTableValue.Intelligence;
+	}
+	
+	else
+	{
+		IncDamage -= Item->ItemTableValue.Damage;
+		IncDeffence -= Item->ItemTableValue.Deffence;
+		IncStrength -= Item->ItemTableValue.Strength;
+		IncDexterity -= Item->ItemTableValue.Dexterity;
+		IncIntelligence -= Item->ItemTableValue.Intelligence;
+	}
+}
+
+int AMainPlayer::GetEquipmentIndex(AItem* Item)
+{
+	switch (Item->ItemTableValue.ItemType)
+	{
+	case EItemType::EIT_Weapon:
+		return 0;
+
+	case EItemType::EIT_Shield:
+		return 1;
+
+	case EItemType::EIT_Helmet:
+		return 2;
+
+	case EItemType::EIT_Chest:
+		return 3;
+
+	case EItemType::EIT_Shoulder:
+		return 4;
+
+	case EItemType::EIT_Glove:
+		return 5;
+
+	case EItemType::EIT_Pants:
+		return 6;
+
+	case EItemType::EIT_Boots:
+		return 7;
+
+	case EItemType::EIT_Ring:
+		return 8;
+
+	default:
+		return -1;
+	}
 }
 
 void AMainPlayer::UnEquipItem(AItem* Item)
 {
 
 }
+
+#pragma endregion
+
+
+void AMainPlayer::PlayMontage(FName Name, float PlayRate)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (AnimInstance && CombatMontage)
+	{
+		AnimInstance->Montage_Play(CombatMontage, PlayRate); // 해당 몽타쥬를 n배 빠르게 재상한다.
+		AnimInstance->Montage_JumpToSection(Name, CombatMontage);
+	}
+}
+

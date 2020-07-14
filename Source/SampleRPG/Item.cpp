@@ -4,12 +4,17 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/BoxComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
-#include "MainPlayer.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Engine/SkeletalMeshSocket.h"
+
+#include "Monster.h"
+#include "MainPlayer.h"
+
 
 // Sets default values
 AItem::AItem()
@@ -25,21 +30,30 @@ AItem::AItem()
 		ItemTable = DataTable.Object;
 	}
 
-	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
-	Collision->SetSphereRadius(48.f);
-	RootComponent = Collision;
+#pragma region Collision/Mesh/Particle
+	InteractCollision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
+	InteractCollision->SetSphereRadius(48.f);
+	RootComponent = InteractCollision;
+
+	CombatCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("CombatCollision"));
+	CombatCollision->SetupAttachment(GetRootComponent());
+
+	CombatCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 어떠한 것에도 반응하지 않음
+	CombatCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	CombatCollision->SetCollisionResponseToChannels(ECollisionResponse::ECR_Ignore);
+	CombatCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap); // Pawn과 Overlap만 반응하도록 한다.
+	// Collision
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(GetRootComponent());
 	EquipMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("EquipMesh"));
 	EquipMesh->SetupAttachment(GetRootComponent());
 
+	// Mesh
 
 	IdleParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("IdleParticle"));
 	IdleParticle->SetupAttachment(GetRootComponent());
-
-	bIsRotate = false;
-	RotateSpeed = 45.f;
+#pragma endregion
 
 }
 
@@ -51,23 +65,23 @@ void AItem::BeginPlay()
 	SetItemData();
 
 	// 유니티의 TriggerEnter와 Exit 역할 // 꼭 바인딩 해줘야한다.
-	Collision->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnOverlapBegin);
-	Collision->OnComponentEndOverlap.AddDynamic(this, &AItem::OnOverlapEnd);
+	InteractCollision->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnOverlapBegin);
+	InteractCollision->OnComponentEndOverlap.AddDynamic(this, &AItem::OnOverlapEnd);
+	CombatCollision->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnCombatOverlapBegin);
+	//CombatCollision->OnComponentEndOverlap.AddDynamic(this, &AItem::OnCombatOverlapEnd);
 }
 
 // Called every frame
 void AItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	RotateItem(DeltaTime);
 }
 
 void AItem::SetItemData()
 {
 	if (ItemTable)
 	{
-		FItemTable* ItemTableRow = ItemTable->FindRow<FItemTable>(FName(*(FString::FormatAsNumber(ID))), FString(""));
+		FItemTable* ItemTableRow = ItemTable->FindRow<FItemTable>(FName(*(FString::FormatAsNumber(ItemID))), FString(""));
 
 		if (ItemTableRow)
 		{
@@ -93,6 +107,7 @@ void AItem::SetItemData()
 			if (ItemTableValue.ItemClass == EItemClass::EIC_Equip && (*ItemTableRow).EquipMesh != nullptr)
 			{
 				EquipMesh->SetSkeletalMesh((*ItemTableRow).EquipMesh);
+				EquipMesh->SetVisibility(false);
 			}
 
 			Icon = (*ItemTableRow).Icon;
@@ -100,16 +115,16 @@ void AItem::SetItemData()
 	}
 }
 
-void AItem::RotateItem(float DeltaTime)
+void AItem::SetCombatCollisionEnabled(bool IsActive)
 {
-	if (bIsRotate) // 회전해야할 아이템이라면?
+	if (IsActive)
 	{
-		FRotator Rotation = GetActorRotation();
+		CombatCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	}
 
-		// Yaw는 제자리 회전 
-
-		Rotation.Yaw += DeltaTime * RotateSpeed;
-		SetActorRotation(Rotation);
+	else
+	{
+		CombatCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 
@@ -119,17 +134,57 @@ void AItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 	{
 		AMainPlayer* Main = Cast<AMainPlayer>(OtherActor);
 
-		if(Main)
+		if (Main && ItemState == EItemState::EIS_Root)
 		{
-			Main->AddItem(this);
-
-			Destroy();
+			Main->RecentItem = this;
 		}
 	}
 }
 
+
 void AItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (OtherActor)
+	{
+		AMainPlayer* Main = Cast<AMainPlayer>(OtherActor);
 
+		if (Main && ItemState == EItemState::EIS_Root)
+		{
+			Main->RecentItem = nullptr;
+		}
+	}
 }
 
+void AItem::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+{
+	if (OtherActor && ItemState == EItemState::EIS_Inv && ItemTableValue.ItemType == EItemType::EIT_Weapon)
+	{
+		AMonster* Monster = Cast<AMonster>(OtherActor);
+
+		if (Monster && ItemOwner )
+		{
+			ItemOwner->AddTargetMonster(Monster);
+		}
+	}
+}
+
+
+void AItem::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	
+}
+
+void AItem::IgnoreStaticMesh()
+{
+	if (ItemTableValue.ItemClass == EItemClass::EIC_Equip)
+	{
+		Mesh->SetStaticMesh(nullptr);
+	}
+
+	EquipMesh->SetVisibility(true);
+
+	EquipMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	EquipMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+
+	EquipMesh->SetSimulatePhysics(false); // 물리충돌 X
+}

@@ -16,11 +16,11 @@
 	},
 	"BuildProducts": [
 		{
-			"Path": "$(ProjectDir)/Binaries/Win64/UE4Editor-SampleRPG-2311.dll",
+			"Path": "$(ProjectDir)/Binaries/Win64/UE4Editor-SampleRPG-2456.dll",
 			"Type": "DynamicLibrary"
 		},
 		{
-			"Path": "$(ProjectDir)/Binaries/Win64/UE4Editor-SampleRPG-2311.pdb",
+			"Path": "$(ProjectDir)/Binaries/Win64/UE4Editor-SampleRPG-2456.pdb",
 			"Type": "SymbolFile"
 		},
 		{
