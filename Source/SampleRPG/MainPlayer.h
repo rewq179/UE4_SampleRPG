@@ -14,7 +14,8 @@ enum class EMovementState : uint8
 	EMS_Idle UMETA(DisplayName = "Idle"), // DisplayName("") : 블루프린터에서 ""의 이름으로 해당 변수를 표시해주겠다.
 	EMS_Sprint UMETA(DisplayName = "Sprint"),
 	EMS_Roll UMETA(DisplayName = "Roll"),
-
+	EMS_Dead UMETA(DisplayName = "Dead"),
+	
 	EMS_MAX
 };
 
@@ -73,19 +74,27 @@ public:
 
 #pragma region MovementState
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
-		EMovementState MovementState;
+	EMovementState MovementState;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
+	float NormalSpeed; // 일반 달리기 Max 속도
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
+	float SprintSpeed; // 스피린트 Max 속도
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
+	float StaminaRate; // 스테미나 증가량
+
+	void IncreaseStamina(float DeltaTime);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
+	float RollCost;
 
 	void SetMovementState(EMovementState State);
-	FORCEINLINE EMovementState SetMovementState() { return MovementState; }
+	FORCEINLINE EMovementState GetMovementState() { return MovementState; }
 
 #pragma endregion
 
 #pragma region Status
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
-	float NormalSpeed; // 일반 달리기 Max 속도
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
-	float SprintSpeed; // 스피린트 Max 속도
 
 	class UDataTable* PlayerStatusTable;
 	FPlayerStatusTable* PlayerStatusTableRow;
@@ -113,11 +122,28 @@ public:
 
 	FORCEINLINE float GetTotalDamage() { return IncDamage + Status.Damage; }
 
-	void TakeDamage(float Damage);
+	bool bIsPlayerDead;
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
 	void Death();
+	UFUNCTION(BlueprintCallable)
+	void DeathEnd();
+	void Revive();
 	void AddExp(int32 Exp);
 	void CheckLevelUP();
 	void SetLevelStatus(int32 CurLevel);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Combat")
+	TSubclassOf<UDamageType> DamageType;
+	
+#pragma endregion
+
+#pragma region Interp
+	float InterpSpeed;
+	bool bIsInterp;
+
+	FRotator GetTargetDirection(FVector Target);
+	void InterpToMonster(float DeltaTime); // 캐릭터가 공격대상을 바라보게함
 #pragma endregion
 
 #pragma region Camera
@@ -135,9 +161,17 @@ public:
 	FVector2D CameraInputValue; // 마우스 이동에 따른 값
 #pragma endregion
 
-#pragma region Inventory
+#pragma region Inventory/Equipments
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Inventory")
 	TArray<AItem*> Inventory;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Inventory")
+	int32 Gold;
+
+	FORCEINLINE void AddGold(int32 Value) { Gold += Value; }
+	FORCEINLINE void RemoveGold(int32 Value) { Gold -= Value; }
+
+	// 장착 아이템
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Equipment")
 	TArray<AItem*> Equipments; 
@@ -146,46 +180,53 @@ public:
 	AItem* RecentItem;
 
 	void AddItem(AItem* Item);
+	UFUNCTION(BlueprintCallable)
 	void RemoveItem(AItem* Item);
-
 	void EquipItem(AItem* NewItem);
 	void UnEquipItem(AItem* Item);
+	
 	void WasStatusChangedByEquip(AItem* Item, bool IsEquip);
-
 	int GetEquipmentIndex(AItem* Item);
-
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Equipment")
-	int32 Gold;
-
-	FORCEINLINE void AddGold(int32 Value) { Gold += Value; }
-	FORCEINLINE void RemoveGold(int32 Value) { Gold -= Value; }
-
+	
 #pragma endregion
 
 #pragma region Combat
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MainCharacter|Combat")
-	//class ACombatManager* CombatManager;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Combat")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Properties")
 	class UAnimMontage* CombatMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	class USoundCue* DamagedSound;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Combat")
 	TArray<AMonster*> TargetMonsters;
 
 	FORCEINLINE void AddTargetMonster(AMonster* Monster) { TargetMonsters.AddUnique(Monster); }
-	FORCEINLINE void RemoveTargetMonster(AMonster* Monster) { TargetMonsters.Remove(Monster); }
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Combat")
+	TArray<AMonster*> WidgetMonsters;
+	
+	FORCEINLINE void AddWidgetMonster(AMonster* Monster) { WidgetMonsters.AddUnique(Monster); UpdateWidgetMonster();}
+	FORCEINLINE void RemoveWidgetMonster(AMonster* Monster) { WidgetMonsters.Remove(Monster); UpdateWidgetMonster();}
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Combat")
+	class AMonster* TargetMonster;
+	
+	void UpdateWidgetMonster();
+	int32 GetPriorityByClass(EMonsterClass Class);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Combat")
 	bool bIsAttackAnim; // 어택 애니메이션이 진행중인가?
+	
 	void PlayAttackAnim(); // 공격 애니메이션(몽타주) 재생 관리
 
+	// 아래는 애니메이션 Notify와 연동된 함수들
+
 	UFUNCTION(BlueprintCallable)
-	void AttackStart(); // 애니메이션 시작 시점(애니메이션 재생 bool 변수 true, 무기의 CombatCollision 활성화)
+	void AttackStart(); // CombatCollision 활성화
 	UFUNCTION(BlueprintCallable)
 	void AttackDamage(); // 데미지 주는 시점
 	UFUNCTION(BlueprintCallable)
-	void AttackEnd(); // 애니메이션 종료 시점(애니메이션 재생 bool 변수 false, 무기의 CombatCollision 비활성화)
+	void AttackEnd(); // CombatCollision 비활성화
 	
 #pragma endregion
 

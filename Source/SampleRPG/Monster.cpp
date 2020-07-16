@@ -2,6 +2,7 @@
 
 #include "Monster.h"
 #include "Components/SphereComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AIController.h"
@@ -9,6 +10,7 @@
 #include "Animation/AnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "WidgetComponent.h"
 
 // Sets default values
 AMonster::AMonster()
@@ -16,12 +18,14 @@ AMonster::AMonster()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	DetectSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectSphere"));
-	DetectSphere->SetupAttachment(GetRootComponent());
-	CombatSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CombatSphere"));
-	CombatSphere->SetupAttachment(GetRootComponent());
+	DetectColiision = CreateDefaultSubobject<USphereComponent>(TEXT("DetectColiision"));
+	DetectColiision->SetupAttachment(GetRootComponent());
+	CombatColiision = CreateDefaultSubobject<USphereComponent>(TEXT("CombatColiision"));
+	CombatColiision->SetupAttachment(GetRootComponent());
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("DataTable'/Game/DataTable/MonsterTable.MonsterTable'"));
+
+	AttackTime = 0.1f;
 
 	if (DataTable.Succeeded())
 	{
@@ -36,10 +40,10 @@ void AMonster::BeginPlay()
 	
 	AIController = Cast<AAIController>(GetController());
 
-	DetectSphere->OnComponentBeginOverlap.AddDynamic(this, &AMonster::OnDetectOverlapBegin);
-	DetectSphere->OnComponentEndOverlap.AddDynamic(this, &AMonster::OnDetectOverlapEnd);
-	CombatSphere->OnComponentBeginOverlap.AddDynamic(this, &AMonster::OnCombatOverlapBegin);
-	CombatSphere->OnComponentEndOverlap.AddDynamic(this, &AMonster::OnCombatOverlapEnd);
+	DetectColiision->OnComponentBeginOverlap.AddDynamic(this, &AMonster::OnDetectOverlapBegin);
+	DetectColiision->OnComponentEndOverlap.AddDynamic(this, &AMonster::OnDetectOverlapEnd);
+	CombatColiision->OnComponentBeginOverlap.AddDynamic(this, &AMonster::OnCombatOverlapBegin);
+	CombatColiision->OnComponentEndOverlap.AddDynamic(this, &AMonster::OnCombatOverlapEnd);
 
 	SetMonsterData();
 }
@@ -56,7 +60,7 @@ void AMonster::Tick(float DeltaTime)
 
 	if (CombatTarget && !bIsAttackAnim) // 공격 대상이 있는가? and 공격이 끝났는가?
 	{
-		PlayAttackAnim();
+		AttackTarget(DeltaTime);
 	}
 
 	if(!CombatTarget && DetectTarget)
@@ -99,8 +103,8 @@ void AMonster::SetMonsterData()
 			Status.Exp = (*MonsterTableRow).Exp;	
 			Status.Gold = (*MonsterTableRow).Gold;
 
-			DetectSphere->SetSphereRadius(Status.DetectRange);
-			CombatSphere->SetSphereRadius(Status.AttackRange);
+			DetectColiision->SetSphereRadius(Status.DetectRange);
+			CombatColiision->SetSphereRadius(Status.AttackRange);
 
 			GetCharacterMovement()->MaxWalkSpeed = Status.FollowSpeed;
 		}
@@ -128,61 +132,71 @@ void  AMonster::OnDetectOverlapBegin(UPrimitiveComponent* OverlappedComponent, A
 {
 	if (OtherActor && !DetectTarget)
 	{
-		DetectTarget = Cast<AMainPlayer>(OtherActor);
+		AMainPlayer* Player = Cast<AMainPlayer>(OtherActor);
+		 
+		if (Player && Player->MovementState != EMovementState::EMS_Dead)
+		{
+			DetectTarget = Player;
+
+			Player->AddWidgetMonster(this);
+		}
 	}
 }
 
 void  AMonster::OnDetectOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (IsTargetPlayer(OtherActor) && !CombatTarget)
+	if (OtherActor)
 	{
-		DetectTarget = nullptr;
-		bIsAttackAnim = false;
+		AMainPlayer* Player = Cast<AMainPlayer>(OtherActor);
 
-		SetMonsterState(EMonsterState::EMS_Idle);
+		if (Player && Player == DetectTarget)
+		{
+			DetectTarget = nullptr;
+			bIsAttackAnim = false;
 
-		AIController->StopMovement(); // 범위에서 벗어나면 멈춘다.
+			Player->RemoveWidgetMonster(this);
+
+			SetMonsterState(EMonsterState::EMS_Idle);
+
+			AIController->StopMovement(); // 범위에서 벗어나면 멈춘다.
+		}
 	}
 }
 
 void  AMonster::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (IsTargetPlayer(OtherActor))
+	if (OtherActor)
 	{
-		CombatTarget = Cast<AMainPlayer>(OtherActor);
+		AMainPlayer* Player = Cast<AMainPlayer>(OtherActor);
 
-		SetMonsterState(EMonsterState::EMS_Combat);
+		if (Player && Player->MovementState != EMovementState::EMS_Dead)
+		{
+			CombatTarget = Cast<AMainPlayer>(OtherActor);
 
-		bCanAttack = true;
+			SetMonsterState(EMonsterState::EMS_Combat);
+
+			bCanAttack = true;
+		}
 	}
 }
 
 void  AMonster::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (IsTargetPlayer(OtherActor))
-	{
-		CombatTarget = nullptr;
-
-		SetMonsterState(EMonsterState::EMS_Follow);
-
-		bCanAttack = false;
-	}
-}
-
-bool AMonster::IsTargetPlayer(AActor* OtherActor)
-{
 	if (OtherActor)
 	{
 		AMainPlayer* Player = Cast<AMainPlayer>(OtherActor);
-	
-		if (Player == DetectTarget || Player == CombatTarget)
+
+		if (Player && Player == CombatTarget)
 		{
-			return true;
+			CombatTarget = nullptr;
+
+			SetMonsterState(EMonsterState::EMS_Follow);
+
+			bCanAttack = false;
 		}
 	}
-
-	return false;
 }
+
 
 #pragma endregion
 
@@ -204,6 +218,25 @@ void AMonster::FollowTarget()
 
 #pragma region Combat Function
 
+void AMonster::AttackTarget(float Time)
+{
+	if (AttackCurTime == 0)
+	{
+		AttackTime = FMath::RandRange(AttackMinTime, AttackMaxTime);
+	}
+	
+	AttackCurTime += Time;
+
+	if (AttackCurTime >= AttackTime && CombatTarget && !bIsAttackAnim && !bIsAttack )
+	{
+		AttackCurTime = 0.f;
+		AttackTime = 0.f;
+
+		PlayAttackAnim();
+	}
+}
+
+
 void AMonster::PlayAttackAnim()
 {
 	if (CombatTarget && !bIsAttackAnim && !bIsAttack)
@@ -211,12 +244,13 @@ void AMonster::PlayAttackAnim()
 		bIsAttack = true;
 
 		int32 Section = FMath::RandRange(0, 1);
+
 		UE_LOG(LogTemp, Log, TEXT("Num = %d"), Section);
 
 		switch (Section)
 		{
 		case 0:
-			PlayMontage(FName("Attack_1"), 1.2f);
+			PlayMontage(FName("Attack_1"), 1.3f);
 			break;
 
 		case 1:
@@ -236,9 +270,15 @@ void AMonster::AttackStart()
 
 void AMonster::AttackDamage()
 {
-	if (CombatTarget)
+	if (CombatTarget && DamageType)
 	{
-		CombatTarget->TakeDamage(Status.Damage);
+		UGameplayStatics::ApplyDamage(CombatTarget, Status.Damage, AIController, this, DamageType);
+
+		if (CombatTarget->GetMovementState() == EMovementState::EMS_Dead)
+		{
+			CombatTarget = nullptr;
+			DetectTarget = nullptr;
+		}
 	}
 }
 
@@ -246,11 +286,12 @@ void AMonster::AttackEnd()
 {
 	bIsAttackAnim = false;
 	bIsAttack = false;
+
 }
 
-void AMonster::TakeDamage(float Damage)
+float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser)
 {
-	int total = Damage - Status.Deffence;
+	float total = DamageAmount - Status.Deffence;
 
 	if (total > 0)
 	{
@@ -258,55 +299,70 @@ void AMonster::TakeDamage(float Damage)
 
 		if (Status.CurHP <= 0)
 		{
+			Status.CurHP = 0;
 			Death();
 		}
+
+		if (DamagedParticle)
+		{
+			/* 헤더파일 : #include "Kismet/GameplayStatics.h"
+
+				만약 무기의 어떤 위치에 파티클(Blood)를 출력시키고 싶다면? 무기의 스켈레탈 메쉬에 XXX 소켓을 만들어준다.
+				그리고 아래 코드를 작성한다. 이때 SekeletalMeshSocket을 Include 해줘야함.
+
+				const USkeletonMeshSocket* WeaponSocket = SekeltalMesh->GetSocketByName("XXXSocket");
+
+				if(WeaponSocket)
+				{
+					FVector SocketLocation = WeaponSocket->GetSocketLocation(SkeletalMesh);
+				}
+
+				그리고 GetActorLocation() -> SocketLocation 으로 바꿔주면 된다.
+			*/
+
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), DamagedParticle, GetActorLocation(), FRotator(0.f), false); // true : 재생이후 자동으로 파티클 삭제
+		}
+
+		if (DamagedSound)
+		{
+			UGameplayStatics::PlaySound2D(this, DamagedSound);
+		}
 	}
-
-	if (DamagedParticle)
-	{
-		// 헤더파일 : #include "Kismet/GameplayStatics.h"
-
-		/*
-			만약 무기의 어떤 위치에 파티클(Blood)를 출력시키고 싶다면? 무기의 스켈레탈 메쉬에 XXX 소켓을 만들어준다.
-			그리고 아래 코드를 작성한다. 이때 SekeletalMeshSocket을 Include 해줘야함.
-
-			const USkeletonMeshSocket* WeaponSocket = SekeltalMesh->GetSocketByName("XXXSocket");
-
-			if(WeaponSocket)
-			{
-				FVector SocketLocation = WeaponSocket->GetSocketLocation(SkeletalMesh);
-			}
-		
-			그리고 GetActorLocation() -> SocketLocation 으로 바꿔주면 된다.
-		*/
-		
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), DamagedParticle, GetActorLocation(), FRotator(0.f), false); // true : 재생이후 자동으로 파티클 삭제
-	}
-
-	if (DamagedSound)
-	{
-		UGameplayStatics::PlaySound2D(this, DamagedSound);
-	}
+	return total;
 }
 
 void AMonster::Death()
 {
-	SetMonsterState(EMonsterState::EMS_Death);
+	if (MonsterState != EMonsterState::EMS_Death)
+	{
+		SetMonsterState(EMonsterState::EMS_Death);
 
-	CombatTarget->AddExp(Status.Exp);
-	CombatTarget->AddGold(Status.Gold);
+		CombatTarget->AddExp(Status.Exp);
+		CombatTarget->AddGold(Status.Gold);
+		CombatTarget->RemoveWidgetMonster(this);
+		CombatTarget = nullptr;
+		DetectTarget = nullptr;
 
-	PlayMontage(FName("Death"), 0.5f);
-	
+		PlayMontage(FName("Death"), 1.f);
+
+		CombatColiision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		DetectColiision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
-void AMonster::ReturnMonster()
+void AMonster::DeathEnd()
 {
 	// 오브젝트 풀로 다시 되돌리기, 현재는 그냥 파괴시킴
 
-	Destroy();
+	GetMesh()->bPauseAnims = true;
+	GetMesh()->bNoSkeletonUpdate = true;
 }
 
+void AMonster::Respawn()
+{
+
+}
 #pragma endregion
 
 void AMonster::PlayMontage(FName Name, float PlayRate)

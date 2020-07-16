@@ -113,10 +113,25 @@ public:
 	FORCEINLINE void SetMonsterState(EMonsterState State);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Properties")
-	class USphereComponent* DetectSphere; // 감지 범위
+	class USphereComponent* DetectColiision; // 감지 범위
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Properties")
-	class USphereComponent* CombatSphere; // 공격 볌위
+	class USphereComponent* CombatColiision; // 공격 볌위
+
+	/* 
+		기존 Skeleton 메쉬에 Socket을 생성하고, 그곳에 Compnent*를 붙여서 사용할 수 도 있음.
+
+		그럴경우 CombatCollision->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("소켓 명칭"))
+
+		그리고 CombatColiision의 반응 여부 또한 고쳐야한다.
+
+		CombatCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 공격 시작시 Active해주면됨.
+		CombatCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+		CombatCollision->SetCollisionResponseToChannels(ECollisionResponse::ECR_Ignore);
+		CombatCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+
+		마지막으로 파티클도 소켓의 위치에서 생성하면 끝!
+	*/
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
 	class UParticleSystem* DamagedParticle;
@@ -140,6 +155,21 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	class AMainPlayer* CombatTarget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
+	float AttackMinTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
+	float AttackMaxTime;
+
+	/*
+		만약 Tick을 이용하지 않는다면 FTimerHandle을 이용해야한다.
+
+		GetWorldTimerManager().SetTimer(시간핸들, this, 실행 함수 명칭, 타이머 시간)과
+		GetWorldTimerManager().ClearTimer(타이머 시간)을 이용하낟.
+	*/
+
+	float AttackCurTime;
+	float AttackTime;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	bool bCanAttack; // 플레이어를 공격(공격 사거리 IN??)할 수 있는가?
@@ -150,6 +180,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	bool bIsAttackAnim; // 공격 애니메이션이 종료됬는가?
 	
+	void AttackTarget(float Time);
 	void PlayAttackAnim();
 
 	UFUNCTION(BlueprintCallable)
@@ -161,8 +192,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AttackEnd(); // bIsAttacking = false
 
+	void Death();
+	void Respawn();
+
 	UFUNCTION(BlueprintCallable)
-	void ReturnMonster();
+	void DeathEnd();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category ="Monster|Combat")
+	TSubclassOf<UDamageType> DamageType;
 #pragma endregion
 
 protected:
@@ -187,11 +224,9 @@ public:
 
 	UFUNCTION()
 	virtual void OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-	
-	void TakeDamage(float Damage);
-	void Death();
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
+	//virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
 	void FollowTarget();
 	void PlayMontage(FName Name, float PlayRate);
-
-	bool IsTargetPlayer(AActor* OtherActor);
 };

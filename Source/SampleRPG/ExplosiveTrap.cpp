@@ -40,7 +40,7 @@ void AExplosiveTrap::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 				UGameplayStatics::PlaySound2D(this, InteractSound);
 			}
 
-			Player->TakeDamage(Damage);
+			//Player->TakeDamage(Damage);
 
 			Destroy();
 		}

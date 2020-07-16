@@ -11,8 +11,10 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Sound/SoundCue.h"
 #include "UObject/ConstructorHelpers.h"
+
 
 #include "Animation/AnimInstance.h"
 
@@ -62,6 +64,9 @@ AMainPlayer::AMainPlayer()
 #pragma region Status
 	NormalSpeed = 600.f;
 	SprintSpeed = 1000.f;
+	StaminaRate = 15.f;
+
+	RollCost = 50.f;
 #pragma endregion
 
 	// #include "UObject/ConstructorHelpers.h"
@@ -74,6 +79,8 @@ AMainPlayer::AMainPlayer()
 	}
 
 	Equipments.Init(nullptr, 10); 
+
+	InterpSpeed = 15.f;
 }
 
 // Called when the game starts or when spawned
@@ -90,6 +97,21 @@ void AMainPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	IncreaseStamina(DeltaTime);
+	InterpToMonster(DeltaTime);
+}
+
+void AMainPlayer::IncreaseStamina(float DeltaTime)
+{
+	if (Status.CurStamina <= Status.MaxStamina)
+	{
+		Status.CurStamina += DeltaTime * StaminaRate;
+	}
+
+	else
+	{
+		Status.CurStamina = Status.MaxStamina;
+	}
 }
 
 // Called to bind functionality to input
@@ -118,10 +140,10 @@ void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAxis("UpDownView", this, &APawn::AddControllerPitchInput);
 }
 
-#pragma region Movement/Roll
+#pragma region Movement/Roll Function
 void AMainPlayer::MoveForward(float Value)
 {
-	if (Value != 0.f && Controller && !bIsAttackAnim)
+	if (Value != 0.f && Controller && !bIsAttackAnim && MovementState != EMovementState::EMS_Dead)
 	{
 		FRotator Rotation = Controller->GetControlRotation(); // 현재 캐릭터의 회전 매트릭스를 구한다.
 		FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
@@ -143,7 +165,7 @@ void AMainPlayer::MoveForward(float Value)
 
 void AMainPlayer::MoveRight(float Value)
 {
-	if (Value != 0.f && Controller && !bIsAttackAnim)
+	if (Value != 0.f && Controller && !bIsAttackAnim && MovementState != EMovementState::EMS_Dead)
 	{
 		FRotator Rotation = Controller->GetControlRotation();
 		FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
@@ -187,8 +209,9 @@ void AMainPlayer::LeftShiftKeyUp()
 
 void AMainPlayer::Roll()
 {
-	if (!bIsRoll)
+	if (!bIsRoll && MovementState != EMovementState::EMS_Dead && Status.CurStamina >= RollCost )
 	{
+		Status.CurStamina -= RollCost;
 		bIsRoll = true;
 
 		PlayMontage(FName("Roll"), 1.f);
@@ -201,7 +224,7 @@ void AMainPlayer::RollEnd()
 }
 #pragma endregion
 
-#pragma region Status
+#pragma region Status Function
 void AMainPlayer::AddExp(int32 Exp)
 {
 	Status.CurExp += Exp;
@@ -242,9 +265,16 @@ void AMainPlayer::SetLevelStatus(int32 CurLevel)
 	Status.Intelligence = (*PlayerStatusTableRow).Intelligence;
 }
 
-void AMainPlayer::TakeDamage(float Damage)
+float AMainPlayer::TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser)
 {
-	int total = Damage - Status.Deffence;
+	if (bIsRoll)
+	{
+		UE_LOG(LogTemp, Log, TEXT("ROLL!!!"));
+
+		return 0.f;
+	}
+
+	float total = DamageAmount - Status.Deffence;
 
 	if (total > 0)
 	{
@@ -252,21 +282,42 @@ void AMainPlayer::TakeDamage(float Damage)
 
 		if (Status.CurHP <= 0)
 		{
+			Status.CurHP = 0;
 			Death();
 		}
+
+		if (DamagedSound)
+		{
+			UGameplayStatics::PlaySound2D(this, DamagedSound, 0.5f);
+
+		}
 	}
+
+	return total;
 }
 
 void AMainPlayer::Death()
 {
+	SetMovementState(EMovementState::EMS_Dead);
+
+	PlayMontage(FName("Death"), 0.7f);
+}
+
+void AMainPlayer::DeathEnd()
+{
+	GetMesh()->bPauseAnims = true;
+	GetMesh()->bNoSkeletonUpdate = true;
+}
+
+void AMainPlayer::Revive()
+{
 	Status.CurHP = Status.MaxHP;
 
-	UE_LOG(LogTemp, Warning, TEXT("Player Die!"));
-
+	GetMesh()->bPauseAnims = false;
+	GetMesh()->bNoSkeletonUpdate = false;
 }
 
 #pragma endregion
-
 
 #pragma region Interact/Attack Mouse Button 
 void AMainPlayer::LeftClickDown()
@@ -308,25 +359,37 @@ void AMainPlayer::LeftClickUp()
 }
 #pragma endregion
 
-#pragma region AttackFunction
+#pragma region Attack Function
 
 void AMainPlayer::PlayAttackAnim()
 {
 	// 헤더파일 : #include "Engine/SkeletalMeshSocket.h"
 
 	PlayMontage(FName("Attack_1"), 2.f);
+
+	bIsInterp = true;
 }
 
 void AMainPlayer::AttackDamage()
 {
-	for (auto Monster : TargetMonsters)
+	if (TargetMonsters.Num() > 0)
 	{
-		Monster->TakeDamage(GetTotalDamage());
-	}
+		TargetMonster = TargetMonsters[0];
 
-	if (Equipments[0]->AttackSound)
-	{
-		UGameplayStatics::PlaySound2D(this, Equipments[0]->AttackSound);
+		for (auto Monster : TargetMonsters)
+		{
+			if (DamageType)
+			{
+				UGameplayStatics::ApplyDamage(Monster, Status.Damage, GetController(), this, DamageType);
+			}
+
+			//Monster->TakeDamage(GetTotalDamage());
+		}
+
+		if (Equipments[0]->AttackSound)
+		{
+			UGameplayStatics::PlaySound2D(this, Equipments[0]->AttackSound);
+		}
 	}
 }
 
@@ -340,13 +403,13 @@ void AMainPlayer::AttackStart()
 void AMainPlayer::AttackEnd()
 {
 	bIsAttackAnim = false;
+	bIsInterp = false;
 
 	Equipments[0]->SetCombatCollisionEnabled(false);
 	TargetMonsters.Empty();
 
 }
 #pragma endregion
-
 
 #pragma region Inventory Function
 void AMainPlayer::AddItem(AItem* Item) 
@@ -390,7 +453,19 @@ void AMainPlayer::AddItem(AItem* Item)
 
 void AMainPlayer::RemoveItem(AItem* Item)
 {
+	int32 SlotIndex = Inventory.IndexOfByKey(Item);
 
+	int32 TotalCount = Inventory[SlotIndex]->Count -= Item->Count;
+
+	if (TotalCount > 0)
+	{
+		Inventory[SlotIndex]->Count -= Item->Count;
+	}
+
+	else
+	{
+		Inventory.RemoveAt(SlotIndex);
+	}
 }
 
 void AMainPlayer::EquipItem(AItem* NewItem)
@@ -489,6 +564,69 @@ void AMainPlayer::UnEquipItem(AItem* Item)
 
 #pragma endregion
 
+void AMainPlayer::InterpToMonster(float DeltaTime)
+{
+	if (bIsInterp && TargetMonsters.Num() > 0)
+	{
+		FRotator DirectionYaw = GetTargetDirection(TargetMonsters[0]->GetActorLocation());
+		FRotator InterpRotaion = FMath::RInterpTo(GetActorRotation(), DirectionYaw, DeltaTime, InterpSpeed);
+
+		SetActorRotation(InterpRotaion);
+	}
+}
+
+FRotator AMainPlayer::GetTargetDirection(FVector Target)
+{
+	FRotator Direction = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Target);
+	FRotator DirectionYaw(0.f,Direction.Yaw ,0.f);
+
+	return DirectionYaw;
+}
+
+void AMainPlayer::UpdateWidgetMonster()
+{
+	if (WidgetMonsters.Num() == 0)
+	{
+		TargetMonster = nullptr;
+
+		return;
+	}
+
+	for (int32 i = 0; i < WidgetMonsters.Num() - 1; i++)
+	{
+		int32 MinIndex = i;
+
+		for (int32 j = i + 1; j < WidgetMonsters.Num(); j++)
+		{
+			if (GetPriorityByClass(WidgetMonsters[MinIndex]->Status.MonsterClass) < GetPriorityByClass(WidgetMonsters[j]->Status.MonsterClass))
+			{
+				MinIndex = j;
+			}
+		}
+
+		WidgetMonsters.Swap(i, MinIndex);
+	}
+
+	TargetMonster = WidgetMonsters[0];
+}
+
+int32 AMainPlayer::GetPriorityByClass(EMonsterClass Class)
+{
+	switch (Class)
+	{
+	case EMonsterClass::EMC_Normal:
+		return 1;
+
+	case EMonsterClass::EMC_Elite:
+		return 2;
+	
+	case EMonsterClass::EMC_Boss:
+		return 3;
+
+	default:
+		return -1;
+	}
+}
 
 void AMainPlayer::PlayMontage(FName Name, float PlayRate)
 {

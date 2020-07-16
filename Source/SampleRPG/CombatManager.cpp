@@ -34,7 +34,7 @@ void ACombatManager::TakeDamageToTarget(AActor* Attacker, AActor* Deffencer, flo
 		{
 			UE_LOG(LogTemp, Log, TEXT("Take Damage(%d) to Player"), Damage)
 
-			Target->TakeDamage(Damage);
+			//Target->TakeDamage(Damage);
 		}
 	}
 
@@ -46,7 +46,7 @@ void ACombatManager::TakeDamageToTarget(AActor* Attacker, AActor* Deffencer, flo
 		{
 			UE_LOG(LogTemp, Log, TEXT("Take Damage(%d) to Monster"), Damage)
 
-			Target->TakeDamage(Damage);
+			//Target->TakeDamage(Damage);
 		}
 	}
 }
