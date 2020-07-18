@@ -123,6 +123,7 @@ public:
 	FORCEINLINE float GetTotalDamage() { return IncDamage + Status.Damage; }
 
 	bool bIsPlayerDead;
+	void AdjustHP(float Amount, bool CanDie);
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
 	void Death();
@@ -182,11 +183,13 @@ public:
 	void AddItem(AItem* Item);
 	UFUNCTION(BlueprintCallable)
 	void RemoveItem(AItem* Item);
-	void EquipItem(AItem* NewItem);
-	void UnEquipItem(AItem* Item);
+	UFUNCTION(BlueprintCallable)
+	void UseItem(AItem* Item, int32 SlotIndex);
+	void ConsumeItem(AItem* Item, int32 SlotIndex);
+	void EquipItem(AItem* NewItem, int32 SlotIndex);
+	void UnEquipItem(AItem* Item, int32 SlotIndex);
 	
 	void WasStatusChangedByEquip(AItem* Item, bool IsEquip);
-	int GetEquipmentIndex(AItem* Item);
 	
 #pragma endregion
 

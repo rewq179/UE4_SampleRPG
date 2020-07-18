@@ -265,6 +265,29 @@ void AMainPlayer::SetLevelStatus(int32 CurLevel)
 	Status.Intelligence = (*PlayerStatusTableRow).Intelligence;
 }
 
+void AMainPlayer::AdjustHP(float Amount, bool CanDie)
+{
+	Status.CurHP += Amount;
+
+	if (Status.CurHP > Status.MaxHP)
+	{
+		Status.CurHP = Status.MaxHP;
+	}
+
+	if (Status.CurHP <= 0)
+	{
+		if (CanDie)
+		{
+			Death();
+		}
+
+		else
+		{
+			Status.CurHP = 1.f;
+		}
+	}
+}
+
 float AMainPlayer::TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser)
 {
 	if (bIsRoll)
@@ -333,14 +356,9 @@ void AMainPlayer::LeftClickDown()
 			RecentItem->IgnoreStaticMesh();
 			RecentItem->ItemOwner = this;
 			RecentItem->SetCombatCollisionEnabled(false);
-			EquipItem(RecentItem);
 		}
 
-		else
-		{
 			AddItem(RecentItem);
-		}
-
 		RecentItem = nullptr;
 	}
 
@@ -468,13 +486,42 @@ void AMainPlayer::RemoveItem(AItem* Item)
 	}
 }
 
-void AMainPlayer::EquipItem(AItem* NewItem)
+void AMainPlayer::UseItem(AItem* Item, int32 SlotIndex)
+{
+	UE_LOG(LogTemp, Log, TEXT("Index = %d // ID = %d"), SlotIndex, Item->ItemTableValue.ItemID);
+
+	if (Item->Count > 0)
+	{
+		if (Item->ItemTableValue.ItemClass == EItemClass::EIC_Equip)
+		{
+			EquipItem(Item, SlotIndex);
+		}
+
+		else if (Item->ItemTableValue.ItemClass == EItemClass::EIC_Consume)
+		{
+			ConsumeItem(Item, SlotIndex);
+		}
+	}
+}
+
+void AMainPlayer::ConsumeItem(AItem* Item, int32 SlotIndex)
+{
+	Inventory[SlotIndex]->Count--;
+
+	AdjustHP(Item->ItemTableValue.Damage, false);
+
+	if (Item->UseSound)
+	{
+		UGameplayStatics::PlaySound2D(this, Item->UseSound);
+	}
+}
+
+void AMainPlayer::EquipItem(AItem* NewItem, int32 SlotIndex)
 {
 	/*
 		0:¹«±â, 1:¹æÆÐ, 2:Çï¸ä, 3:°©¿Ê, 4:¾î±ú¹æ¾î±¸, 5:Àå°©, 6:ÇÏÀÇ, 7:½Å¹ß, 8:¾Ç¼¼ 1, 9:¾Ç¼¼ 2
 	*/
-
-	int slotIndex = GetEquipmentIndex(NewItem);
+	Inventory.RemoveAt(SlotIndex);
 
 	// Çì´õÆÄÀÏ : #include "Engine/SkeletalMeshSocket.h"
 
@@ -484,20 +531,27 @@ void AMainPlayer::EquipItem(AItem* NewItem)
 	{
 		RightHandSocket->AttachActor(NewItem, GetMesh());
 
-		if (Equipments[slotIndex])
+		if (Equipments[SlotIndex])
 		{
-			AItem* OldItem = Equipments[slotIndex];
+			AItem* OldItem = Equipments[SlotIndex];
+			AddItem(OldItem);
 			WasStatusChangedByEquip(OldItem, false);
 		}
 
-		Equipments[slotIndex] = NewItem;
+		Equipments[SlotIndex] = NewItem;
 		WasStatusChangedByEquip(NewItem, true);
+		
 	}
 
 	if (Equipments[0]->UseSound)
 	{
 		UGameplayStatics::PlaySound2D(this, Equipments[0]->UseSound);
 	}
+}
+
+void AMainPlayer::UnEquipItem(AItem* Item, int32 SlotIndex)
+{
+
 }
 
 void AMainPlayer::WasStatusChangedByEquip(AItem* Item, bool IsEquip)
@@ -521,46 +575,6 @@ void AMainPlayer::WasStatusChangedByEquip(AItem* Item, bool IsEquip)
 	}
 }
 
-int AMainPlayer::GetEquipmentIndex(AItem* Item)
-{
-	switch (Item->ItemTableValue.ItemType)
-	{
-	case EItemType::EIT_Weapon:
-		return 0;
-
-	case EItemType::EIT_Shield:
-		return 1;
-
-	case EItemType::EIT_Helmet:
-		return 2;
-
-	case EItemType::EIT_Chest:
-		return 3;
-
-	case EItemType::EIT_Shoulder:
-		return 4;
-
-	case EItemType::EIT_Glove:
-		return 5;
-
-	case EItemType::EIT_Pants:
-		return 6;
-
-	case EItemType::EIT_Boots:
-		return 7;
-
-	case EItemType::EIT_Ring:
-		return 8;
-
-	default:
-		return -1;
-	}
-}
-
-void AMainPlayer::UnEquipItem(AItem* Item)
-{
-
-}
 
 #pragma endregion
 

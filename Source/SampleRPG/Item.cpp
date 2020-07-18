@@ -19,10 +19,10 @@
 // Sets default values
 AItem::AItem()
 {
-
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+ 	// Set this actor to call Tick() every f	rame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	//static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("DataTable'/Game/DataTable/ItemTable.ItemTable'"));
 	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("DataTable'/Game/DataTable/ItemTable.ItemTable'"));
 
 	if (DataTable.Succeeded())
@@ -100,17 +100,22 @@ void AItem::SetItemData()
 			ItemTableValue.Strength = (*ItemTableRow).Strength;
 			ItemTableValue.Dexterity = (*ItemTableRow).Dexterity;
 			ItemTableValue.Intelligence = (*ItemTableRow).Intelligence;
+			ItemTableValue.Mesh = (*ItemTableRow).Mesh;
+
 
 			//Mesh = Cast<UStaticMeshComponent>((*ItemTableRow).Mesh);
 			Mesh->SetStaticMesh((*ItemTableRow).Mesh);
 
 			if (ItemTableValue.ItemClass == EItemClass::EIC_Equip && (*ItemTableRow).EquipMesh != nullptr)
 			{
+				ItemTableValue.EquipMesh = (*ItemTableRow).EquipMesh;
+
 				EquipMesh->SetSkeletalMesh((*ItemTableRow).EquipMesh);
 				EquipMesh->SetVisibility(false);
 			}
 
 			Icon = (*ItemTableRow).Icon;
+			ItemTableValue.Icon = (*ItemTableRow).Icon;
 		}
 	}
 }
