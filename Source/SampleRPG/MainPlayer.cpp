@@ -15,8 +15,9 @@
 #include "Sound/SoundCue.h"
 #include "UObject/ConstructorHelpers.h"
 
-
+#include "RPGSaveGame.h"
 #include "Animation/AnimInstance.h"
+#include "ItemStorage.h"
 
 // Sets default values
 AMainPlayer::AMainPlayer()
@@ -78,7 +79,7 @@ AMainPlayer::AMainPlayer()
 		PlayerStatusTable = DataTable.Object;
 	}
 
-	Equipments.Init(nullptr, 10); 
+	Equipments.Init(nullptr, 10);
 
 	InterpSpeed = 15.f;
 }
@@ -88,6 +89,10 @@ void AMainPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (ItemStorageBP)
+	{
+		ItemStorage = GetWorld()->SpawnActor<AItemStorage>(ItemStorageBP);
+	}
 
 	SetLevelStatus(1);
 }
@@ -103,7 +108,7 @@ void AMainPlayer::Tick(float DeltaTime)
 
 void AMainPlayer::IncreaseStamina(float DeltaTime)
 {
-	if (Status.CurStamina <= Status.MaxStamina)
+	if (Status.CurStamina < Status.MaxStamina)
 	{
 		Status.CurStamina += DeltaTime * StaminaRate;
 	}
@@ -292,12 +297,10 @@ float AMainPlayer::TakeDamage(float DamageAmount, struct FDamageEvent const & Da
 {
 	if (bIsRoll)
 	{
-		UE_LOG(LogTemp, Log, TEXT("ROLL!!!"));
-
 		return 0.f;
 	}
 
-	float total = DamageAmount - Status.Deffence;
+	float total = DamageAmount - GetTotalDeffence();
 
 	if (total > 0)
 	{
@@ -350,15 +353,9 @@ void AMainPlayer::LeftClickDown()
 	if (RecentItem)
 	{
 		RecentItem->SetItemState(EItemState::EIS_Inv);
-
-		if (RecentItem->ItemTableValue.ItemType == EItemType::EIT_Weapon)
-		{
-			RecentItem->IgnoreStaticMesh();
-			RecentItem->ItemOwner = this;
-			RecentItem->SetCombatCollisionEnabled(false);
-		}
-
-			AddItem(RecentItem);
+		RecentItem->ItemOwner = this;
+		
+		AddItem(RecentItem);
 		RecentItem = nullptr;
 	}
 
@@ -430,7 +427,7 @@ void AMainPlayer::AttackEnd()
 #pragma endregion
 
 #pragma region Inventory Function
-void AMainPlayer::AddItem(AItem* Item) 
+void AMainPlayer::AddItem(AItem* Item)
 {
 	/*
 		원리 :  인벤토리를 훑어서 아이템이 존재하는지 확인한다.
@@ -438,35 +435,93 @@ void AMainPlayer::AddItem(AItem* Item)
 		if) O : Item의 Count를 증가한다. Count가 Max를 넘어가면 새로운 공간에 Item을 배치한다.
 		if) X : 새로운 공간에 해당 Item을 배치한다.
 	*/
+	int32 InvIndex = GetInventoryIndex(Item);
+	int32 TotalCount = Item->Count;
+	int32 MaxCount = Item->ItemTableValue.MaxCount;
 
-	for (int32 Index = 0; Index != Inventory.Num(); Index++)
+	if (InvIndex != -1) // 인벤토리에 아이템이 존재한다
 	{
-		if (Inventory[Index]->ItemID == Item->ItemID)
+		TotalCount += Inventory[InvIndex]->Count;
+
+		if (TotalCount > MaxCount)
 		{
-			int32 TotalCount = Inventory[Index]->Count + Item->Count;
-			int32 MaxCount = Item->ItemTableValue.MaxCount;
+			Inventory[InvIndex]->Count = MaxCount;
+			TotalCount -= MaxCount;
+			
+			DevideItemCount(Item, TotalCount);
+		}
 
-			if (TotalCount <= MaxCount) 
-			{
-				Inventory[Index]->Count += Item->Count;
-			}
-
-			else
-			{ 
-				Inventory[Index]->Count = MaxCount;
-
-				Item->Count = TotalCount - MaxCount;
-				Item->ItemOwner = this;
-				Inventory.Add(Item);
-
-				//UE_LOG(LogTemp, Log, TEXT("Apple Count : %d // A2 Count : %d"), Inventory[0]->Count, Inventory[1]->Count);
-			}
-
-			return;
+		else
+		{
+			Inventory[InvIndex]->Count += Item->Count;
 		}
 	}
+
+	else // 인벤토리에 아이템이 없다
+	{
+		if (Item->Count > MaxCount)
+		{
+			Item->Count = MaxCount;
+			TotalCount -= MaxCount;
+			Inventory.Add(Item);
+
+			DevideItemCount(Item, TotalCount);
+		}
+
+		else
+		{
+			Inventory.Add(Item);
+		}
+	}
+
+
+	if (Item->ItemTableValue.ItemClass == EItemClass::EIC_Equip)
+	{
+		Item->IgnoreStaticMesh();
+		Item->SetCombatCollisionEnabled(false);
+	}
 	
-	Inventory.Add(Item);
+	Item->ItemOwner = this;
+	Item->SetActorLocation(FVector(0.f));
+
+	UpdateInventorySlot();
+}
+
+int32 AMainPlayer::GetInventoryIndex(AItem* Item)
+{
+	for (int32 InvIndex = 0; InvIndex != Inventory.Num(); InvIndex++) // 해당 아이템이 있나?
+	{
+		if (Inventory[InvIndex]->ItemID == Item->ItemID)
+		{
+			if (Inventory[InvIndex]->Count < Item->ItemTableValue.MaxCount)
+			{
+				return InvIndex;
+			}
+		}
+	}
+
+	return -1;
+}
+
+void AMainPlayer::DevideItemCount(AItem* Item, int32 TotalCount)
+{
+	while (TotalCount > 0)
+	{
+		AItem* DevideItem = GetItem(Item->ItemID);
+
+		if (TotalCount > Item->ItemTableValue.MaxCount)
+		{
+			DevideItem->Count = Item->ItemTableValue.MaxCount;
+		}
+
+		else
+		{
+			DevideItem->Count = TotalCount;
+		}
+
+		Inventory.Add(DevideItem);
+		TotalCount -= Item->ItemTableValue.MaxCount;
+	}
 }
 
 void AMainPlayer::RemoveItem(AItem* Item)
@@ -488,8 +543,6 @@ void AMainPlayer::RemoveItem(AItem* Item)
 
 void AMainPlayer::UseItem(AItem* Item, int32 SlotIndex)
 {
-	UE_LOG(LogTemp, Log, TEXT("Index = %d // ID = %d"), SlotIndex, Item->ItemTableValue.ItemID);
-
 	if (Item->Count > 0)
 	{
 		if (Item->ItemTableValue.ItemClass == EItemClass::EIC_Equip)
@@ -516,42 +569,100 @@ void AMainPlayer::ConsumeItem(AItem* Item, int32 SlotIndex)
 	}
 }
 
-void AMainPlayer::EquipItem(AItem* NewItem, int32 SlotIndex)
+void AMainPlayer::EquipItem(AItem* NewItem, int32 InvIndex)
 {
 	/*
 		0:무기, 1:방패, 2:헬멧, 3:갑옷, 4:어깨방어구, 5:장갑, 6:하의, 7:신발, 8:악세 1, 9:악세 2
 	*/
-	Inventory.RemoveAt(SlotIndex);
+	Inventory.RemoveAt(InvIndex);
+
+	int32 EquipIndex = GetEquipmentIndex(NewItem);
 
 	// 헤더파일 : #include "Engine/SkeletalMeshSocket.h"
 
-	const USkeletalMeshSocket* RightHandSocket = GetMesh()->GetSocketByName("RightHandSocket");
-
-	if (RightHandSocket)
+	if (EquipIndex == 0) // 무기
 	{
-		RightHandSocket->AttachActor(NewItem, GetMesh());
+		const USkeletalMeshSocket* RightHandSocket = GetMesh()->GetSocketByName("RightHandSocket");
 
-		if (Equipments[SlotIndex])
+		if (RightHandSocket)
 		{
-			AItem* OldItem = Equipments[SlotIndex];
-			AddItem(OldItem);
-			WasStatusChangedByEquip(OldItem, false);
+			RightHandSocket->AttachActor(NewItem, GetMesh());
 		}
-
-		Equipments[SlotIndex] = NewItem;
-		WasStatusChangedByEquip(NewItem, true);
-		
 	}
 
-	if (Equipments[0]->UseSound)
+	else if (EquipIndex == 1) // 방패
 	{
-		UGameplayStatics::PlaySound2D(this, Equipments[0]->UseSound);
+		const USkeletalMeshSocket* LeftHandSocket = GetMesh()->GetSocketByName("LeftHandSocket");
+
+		if (LeftHandSocket)
+		{
+			LeftHandSocket->AttachActor(NewItem, GetMesh());
+		}
+	}
+
+	else if (EquipIndex == 8) // 반지
+	{
+		if (Equipments[8] && !Equipments[9])
+		{
+			EquipIndex++;
+		}
+	}
+
+	if (Equipments[EquipIndex])
+	{
+		UnEquipItem(EquipIndex);
+	}
+
+	Equipments[EquipIndex] = NewItem;
+	WasStatusChangedByEquip(NewItem, true);
+
+	if (Equipments[EquipIndex]->UseSound)
+	{
+		UGameplayStatics::PlaySound2D(this, Equipments[EquipIndex]->UseSound);
 	}
 }
 
-void AMainPlayer::UnEquipItem(AItem* Item, int32 SlotIndex)
+void AMainPlayer::UnEquipItem(int32 SlotIndex)
 {
+	WasStatusChangedByEquip(Equipments[SlotIndex], false);
+	AddItem(Equipments[SlotIndex]);
+	Equipments[SlotIndex] = nullptr;
+}
 
+int32 AMainPlayer::GetEquipmentIndex(AItem* Item)
+{
+	switch (Item->ItemTableValue.ItemType)
+	{
+	case EItemType::EIT_Weapon:
+		return 0;
+
+	case EItemType::EIT_Shield:
+		return 1;
+
+	case EItemType::EIT_Helmet:
+		return 2;
+
+	case EItemType::EIT_Chest:
+		return 3;
+
+	case EItemType::EIT_Shoulder:
+		return 4;
+
+	case EItemType::EIT_Glove:
+		return 5;
+
+	case EItemType::EIT_Pants:
+		return 6;
+
+	case EItemType::EIT_Boots:
+		return 7;
+
+	case EItemType::EIT_Ring:
+		return 8;
+
+	default:
+		return -1;
+	}
 }
 
 void AMainPlayer::WasStatusChangedByEquip(AItem* Item, bool IsEquip)
@@ -653,3 +764,142 @@ void AMainPlayer::PlayMontage(FName Name, float PlayRate)
 	}
 }
 
+void AMainPlayer::SwitchLevel(FName LevelName)
+{
+	UWorld* World = GetWorld();
+
+	if (World)
+	{
+		FName CurLevelName(*World->GetMapName());
+
+		if (CurLevelName != LevelName)
+		{
+			UGameplayStatics::OpenLevel(World, LevelName);
+		}
+	}
+}
+
+void AMainPlayer::SaveGame()
+{
+	URPGSaveGame* SaveGameInstance =  Cast<URPGSaveGame>(UGameplayStatics::CreateSaveGameObject(URPGSaveGame::StaticClass()));
+
+	SaveGameInstance->PlayerStatus.Level = Status.Level;
+	SaveGameInstance->PlayerStatus.CurExp = Status.CurExp;
+	SaveGameInstance->PlayerStatus.MaxExp = Status.MaxExp;
+	SaveGameInstance->PlayerStatus.CurHP = Status.CurHP;
+	SaveGameInstance->PlayerStatus.MaxHP = Status.MaxHP;
+	SaveGameInstance->PlayerStatus.CurStamina = Status.CurStamina;
+	SaveGameInstance->PlayerStatus.MaxStamina = Status.MaxStamina;
+	SaveGameInstance->PlayerStatus.Damage = Status.Damage;
+	SaveGameInstance->PlayerStatus.Deffence = Status.Deffence;
+	SaveGameInstance->PlayerStatus.Strength = Status.Strength;
+	SaveGameInstance->PlayerStatus.Dexterity = Status.Dexterity;
+	SaveGameInstance->PlayerStatus.Intelligence = Status.Intelligence;
+
+	SaveGameInstance->Location = GetActorLocation();
+	SaveGameInstance->Rotation = GetActorRotation();
+
+	for (auto Item : Inventory)
+	{
+		if (SaveGameInstance->InventoryItemMap.Contains(Item->ItemID))
+		{
+			int32 Key = GetItemKey(SaveGameInstance->InventoryItemMap, Item->ItemID);
+			int32 Value = SaveGameInstance->InventoryItemMap[Key];
+			
+			SaveGameInstance->InventoryItemMap.Emplace(Item->ItemID, Value + Item->Count);
+		}
+
+		else
+		{
+			SaveGameInstance->InventoryItemMap.Add(Item->ItemID, Item->Count);
+		}
+	}
+
+	for (int32 SlotIndex = 0; SlotIndex < 10; SlotIndex++ )
+	{
+		if (Equipments[SlotIndex])
+		{
+			SaveGameInstance->EquipmentItem[SlotIndex] = Equipments[SlotIndex]->ItemID;
+		}
+
+		else
+		{
+			SaveGameInstance->EquipmentItem[SlotIndex] = -1;
+		}
+	}
+
+	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->PlayerName, SaveGameInstance->UserIndex);
+}
+
+int32 AMainPlayer::GetItemKey(TMap<int32, int32> Map, int32 ID)
+{
+	int32 Key = -1;
+
+	for (auto& Item : Map)
+	{
+		if (Item.Key == ID)
+		{
+			Key = Item.Key;
+		}
+	}
+
+	return Key;
+}
+
+void AMainPlayer::LoadGame(bool SetPosition)
+{
+	URPGSaveGame* LoadGameInstance = Cast<URPGSaveGame>(UGameplayStatics::CreateSaveGameObject(URPGSaveGame::StaticClass()));
+
+	LoadGameInstance = Cast<URPGSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->PlayerName, LoadGameInstance->UserIndex));
+
+	Status.Level = LoadGameInstance->PlayerStatus.Level;
+	Status.CurExp = LoadGameInstance->PlayerStatus.CurExp;
+	Status.MaxExp = LoadGameInstance->PlayerStatus.MaxExp;
+	Status.CurHP = LoadGameInstance->PlayerStatus.CurHP;
+	Status.MaxHP = LoadGameInstance->PlayerStatus.MaxHP;
+	Status.CurStamina = LoadGameInstance->PlayerStatus.CurStamina;
+	Status.MaxStamina = LoadGameInstance->PlayerStatus.MaxStamina;
+	Status.Damage = LoadGameInstance->PlayerStatus.Damage;
+	Status.Deffence = LoadGameInstance->PlayerStatus.Deffence;
+	Status.Strength = LoadGameInstance->PlayerStatus.Strength;
+	Status.Dexterity = LoadGameInstance->PlayerStatus.Dexterity;
+	Status.Intelligence = LoadGameInstance->PlayerStatus.Intelligence;
+
+	if (SetPosition)
+	{
+		SetActorLocation(LoadGameInstance->Location);
+		SetActorRotation(LoadGameInstance->Rotation);
+	}
+
+	if (ItemStorageBP && ItemStorage)
+	{
+		Inventory.Empty();
+
+		for (auto InvItem : LoadGameInstance->InventoryItemMap)
+		{
+			AItem* Item = GetItem(InvItem.Key);
+			Item->Count = InvItem.Value;
+
+			AddItem(Item);
+		}
+
+		for (int32 SlotIndex = 0; SlotIndex < 10; SlotIndex++)
+		{
+			if (LoadGameInstance->EquipmentItem[SlotIndex] >= 0)
+			{
+				AItem* Item = GetItem(LoadGameInstance->EquipmentItem[SlotIndex]);
+				Item->Count = 1;
+
+				AddItem(Item);
+				EquipItem(Item, SlotIndex);
+			}
+		}
+	}
+}
+
+AItem* AMainPlayer::GetItem(int32 ItemID)
+{
+	AItem* Item = GetWorld()->SpawnActor<AItem>(ItemStorage->ItemMap[ItemID]);
+
+	return Item;
+}

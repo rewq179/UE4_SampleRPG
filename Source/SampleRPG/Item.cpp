@@ -88,6 +88,7 @@ void AItem::SetItemData()
 			ItemTableValue.Name = (*ItemTableRow).Name;
 
 			ItemTableValue.ItemID = (*ItemTableRow).ItemID;
+			//ItemID = (*ItemTableRow).ItemID;
 			ItemTableValue.ItemClass = (*ItemTableRow).ItemClass;
 			ItemTableValue.ItemType = (*ItemTableRow).ItemType;
 			ItemTableValue.Name = (*ItemTableRow).Name;

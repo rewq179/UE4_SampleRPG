@@ -72,6 +72,14 @@ public:
 	// Sets default values for this character's properties
 	AMainPlayer();
 
+	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|SaveData")
+	TSubclassOf<class AItemStorage> ItemStorageBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|SaveData")
+	class AItemStorage* ItemStorage;
+
+	int32 GetItemKey(TMap<int32, int32> Map, int32 ID);
+
 #pragma region MovementState
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
 	EMovementState MovementState;
@@ -121,6 +129,7 @@ public:
 	int32 IncIntelligence;
 
 	FORCEINLINE float GetTotalDamage() { return IncDamage + Status.Damage; }
+	FORCEINLINE float GetTotalDeffence() { return IncDeffence + Status.Deffence; }
 
 	bool bIsPlayerDead;
 	void AdjustHP(float Amount, bool CanDie);
@@ -183,14 +192,25 @@ public:
 	void AddItem(AItem* Item);
 	UFUNCTION(BlueprintCallable)
 	void RemoveItem(AItem* Item);
+	
+	int32 GetInventoryIndex(AItem* Item);
+	void DevideItemCount(AItem* Item, int32 TotalCount);
+
 	UFUNCTION(BlueprintCallable)
 	void UseItem(AItem* Item, int32 SlotIndex);
 	void ConsumeItem(AItem* Item, int32 SlotIndex);
-	void EquipItem(AItem* NewItem, int32 SlotIndex);
-	void UnEquipItem(AItem* Item, int32 SlotIndex);
+
+	void EquipItem(AItem* NewItem, int32 InvIndex);
+	UFUNCTION(BlueprintCallable)
+	void UnEquipItem(int32 SlotIndex);
+
+	int32 GetEquipmentIndex(AItem* Item);
 	
 	void WasStatusChangedByEquip(AItem* Item, bool IsEquip);
-	
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateInventorySlot();
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateEquipmentSlot();
 #pragma endregion
 
 #pragma region Combat
@@ -229,6 +249,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AttackDamage(); // 데미지 주는 시점
 	UFUNCTION(BlueprintCallable)
+	
 	void AttackEnd(); // CombatCollision 비활성화
 	
 #pragma endregion
@@ -269,5 +290,13 @@ public:
 
 	void PlayMontage(FName Name, float PlayRate);
 
+	void SwitchLevel(FName LevelName);
+
+	UFUNCTION(BlueprintCallable)
+	void SaveGame();
+	UFUNCTION(BlueprintCallable)
+	void LoadGame(bool SetPosition);
+
+	AItem* GetItem(int32 ItemID);
 
 };
