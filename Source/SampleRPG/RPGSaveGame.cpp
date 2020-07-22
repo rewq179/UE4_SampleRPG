@@ -6,6 +6,7 @@
 URPGSaveGame::URPGSaveGame()
 {
 	PlayerName = TEXT("Default");
+	LevelName = TEXT("Default");
 
 	UserIndex = 0;
 

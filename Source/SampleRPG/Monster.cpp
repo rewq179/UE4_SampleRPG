@@ -338,7 +338,7 @@ void AMonster::Death()
 		SetMonsterState(EMonsterState::EMS_Death);
 
 		CombatTarget->AddExp(Status.Exp);
-		CombatTarget->AddGold(Status.Gold);
+		//CombatTarget->AddGold(Status.Gold);
 		CombatTarget->RemoveWidgetMonster(this);
 		CombatTarget = nullptr;
 		DetectTarget = nullptr;

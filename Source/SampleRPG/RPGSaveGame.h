@@ -4,17 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
-#include "MainPlayer.h"
+#include "PlayerStatus.h"
 #include "RPGSaveGame.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class SAMPLERPG_API URPGSaveGame : public USaveGame
 {
 	GENERATED_BODY()
-	
 	
 public:
 	URPGSaveGame();
@@ -26,13 +22,16 @@ public:
 	uint32 UserIndex;
 
 	UPROPERTY(VisibleAnywhere, Category = Basic)
-	FPlayerStatusTable PlayerStatus;
+	FPlayerStatTable PlayerStat;
 
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	FVector Location;
 
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	FRotator Rotation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level|Transition")
+	FString LevelName;
 
 	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|SaveData")
 	TMap<int32, int32> InventoryItemMap;

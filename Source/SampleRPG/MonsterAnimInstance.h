@@ -19,7 +19,7 @@ public:
 	virtual void NativeInitializeAnimation() override;
 
 	UFUNCTION(BlueprintCallable, Category = AnimationProperties)
-		void UpdateProperty();
+	void UpdateProperty();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement)
 	float MoveSpeed; // 이동속도에 따라 애니메이션을 따로 재생(블랜드)함.

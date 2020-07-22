@@ -15,53 +15,9 @@ enum class EMovementState : uint8
 	EMS_Sprint UMETA(DisplayName = "Sprint"),
 	EMS_Roll UMETA(DisplayName = "Roll"),
 	EMS_Dead UMETA(DisplayName = "Dead"),
-	
+
 	EMS_MAX
 };
-
-USTRUCT(BlueprintType)
-struct FPlayerStatusTable : public FTableRowBase
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	int32 Level;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	int32 CurExp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	int32 MaxExp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	float CurHP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	float MaxHP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	float CurStamina;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	float MaxStamina;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	float Damage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	float Deffence;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	int32 Strength;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	int32 Dexterity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	int32 Intelligence;
-};
-
 
 UCLASS()
 class SAMPLERPG_API AMainPlayer : public ACharacter
@@ -72,89 +28,61 @@ public:
 	// Sets default values for this character's properties
 	AMainPlayer();
 
-	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|SaveData")
-	TSubclassOf<class AItemStorage> ItemStorageBP;
+	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
+	TSubclassOf<class AInventory> InventoryBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|SaveData")
-	class AItemStorage* ItemStorage;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	class AInventory* Inventory;
 
-	int32 GetItemKey(TMap<int32, int32> Map, int32 ID);
+	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
+	TSubclassOf<class APlayerCombat> PlayerCombatBP;
 
-#pragma region MovementState
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	class APlayerCombat* PlayerCombat;
+
+	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
+	TSubclassOf<class APlayerStatus> PlayerStatusBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	class APlayerStatus* PlayerStatus;
+
+#pragma region State
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
 	EMovementState MovementState;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
-	float NormalSpeed; // 일반 달리기 Max 속도
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
-	float SprintSpeed; // 스피린트 Max 속도
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
-	float StaminaRate; // 스테미나 증가량
-
-	void IncreaseStamina(float DeltaTime);
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
-	float RollCost;
 
 	void SetMovementState(EMovementState State);
 	FORCEINLINE EMovementState GetMovementState() { return MovementState; }
 
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
+		float NormalSpeed; // 일반 달리기 Max 속도
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
+		float SprintSpeed; // 스피린트 Max 속도
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|State")
+	bool bIsEquip;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|State")
+	bool bIsAttackAnim; // 어택 애니메이션이 진행중인가?
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
+	float RollCost;
+
 #pragma endregion
 
-#pragma region Status
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|UI")
+		bool bIsMenuVisible;
 
-	class UDataTable* PlayerStatusTable;
-	FPlayerStatusTable* PlayerStatusTableRow;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
-	FPlayerStatusTable Status;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
-	int32 Intelligence;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
-	float IncDamage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
-	float IncDeffence;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
-	int32 IncStrength;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
-	int32 IncDexterity;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Status")
-	int32 IncIntelligence;
-
-	FORCEINLINE float GetTotalDamage() { return IncDamage + Status.Damage; }
-	FORCEINLINE float GetTotalDeffence() { return IncDeffence + Status.Deffence; }
-
-	bool bIsPlayerDead;
+#pragma region Combat
+	void AddExp(int32 Exp);
 	void AdjustHP(float Amount, bool CanDie);
 
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
-	void Death();
-	UFUNCTION(BlueprintCallable)
-	void DeathEnd();
-	void Revive();
-	void AddExp(int32 Exp);
-	void CheckLevelUP();
-	void SetLevelStatus(int32 CurLevel);
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Combat")
-	TSubclassOf<UDamageType> DamageType;
-	
+	void AddTargetMonster(class AMonster* Monster);
+	void AddWidgetMonster(class AMonster* Monster);
+	void RemoveWidgetMonster(class AMonster* Monster);
 #pragma endregion
 
-#pragma region Interp
-	float InterpSpeed;
-	bool bIsInterp;
-
-	FRotator GetTargetDirection(FVector Target);
-	void InterpToMonster(float DeltaTime); // 캐릭터가 공격대상을 바라보게함
-#pragma endregion
 
 #pragma region Camera
 	/*
@@ -163,97 +91,19 @@ public:
 	*/
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class USpringArmComponent* CameraBoom; // 셀카봉
+	class USpringArmComponent* CameraBoom; // 셀카봉
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class UCameraComponent* FollowCamera; // 카메라
+	class UCameraComponent* FollowCamera; // 카메라
 
 	FVector2D CameraInputValue; // 마우스 이동에 따른 값
 #pragma endregion
 
-#pragma region Inventory/Equipments
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Inventory")
-	TArray<AItem*> Inventory;
+
+	//FORCEINLINE void AddGold(int32 Value) { Inventory->AddGold(Value); }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Inventory")
-	int32 Gold;
-
-	FORCEINLINE void AddGold(int32 Value) { Gold += Value; }
-	FORCEINLINE void RemoveGold(int32 Value) { Gold -= Value; }
-
-	// 장착 아이템
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Equipment")
-	TArray<AItem*> Equipments; 
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Equipment")
-	AItem* RecentItem;
-
-	void AddItem(AItem* Item);
-	UFUNCTION(BlueprintCallable)
-	void RemoveItem(AItem* Item);
-	
-	int32 GetInventoryIndex(AItem* Item);
-	void DevideItemCount(AItem* Item, int32 TotalCount);
-
-	UFUNCTION(BlueprintCallable)
-	void UseItem(AItem* Item, int32 SlotIndex);
-	void ConsumeItem(AItem* Item, int32 SlotIndex);
-
-	void EquipItem(AItem* NewItem, int32 InvIndex);
-	UFUNCTION(BlueprintCallable)
-	void UnEquipItem(int32 SlotIndex);
-
-	int32 GetEquipmentIndex(AItem* Item);
-	
-	void WasStatusChangedByEquip(AItem* Item, bool IsEquip);
-	UFUNCTION(BlueprintImplementableEvent)
-	void UpdateInventorySlot();
-	UFUNCTION(BlueprintImplementableEvent)
-	void UpdateEquipmentSlot();
-#pragma endregion
-
-#pragma region Combat
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Properties")
-	class UAnimMontage* CombatMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Properties")
-	class USoundCue* DamagedSound;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Combat")
-	TArray<AMonster*> TargetMonsters;
-
-	FORCEINLINE void AddTargetMonster(AMonster* Monster) { TargetMonsters.AddUnique(Monster); }
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Combat")
-	TArray<AMonster*> WidgetMonsters;
-	
-	FORCEINLINE void AddWidgetMonster(AMonster* Monster) { WidgetMonsters.AddUnique(Monster); UpdateWidgetMonster();}
-	FORCEINLINE void RemoveWidgetMonster(AMonster* Monster) { WidgetMonsters.Remove(Monster); UpdateWidgetMonster();}
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Combat")
-	class AMonster* TargetMonster;
-	
-	void UpdateWidgetMonster();
-	int32 GetPriorityByClass(EMonsterClass Class);
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Combat")
-	bool bIsAttackAnim; // 어택 애니메이션이 진행중인가?
-	
-	void PlayAttackAnim(); // 공격 애니메이션(몽타주) 재생 관리
-
-	// 아래는 애니메이션 Notify와 연동된 함수들
-
-	UFUNCTION(BlueprintCallable)
-	void AttackStart(); // CombatCollision 활성화
-	UFUNCTION(BlueprintCallable)
-	void AttackDamage(); // 데미지 주는 시점
-	UFUNCTION(BlueprintCallable)
-	
-	void AttackEnd(); // CombatCollision 비활성화
-	
-#pragma endregion
-
+	class AItem* RecentItem;
 
 protected:
 	// Called when the game starts or when spawned
@@ -288,8 +138,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RollEnd();
 
-	void PlayMontage(FName Name, float PlayRate);
-
 	void SwitchLevel(FName LevelName);
 
 	UFUNCTION(BlueprintCallable)
@@ -297,6 +145,5 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LoadGame(bool SetPosition);
 
-	AItem* GetItem(int32 ItemID);
-
+	void LoadGameNoSwitch();
 };
