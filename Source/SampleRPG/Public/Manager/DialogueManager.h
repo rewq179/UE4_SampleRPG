@@ -4,7 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/DataTable.h"
+
 #include "DialogueManager.generated.h"
+
+USTRUCT(BlueprintType)
+struct FDialogueTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+	int32 DialogueID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+	FString Description;
+};
 
 UCLASS()
 class SAMPLERPG_API ADialogueManager : public AActor
@@ -19,9 +34,23 @@ public:
 	class AMainPlayer* MainPlayer;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dialogue|Properties")
-	class ANpcController* Npc;
+	class ANpcController* InteractNPC;
 
+	class UDataTable* DialogueTable;
+	FDialogueTable* DialogueTableRow;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dialogue|DataTable")
+	FDialogueTable Dialogue;
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dialogue|DataTable")
+	int32 DialogueID;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dialogue|Interact")
+	int32 InteractType;
+	
 	void SetActiveDialouge(class AMainPlayer* Player, class ANpcController* Npc);
+	void SetDialogueText();
 
 protected:
 	// Called when the game starts or when spawned
@@ -32,6 +61,13 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetPlayerBP(bool IsNull);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetActiveDialogue();
+
+	void UpdateInteractTypeBox();
+
 	
 };
