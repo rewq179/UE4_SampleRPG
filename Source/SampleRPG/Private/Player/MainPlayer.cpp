@@ -255,6 +255,7 @@ void AMainPlayer::StartCommunication()
 	if (InteractNPC && DialogueManager)
 	{
 		DialogueManager->SetActiveDialouge(this, InteractNPC);
+		
 	}
 }
 

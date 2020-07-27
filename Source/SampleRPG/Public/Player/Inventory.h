@@ -15,13 +15,13 @@ public:
 	// Sets default values for this actor's properties
 	AInventory();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Inventory")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
 	class AMainPlayer* MainPlayer;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
 	TSubclassOf<class AItemManager> ItemManagerBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|SaveData")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
 	class AItemManager* ItemManager;
 	
 	// º¸À¯ °ñµå

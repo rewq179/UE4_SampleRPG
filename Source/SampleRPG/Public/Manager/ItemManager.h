@@ -22,7 +22,7 @@ protected:
 public:	
 	// Called every frame
 
-	UPROPERTY(EditDefaultsOnly, Category = "Item|Data")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Data")
 	TMap<int32, TSubclassOf<class AItem>> ItemMap;
 
 	
