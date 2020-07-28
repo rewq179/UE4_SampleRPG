@@ -25,7 +25,6 @@ AItem::AItem()
  	// Set this actor to call Tick() every f	rame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("DataTable'/Game/DataTable/ItemTable.ItemTable'"));
 	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("DataTable'/Game/DataTable/ItemTable.ItemTable'"));
 
 	if (DataTable.Succeeded())
@@ -91,13 +90,14 @@ void AItem::SetItemData()
 			ItemTableValue.Name = (*ItemTableRow).Name;
 
 			ItemTableValue.ItemID = (*ItemTableRow).ItemID;
-			//ItemID = (*ItemTableRow).ItemID;
 			ItemTableValue.ItemClass = (*ItemTableRow).ItemClass;
 			ItemTableValue.ItemType = (*ItemTableRow).ItemType;
 			ItemTableValue.Name = (*ItemTableRow).Name;
 			ItemTableValue.Description = (*ItemTableRow).Description;
 			ItemTableValue.bIsDroppable = (*ItemTableRow).bIsDroppable;
 			ItemTableValue.bIsSellable = (*ItemTableRow).bIsSellable;
+			ItemTableValue.BuyPrice = (*ItemTableRow).BuyPrice;
+			ItemTableValue.SellPrice = (*ItemTableRow).SellPrice;
 			ItemTableValue.MaxCount = (*ItemTableRow).MaxCount;
 			ItemTableValue.Damage = (*ItemTableRow).Damage;
 			ItemTableValue.Deffence = (*ItemTableRow).Deffence;

@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Manager/ItemManager.h"
+#include "Engine/World.h"
+#include "Item/Item.h"
 
 
 // Sets default values
@@ -16,5 +18,26 @@ void AItemManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+FItemTable AItemManager::GetItemTableValue(int32 ItemID)
+{
+	AItem* Item = ItemMap[ItemID].GetDefaultObject();
+
+	Item->ItemID = ItemID;
+	Item->SetItemData();
+	UE_LOG(LogTemp, Log, TEXT("Input ID : %d // Output ID = %d"), ItemID ,Item->ItemTableValue.ItemID);
+
+	return Item->ItemTableValue;
+}
+
+AItem* AItemManager::CreateItemActor(int32 ItemID, int32 Count)
+{
+	AItem* Item = GetWorld()->SpawnActor<AItem>(ItemMap[ItemID]);
+
+	Item->Count = Count;
+	Item->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+	return Item;
 }
 

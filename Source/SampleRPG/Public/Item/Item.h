@@ -24,12 +24,15 @@ enum class EItemType : uint8
 	EIT_Shield UMETA(DisplayName = "Shield"),
 	EIT_Helmet UMETA(DisplayName = "Helmet"),
 	EIT_Chest UMETA(DisplayName = "Chest"),
-	EIT_Shoulder UMETA(DisplayName = "Shoulder"),
 	EIT_Glove UMETA(DisplayName = "Glove"),
+	EIT_Shoulder UMETA(DisplayName = "Shoulder"),
 	EIT_Pants UMETA(DisplayName = "Pants"),
 	EIT_Boots UMETA(DisplayName = "Boots"),
 	EIT_Ring UMETA(DisplayName = "Ring"),
 	EIT_Potion UMETA(DisplayName = "Potion"),
+	EIT_HoldPotion UMETA(DisplayName = "HoldPotion"),
+	EIT_Normal UMETA(DisplayName = "Normal"),
+	
 	EIT_MAX
 };
 
@@ -48,7 +51,7 @@ public:
 	EItemClass ItemClass = EItemClass::EIC_Equip;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	EItemType ItemType;
+	EItemType ItemType = EItemType::EIT_Potion;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
 	FText Name;
@@ -61,6 +64,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
 	bool bIsSellable = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	int32 BuyPrice;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+	int32 SellPrice;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
 	int32 MaxCount;

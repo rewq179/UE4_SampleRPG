@@ -4,6 +4,7 @@
 #include "Player/Inventory.h"
 #include "Player/PlayerCombat.h"
 #include "Player/PlayerStatus.h"
+#include "Npc/NpcController.h"
 
 #include "Manager/SaveGameManager.h"
 #include "Manager/ItemManager.h"
@@ -256,6 +257,7 @@ void AMainPlayer::StartCommunication()
 	{
 		DialogueManager->SetActiveDialouge(this, InteractNPC);
 		
+		InteractNPC->ItemManager = Inventory->ItemManager;
 	}
 }
 

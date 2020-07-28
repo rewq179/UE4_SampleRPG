@@ -43,12 +43,9 @@ public:
 	// Sets default values for this character's properties
 	ANpcController();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Npc|Properties")
-	TSubclassOf<class AItemManager> ItemManagerBP;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|Properties")
 	class AItemManager* ItemManager;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|Properties")
 	class USphereComponent* InteractCollision; // 영역에 들어왔는지 체크
 

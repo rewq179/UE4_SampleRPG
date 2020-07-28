@@ -30,11 +30,6 @@ ANpcController::ANpcController()
 void ANpcController::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if (ItemManagerBP)
-	{
-		ItemManager = GetWorld()->SpawnActor<AItemManager>(ItemManagerBP);
-	}
 
 	if (NpcTable)
 	{
