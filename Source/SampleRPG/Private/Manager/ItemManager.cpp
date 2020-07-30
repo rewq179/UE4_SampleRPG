@@ -26,7 +26,6 @@ FItemTable AItemManager::GetItemTableValue(int32 ItemID)
 
 	Item->ItemID = ItemID;
 	Item->SetItemData();
-	UE_LOG(LogTemp, Log, TEXT("Input ID : %d // Output ID = %d"), ItemID ,Item->ItemTableValue.ItemID);
 
 	return Item->ItemTableValue;
 }

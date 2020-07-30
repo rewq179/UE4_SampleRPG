@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Item/Item.h"
 #include "Inventory.generated.h"
 
 UCLASS()
@@ -35,9 +36,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Inventory")
 	TArray<class AItem*> Spaces;
 
+	UFUNCTION(BlueprintCallable)
+	void BuyItem(class AItem* Item);
+	
+	UFUNCTION(BlueprintCallable)
+	void SellItem(class AItem* Item, int32 InputCount);
+
 	void AddItem(class AItem* Item);
 	UFUNCTION(BlueprintCallable)
-	void RemoveItem(class AItem* Item);
+	void RemoveItem(class AItem* Item, int32 Count);
 
 	int32 GetInventoryIndex(class AItem* Item);
 	void DevideItemCount(class AItem* Item, int32 TotalCount);
@@ -67,6 +74,16 @@ public:
 	void UpdateInventorySlot();
 	UFUNCTION(BlueprintImplementableEvent)
 	void UpdateEquipmentSlot();
+
+	// 상점창 기능
+
+	UFUNCTION(BlueprintCallable)
+	bool IsEnoughGold(int32 Price, int32 Count);
+	
+	UFUNCTION(BlueprintCallable)
+	int32 GetItemMaxCount(FItemTable ItemTableValue, int32 ItemCount, int32 InputCount, bool IsBuyTep);
+	UFUNCTION(BlueprintCallable)
+	int32 GetItemPrice(FItemTable ItemTableValue, int32 Count, bool IsBuyTep);
 
 protected:
 	// Called when the game starts or when spawned

@@ -26,11 +26,29 @@ void AInventory::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AddGold(10000);
+
 	if (ItemManagerBP)
 	{
 		ItemManager = GetWorld()->SpawnActor<AItemManager>(ItemManagerBP);
 	}
 }
+
+void AInventory::BuyItem(AItem* Item)
+{
+	AddGold(-Item->ItemTableValue.BuyPrice * Item->Count);
+
+	AddItem(Item);
+}
+
+
+void AInventory::SellItem(AItem* Item, int32 InputCount)
+{
+	AddGold(Item->ItemTableValue.SellPrice * InputCount);
+
+	RemoveItem(Item, InputCount);
+}
+
 
 void AInventory::AddItem(AItem* Item)
 {
@@ -130,21 +148,23 @@ void AInventory::DevideItemCount(AItem* Item, int32 TotalCount)
 	}
 }
 
-void AInventory::RemoveItem(AItem* Item)
+void AInventory::RemoveItem(AItem* Item, int32 Count)
 {
 	int32 SlotIndex = Spaces.IndexOfByKey(Item);
 
-	int32 TotalCount = Spaces[SlotIndex]->Count -= Item->Count;
+	int32 TotalCount = Spaces[SlotIndex]->Count - Count;
 
 	if (TotalCount > 0)
 	{
-		Spaces[SlotIndex]->Count -= Item->Count;
+		Spaces[SlotIndex]->Count -= Count;
 	}
 
 	else
 	{
 		Spaces.RemoveAt(SlotIndex);
 	}
+	
+	UpdateInventorySlot();
 }
 
 void AInventory::UseItem(AItem* Item, int32 SlotIndex)
@@ -385,4 +405,58 @@ AItem* AInventory::CreateItemActor(int32 ItemID)
 	AItem* Item = GetWorld()->SpawnActor<AItem>(ItemManager->ItemMap[ItemID]);
 
 	return Item;
+}
+
+bool AInventory::IsEnoughGold(int32 Price, int32 Count)
+{
+	if (Price * Count <= Gold && Count > 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+int32 AInventory::GetItemMaxCount(FItemTable ItemTableValue, int32 ItemCount, int32 InputCount, bool IsBuyTep)
+{
+	if (IsBuyTep) // 구매 탭
+	{
+		if (InputCount > ItemTableValue.MaxCount) // 구입 개수가 최대 개수를 넘을 경우
+		{
+			InputCount = ItemTableValue.MaxCount;
+		}
+	}
+
+	else
+	{
+		int32 SlotIndex = -1;
+
+		for (int32 Index = 0; Index < Spaces.Num(); Index++)
+		{
+			if (Spaces[Index]->ItemID == ItemTableValue.ItemID && Spaces[Index]->Count == ItemCount)
+			{
+				SlotIndex = Index;
+			}
+		}
+
+		if (InputCount > Spaces[SlotIndex]->Count && SlotIndex != -1) // 구입 개수가 최대 개수를 넘을 경우
+		{
+			InputCount = Spaces[SlotIndex]->Count;
+		}
+	}
+
+	return InputCount;
+}
+
+int32 AInventory::GetItemPrice(FItemTable ItemTableValue, int32 Count, bool IsBuyTep)
+{
+	if (IsBuyTep) // 구매 탭
+	{
+		return ItemTableValue.BuyPrice * Count;
+	}
+
+	else // 판매 탭
+	{
+		return ItemTableValue.SellPrice * Count;
+	}
 }
