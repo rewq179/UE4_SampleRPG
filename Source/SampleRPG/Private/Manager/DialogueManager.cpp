@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Manager/DialogueManager.h"
 #include "Npc/NpcController.h"
@@ -71,7 +71,7 @@ void ADialogueManager::SetDialogueText()
 		if (DialogueTableRow)
 		{
 			Dialogue.DialogueID = (*DialogueTableRow).DialogueID;
-			Dialogue.Description = (*DialogueTableRow).Description;
+			Dialogue.DialogueText = (*DialogueTableRow).DialogueText;
 		}
 	}
 }

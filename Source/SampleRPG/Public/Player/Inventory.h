@@ -16,24 +16,24 @@ public:
 	// Sets default values for this actor's properties
 	AInventory();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Properties")
 	class AMainPlayer* MainPlayer;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory|Properties")
 	TSubclassOf<class AItemManager> ItemManagerBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Properties")
 	class AItemManager* ItemManager;
 	
 	// ∫∏¿Ø ∞ÒµÂ
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Inventory")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Inventory")
 	int32 Gold;
 
 	FORCEINLINE void AddGold(int32 Value) { Gold += Value; }
 
 
 	// æ∆¿Ã≈€ »πµÊ/¡¶∞≈
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Inventory")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Inventory")
 	TArray<class AItem*> Spaces;
 
 	UFUNCTION(BlueprintCallable)
@@ -57,7 +57,7 @@ public:
 
 
 	// æ∆¿Ã≈€ ¿Â¬¯ π◊ «ÿ¡¶
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Equipment")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Equipment")
 	TArray<class AItem*> Equipments;
 
 	void EquipItem(class AItem* NewItem, int32 InvIndex);

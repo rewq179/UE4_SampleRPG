@@ -4,6 +4,7 @@
 #include "Player/Inventory.h"
 #include "Player/PlayerCombat.h"
 #include "Player/PlayerStatus.h"
+#include "Player/PlayerQuest.h"
 #include "Npc/NpcController.h"
 
 #include "Manager/SaveGameManager.h"
@@ -111,6 +112,17 @@ void AMainPlayer::BeginPlay()
 		}
 	}
 
+	if (PlayerQuestBP)
+	{
+		PlayerQuest = GetWorld()->SpawnActor<APlayerQuest>(PlayerQuestBP);
+
+		if (PlayerCombat)
+		{
+			PlayerQuest->MainPlayer = this;
+			PlayerQuest->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		}
+	}
+
 	if (DialogueManagerBP)
 	{
 		DialogueManager = GetWorld()->SpawnActor<ADialogueManager>(DialogueManagerBP);
@@ -120,6 +132,7 @@ void AMainPlayer::BeginPlay()
 			DialogueManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		}
 	}
+
 
 	FString MapName = GetWorld()->GetMapName();
 	MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 맵 이름앞에 XXXXX_X_이름 이런식으로 있기 때문

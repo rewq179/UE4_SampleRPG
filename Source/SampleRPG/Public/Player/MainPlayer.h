@@ -45,6 +45,12 @@ public:
 	class APlayerStatus* PlayerStatus;
 
 	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
+	TSubclassOf<class APlayerQuest> PlayerQuestBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	class APlayerQuest* PlayerQuest;
+
+	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
 	TSubclassOf<class ADialogueManager> DialogueManagerBP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")

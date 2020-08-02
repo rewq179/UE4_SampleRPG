@@ -32,6 +32,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
 	FString ItemID;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
+	FString QuestID;
 };
 
 UCLASS()
@@ -67,10 +70,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|DataTable")
 	TArray<int32> ItemID;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|DataTable")
+	TArray<int32> QuestID;
+
 	UPROPERTY(VisibleAnywhere, Category = "Npc|Interact")
 	class AMainPlayer* MainPlayer;
 
-	void StringToIntArray(bool bIsItem, FString Data);
+	void StringToIntArray(int32 Type, FString Data);
 
 protected:
 	// Called when the game starts or when spawned

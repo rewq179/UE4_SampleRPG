@@ -43,9 +43,11 @@ void ANpcController::BeginPlay()
 			Npc.bHasQuest = (*NpcTableRow).bHasQuest;
 			Npc.DialogueID = (*NpcTableRow).DialogueID;
 			Npc.ItemID = (*NpcTableRow).ItemID;
+			Npc.QuestID = (*NpcTableRow).QuestID;
 
-			StringToIntArray(false, Npc.DialogueID);
-			StringToIntArray(true, Npc.ItemID);
+			StringToIntArray(0, Npc.DialogueID);
+			StringToIntArray(1, Npc.ItemID);
+			StringToIntArray(2, Npc.QuestID);
 		}
 	}
 
@@ -53,7 +55,7 @@ void ANpcController::BeginPlay()
 	InteractCollision->OnComponentEndOverlap.AddDynamic(this, &ANpcController::OnOverlapEnd);
 }
 
-void ANpcController::StringToIntArray(bool bIsItem, FString Data)
+void ANpcController::StringToIntArray(int32 Type, FString Data)
 {
 	TArray<FString> StringID;
 
@@ -62,14 +64,19 @@ void ANpcController::StringToIntArray(bool bIsItem, FString Data)
 
 	for (auto ID : StringID)
 	{
-		if (bIsItem)
+		if (Type == 0) // Item
 		{
 			ItemID.Add(FCString::Atoi(*ID));
 		}
 
-		else
+		else if(Type == 1) // Dialouge
 		{
 			DialogueID.Add(FCString::Atoi(*ID));
+		}
+
+		else
+		{
+			QuestID.Add(FCString::Atoi(*ID));
 		}
 	}
 }

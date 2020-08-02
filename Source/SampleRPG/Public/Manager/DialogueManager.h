@@ -18,7 +18,7 @@ public:
 	int32 DialogueID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
-	FString Description;
+	FString DialogueText;
 };
 
 UCLASS()
@@ -68,6 +68,4 @@ public:
 	void SetActiveDialogue();
 
 	void UpdateInteractTypeBox();
-
-	
 };
