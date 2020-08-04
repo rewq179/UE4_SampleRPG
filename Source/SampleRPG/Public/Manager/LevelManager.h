@@ -15,6 +15,9 @@ public:
 	// Sets default values for this actor's properties
 	ALevelManager();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Quest|Properties")
+	class AGameManager* GameManager;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level|Transition")
 	class UBoxComponent* Transition;
 

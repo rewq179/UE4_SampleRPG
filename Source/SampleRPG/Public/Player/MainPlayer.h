@@ -26,6 +26,9 @@ public:
 	// Sets default values for this character's properties
 	AMainPlayer();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	class AGameManager* GameManager;
+
 	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
 	TSubclassOf<class AInventory> InventoryBP;
 
@@ -49,12 +52,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
 	class APlayerQuest* PlayerQuest;
-
-	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
-	TSubclassOf<class ADialogueManager> DialogueManagerBP;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
-	class ADialogueManager* DialogueManager;
 
 #pragma region State
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")

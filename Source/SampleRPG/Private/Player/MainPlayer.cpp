@@ -8,8 +8,7 @@
 #include "Npc/NpcController.h"
 
 #include "Manager/SaveGameManager.h"
-#include "Manager/ItemManager.h"
-#include "Manager/DialogueManager.h"
+#include "Manager/GameManager.h"
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -86,6 +85,7 @@ void AMainPlayer::BeginPlay()
 		if (Inventory)
 		{
 			Inventory->MainPlayer = this;
+			Inventory->ItemManager = GameManager->ItemManager;
 			Inventory->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		}
 	}
@@ -119,20 +119,10 @@ void AMainPlayer::BeginPlay()
 		if (PlayerCombat)
 		{
 			PlayerQuest->MainPlayer = this;
+			PlayerQuest->QuestManager = GameManager->QuestManager;
 			PlayerQuest->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		}
 	}
-
-	if (DialogueManagerBP)
-	{
-		DialogueManager = GetWorld()->SpawnActor<ADialogueManager>(DialogueManagerBP);
-
-		if (PlayerCombat)
-		{
-			DialogueManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-		}
-	}
-
 
 	FString MapName = GetWorld()->GetMapName();
 	MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 맵 이름앞에 XXXXX_X_이름 이런식으로 있기 때문
@@ -266,11 +256,11 @@ void AMainPlayer::LeftClickUp()
 
 void AMainPlayer::StartCommunication()
 {
-	if (InteractNPC && DialogueManager)
+	if (InteractNPC)
 	{
-		DialogueManager->SetActiveDialouge(this, InteractNPC);
+		GameManager->DialogueManager->SetActiveDialouge(this, InteractNPC);
 		
-		InteractNPC->ItemManager = Inventory->ItemManager;
+		PlayerQuest->InteractNPC = InteractNPC;
 	}
 }
 
@@ -278,7 +268,7 @@ void AMainPlayer::StopCommunication()
 {
 	InteractNPC = nullptr;
 
-	DialogueManager->SetActiveDialouge(nullptr, nullptr);
+	GameManager->DialogueManager->SetActiveDialouge(nullptr, nullptr);
 }
 #pragma endregion
 

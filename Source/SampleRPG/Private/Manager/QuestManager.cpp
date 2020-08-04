@@ -1,6 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "QuestManager.h"
+#include "Manager/GameManager.h"
+#include "Manager/ItemManager.h"
+#include "Player/MainPlayer.h"
+#include "Player/PlayerQuest.h"
 #include "UObject/ConstructorHelpers.h"
 
 
@@ -38,6 +42,7 @@ void AQuestManager::SetQuestData(int32 QuestID)
 
 	if (QuestTableRow)
 	{
+		QuestMap[QuestID].QuestSubID = (*QuestTableRow).QuestSubID;
 		QuestMap[QuestID].QuestClass = (*QuestTableRow).QuestClass;
 		QuestMap[QuestID].QuestType = (*QuestTableRow).QuestType;
 		QuestMap[QuestID].Name = (*QuestTableRow).Name;
@@ -66,3 +71,23 @@ void AQuestManager::Tick(float DeltaTime)
 
 }
 
+FQuestTable AQuestManager::GetQuestData(int32 QuestID)
+{
+	return QuestMap[QuestID];
+}
+
+
+UTexture2D* AQuestManager::GetRewardIcon(int32 ItemID)
+{
+	return GameManager->ItemManager->GetItemTableData(ItemID).Icon;
+}
+
+void AQuestManager::AcceptQuest()
+{
+	MainPlayer->PlayerQuest->AddQuest();
+}
+
+void AQuestManager::ClearQuest()
+{
+
+}

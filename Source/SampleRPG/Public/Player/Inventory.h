@@ -18,9 +18,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Properties")
 	class AMainPlayer* MainPlayer;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Inventory|Properties")
-	TSubclassOf<class AItemManager> ItemManagerBP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Properties")
 	class AItemManager* ItemManager;
@@ -91,7 +88,6 @@ protected:
 
 public:	
 	// Called every frame
-	AItem* CreateItemActor(int32 ItemID);
 	
 	void SaveInventoryData(class USaveGameManager* SaveGameInstance);
 	void LoadInventoryData(class USaveGameManager* LoadGameInstance);

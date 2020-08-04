@@ -78,17 +78,17 @@ void ADialogueManager::SetDialogueText()
 
 void ADialogueManager::UpdateInteractTypeBox()
 {
-	if (InteractNPC->Npc.bHasQuest && InteractNPC->Npc.bHasItem)
+	if (InteractNPC->NpcData.bHasQuest && InteractNPC->NpcData.bHasItem)
 	{
 		InteractType = 3;
 	}
 
-	else if (InteractNPC->Npc.bHasQuest)
+	else if (InteractNPC->NpcData.bHasQuest)
 	{
 		InteractType = 2;
 	}
 
-	else if (InteractNPC->Npc.bHasItem)
+	else if (InteractNPC->NpcData.bHasItem)
 	{
 		InteractType = 1;
 	}

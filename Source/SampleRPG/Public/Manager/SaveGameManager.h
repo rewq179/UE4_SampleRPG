@@ -16,6 +16,9 @@ class SAMPLERPG_API USaveGameManager : public USaveGame
 public:
 	USaveGameManager();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Quest|Properties")
+	class AGameManager* GameManager;
+
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	FString PlayerName;
 	

@@ -12,16 +12,19 @@ UCLASS()
 class SAMPLERPG_API AItemManager : public AActor
 {
 	GENERATED_BODY()
-	
+
 public:	
 	// Sets default values for this actor's properties
 	AItemManager();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item|Data")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ItemManager|Properties")
+	class AGameManager* GameManager;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ItemManager|ItemData")
 	TMap<int32, TSubclassOf<class AItem>> ItemMap;
 
 	UFUNCTION(BlueprintCallable)
-	FItemTable GetItemTableValue(int32 ItemID);
+	FItemTable GetItemTableData(int32 ItemID);
 
 	UFUNCTION(BlueprintCallable)
 	class AItem* CreateItemActor(int32 ItemID, int32 Count);

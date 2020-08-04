@@ -30,23 +30,25 @@ public:
 	// Sets default values for this actor's properties
 	ADialogueManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dialogue|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|Properties")
+	class AGameManager* GameManager;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|Properties")
 	class AMainPlayer* MainPlayer;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dialogue|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|Properties")
 	class ANpcController* InteractNPC;
 
 	class UDataTable* DialogueTable;
 	FDialogueTable* DialogueTableRow;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dialogue|DataTable")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|DataTable")
 	FDialogueTable Dialogue;
 
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dialogue|DataTable")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|DataTable")
 	int32 DialogueID;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Dialogue|Interact")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|Interact")
 	int32 InteractType;
 	
 	void SetActiveDialouge(class AMainPlayer* Player, class ANpcController* Npc);

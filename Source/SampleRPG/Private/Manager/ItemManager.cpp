@@ -20,7 +20,7 @@ void AItemManager::BeginPlay()
 	
 }
 
-FItemTable AItemManager::GetItemTableValue(int32 ItemID)
+FItemTable AItemManager::GetItemTableData(int32 ItemID)
 {
 	AItem* Item = ItemMap[ItemID].GetDefaultObject();
 

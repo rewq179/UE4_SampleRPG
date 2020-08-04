@@ -4,38 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Engine/DataTable.h"
+#include "Manager/DataTableManager.h"
 
 #include "NpcController.generated.h"
-
-
-USTRUCT(BlueprintType)
-struct FNpcTable : public FTableRowBase
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
-	int32 NpcID;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
-	FText Name;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
-	bool bHasItem = true;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
-	bool bHasQuest = true;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
-	FString DialogueID;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
-	FString ItemID;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
-	FString QuestID;
-};
 
 UCLASS()
 class SAMPLERPG_API ANpcController : public ACharacter
@@ -47,7 +18,10 @@ public:
 	ANpcController();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|Properties")
-	class AItemManager* ItemManager;
+	class AGameManager* GameManager;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|Properties")
+	bool bIsDataSetting;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|Properties")
 	class USphereComponent* InteractCollision; // 영역에 들어왔는지 체크
@@ -58,11 +32,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Npc|DataTable")
 	int32 NpcID;
 
-	class UDataTable* NpcTable;
-	FNpcTable* NpcTableRow;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|DataTable")
-	FNpcTable Npc;
+	FNpcTable NpcData;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|DataTable")
 	TArray<int32> DialogueID;
@@ -75,6 +46,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = "Npc|Interact")
 	class AMainPlayer* MainPlayer;
+
+	void SetNpcData();
 
 	void StringToIntArray(int32 Type, FString Data);
 

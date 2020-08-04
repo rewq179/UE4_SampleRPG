@@ -17,23 +17,33 @@ public:
 	APlayerQuest();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Properties")
-	class AMainPlayer* MainPlayer;
-
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerQuest|Properties")
-	TSubclassOf<class AQuestManager> QuestManagerBP;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Properties")
 	class AQuestManager* QuestManager;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Properties")
+	class AMainPlayer* MainPlayer;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Properties")
+	class ANpcController* InteractNPC;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Quest")
-	TArray<FQuestTable> Quests;
+	TMap<int32, FQuestTable> Quests;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Quest")
 	FQuestTable RecentQuest;
 
-	void AddQuest(FQuestTable Quest);
+	void AddQuest();
 	void RemoveQuest();
 	void CompleteQuest();
+
+	UFUNCTION(BlueprintCallable)
+	bool CheckQuest();
+	
+	UFUNCTION(BlueprintCallable)
+	bool IsQuestExist(int32 QuestID);
+
+	bool IsPreQuestClear(int32 QuestID);
+
+	FQuestTable GetQuestData(int32 QuestID);
 
 protected:
 	// Called when the game starts or when spawned

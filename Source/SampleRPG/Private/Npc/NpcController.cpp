@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Npc/NpcController.h"
-#include "Manager/ItemManager.h"
 #include "Player/MainPlayer.h"
 #include "Engine/World.h"
 
+#include "Manager/GameManager.h"
+
 #include "Components/SphereComponent.h"
-#include "UObject/ConstructorHelpers.h"
 
 // Sets default values
 ANpcController::ANpcController()
@@ -17,13 +17,6 @@ ANpcController::ANpcController()
 	InteractCollision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
 	InteractCollision->SetSphereRadius(256.f);
 	InteractCollision->SetupAttachment(GetRootComponent());
-	
-	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("DataTable'/Game/DataTable/NpcTable.NpcTable'"));
-
-	if (DataTable.Succeeded())
-	{
-		NpcTable = DataTable.Object;
-	}
 }
 
 // Called when the game starts or when spawned
@@ -31,28 +24,36 @@ void ANpcController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (NpcTable)
+	InteractCollision->OnComponentBeginOverlap.AddDynamic(this, &ANpcController::OnOverlapBegin);
+	InteractCollision->OnComponentEndOverlap.AddDynamic(this, &ANpcController::OnOverlapEnd);
+}
+
+void ANpcController::SetNpcData()
+{
+	if (!bIsDataSetting)
 	{
-		NpcTableRow = NpcTable->FindRow<FNpcTable>(FName(*(FString::FormatAsNumber(NpcID))), FString(""));
+		bIsDataSetting = true;
+
+		FNpcTable* NpcTableRow = GameManager->DataTableManager->GetNpcData(NpcID);
 
 		if (NpcTableRow)
 		{
-			Npc.NpcID = (*NpcTableRow).NpcID;
-			Npc.Name = (*NpcTableRow).Name;
-			Npc.bHasItem = (*NpcTableRow).bHasItem;
-			Npc.bHasQuest = (*NpcTableRow).bHasQuest;
-			Npc.DialogueID = (*NpcTableRow).DialogueID;
-			Npc.ItemID = (*NpcTableRow).ItemID;
-			Npc.QuestID = (*NpcTableRow).QuestID;
+			UE_LOG(LogTemp, Log, TEXT("%d"), (*NpcTableRow).NpcID);
 
-			StringToIntArray(0, Npc.DialogueID);
-			StringToIntArray(1, Npc.ItemID);
-			StringToIntArray(2, Npc.QuestID);
+			NpcData.NpcID = (*NpcTableRow).NpcID;
+			NpcData.Name = (*NpcTableRow).Name;
+			NpcData.bHasItem = (*NpcTableRow).bHasItem;
+			NpcData.bHasQuest = (*NpcTableRow).bHasQuest;
+			NpcData.DialogueID = (*NpcTableRow).DialogueID;
+			NpcData.ItemID = (*NpcTableRow).ItemID;
+			NpcData.QuestID = (*NpcTableRow).QuestID;
+
+			StringToIntArray(0, NpcData.DialogueID);
+			StringToIntArray(1, NpcData.ItemID);
+			StringToIntArray(2, NpcData.QuestID);
+
 		}
 	}
-
-	InteractCollision->OnComponentBeginOverlap.AddDynamic(this, &ANpcController::OnOverlapBegin);
-	InteractCollision->OnComponentEndOverlap.AddDynamic(this, &ANpcController::OnOverlapEnd);
 }
 
 void ANpcController::StringToIntArray(int32 Type, FString Data)
@@ -66,12 +67,12 @@ void ANpcController::StringToIntArray(int32 Type, FString Data)
 	{
 		if (Type == 0) // Item
 		{
-			ItemID.Add(FCString::Atoi(*ID));
+			DialogueID.Add(FCString::Atoi(*ID));
 		}
 
 		else if(Type == 1) // Dialouge
 		{
-			DialogueID.Add(FCString::Atoi(*ID));
+			ItemID.Add(FCString::Atoi(*ID));
 		}
 
 		else
@@ -104,6 +105,12 @@ void ANpcController::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 		if (MainPlayer)
 		{
 			MainPlayer->InteractNPC = this;
+
+			if (!bIsDataSetting)
+			{
+				GameManager = MainPlayer->GameManager;
+				SetNpcData();
+			}
 		}
 	}
 }

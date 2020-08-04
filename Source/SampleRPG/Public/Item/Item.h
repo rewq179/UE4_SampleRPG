@@ -111,22 +111,6 @@ enum class EItemState : uint8
 	EIS_MAX
 };
 
-
-/*
-	내부구성도
-
-	# 데이터 테이블 관련
-	
-	아이템 ID, 보유 개수, 	아이템 Table Value
-	스태틱 Mesh, 	스켈레탈 Mesh(장비만), 이미지 Icon
-	virtual void SetItemData() // 아이템 테이블 값 기본 설정
-		
-	# 루팅전 모습
-	Collision(루팅 영역), IdleParticle(루팅 전 파티클), InteractParticle(루팅 시 파티클)
-	InteractSound(습득 사운드), UsingSound(사용시 들려줄 사운드)
-	bIsRotate(루팅전 아이템 회전 여부)
-*/
-
 UCLASS()
 class SAMPLERPG_API AItem : public AActor
 {

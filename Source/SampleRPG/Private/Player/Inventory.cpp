@@ -27,11 +27,6 @@ void AInventory::BeginPlay()
 	Super::BeginPlay();
 
 	AddGold(10000);
-
-	if (ItemManagerBP)
-	{
-		ItemManager = GetWorld()->SpawnActor<AItemManager>(ItemManagerBP);
-	}
 }
 
 void AInventory::BuyItem(AItem* Item)
@@ -97,6 +92,8 @@ void AInventory::AddItem(AItem* Item)
 
 		else
 		{
+			Item->SetActorLocation(FVector(255.f));
+
 			Spaces.Add(Item);
 		}
 	}
@@ -131,7 +128,8 @@ void AInventory::DevideItemCount(AItem* Item, int32 TotalCount)
 {
 	while (TotalCount > 0)
 	{
-		AItem* DevideItem = CreateItemActor(Item->ItemID);
+		AItem* DevideItem = ItemManager->CreateItemActor(Item->ItemID, 1);
+		DevideItem->SetActorLocation(FVector(255.f));
 
 		if (TotalCount > Item->ItemTableValue.MaxCount)
 		{
@@ -371,14 +369,13 @@ int32 AInventory::GetItemKey(TMap<int32, int32> Map, int32 ID)
 
 void AInventory::LoadInventoryData(USaveGameManager* LoadGameInstance)
 {
-	if (ItemManagerBP && ItemManager)
+	if (ItemManager)
 	{
 		Spaces.Empty();
 
 		for (auto InvItem : LoadGameInstance->InventoryItemMap)
 		{
-			AItem* Item = CreateItemActor(InvItem.Key);
-			Item->Count = InvItem.Value;
+			AItem* Item = ItemManager->CreateItemActor(InvItem.Key, InvItem.Value);
 
 			AddItem(Item);
 		}
@@ -389,22 +386,13 @@ void AInventory::LoadInventoryData(USaveGameManager* LoadGameInstance)
 
 			if (LoadGameInstance->EquipmentItem[SlotIndex] >= 0)
 			{
-				AItem* Item = CreateItemActor(LoadGameInstance->EquipmentItem[SlotIndex]);
-				Item->Count = 1;
+				AItem* Item = ItemManager->CreateItemActor(LoadGameInstance->EquipmentItem[SlotIndex], 1);
 
 				AddItem(Item);
 				EquipItem(Item, Spaces.Num() - 1);
 			}
 		}
 	}
-}
-
-
-AItem* AInventory::CreateItemActor(int32 ItemID)
-{
-	AItem* Item = GetWorld()->SpawnActor<AItem>(ItemManager->ItemMap[ItemID]);
-
-	return Item;
 }
 
 bool AInventory::IsEnoughGold(int32 Price, int32 Count)
