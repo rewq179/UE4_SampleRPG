@@ -27,7 +27,7 @@ FItemTable AItemManager::GetItemTableData(int32 ItemID)
 	Item->ItemID = ItemID;
 	Item->SetItemData();
 
-	return Item->ItemTableValue;
+	return Item->ItemData;
 }
 
 AItem* AItemManager::CreateItemActor(int32 ItemID, int32 Count)

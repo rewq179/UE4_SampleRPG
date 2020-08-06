@@ -60,6 +60,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
 	class ALevelManager* LevelManager;
 
+	void GetDataName();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

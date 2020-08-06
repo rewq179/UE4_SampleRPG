@@ -51,7 +51,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|Interact")
 	int32 InteractType;
 	
-	void SetActiveDialouge(class AMainPlayer* Player, class ANpcController* Npc);
+	void SetActiveDialouge(bool IsActive, class ANpcController* Npc);
 	void SetDialogueText();
 
 protected:
@@ -64,10 +64,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void SetPlayerBP(bool IsNull);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void SetActiveDialogue();
+	void SetActiveDialogue(bool IsActive);
 
 	void UpdateInteractTypeBox();
 };

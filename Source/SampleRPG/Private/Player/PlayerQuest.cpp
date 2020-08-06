@@ -29,7 +29,24 @@ void APlayerQuest::Tick(float DeltaTime)
 void APlayerQuest::AddQuest()
 {
 	Quests.Add(RecentQuest.QuestID, RecentQuest);
+
+	Quests.KeySort([](int32 A, int32 B) {
+		return A < B; 
+	});
+
+	SetQuestKey();
 }
+
+void APlayerQuest::SetQuestKey()
+{
+	QuestKey.Empty();
+
+	for (auto& Quest : Quests)
+	{
+		QuestKey.Add(Quest.Key);
+	}
+}
+
 
 bool APlayerQuest::CheckQuest()
 {

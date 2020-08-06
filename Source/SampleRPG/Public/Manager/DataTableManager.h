@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -36,6 +36,295 @@ public:
 		FString QuestID;
 };
 
+#pragma region Monster Table & Enum Class
+
+UENUM(BlueprintType)
+enum class EMonsterState : uint8
+{
+	EMS_Idle UMETA(DisplayName = "Idle"),
+	EMS_Patrol UMETA(DisplayName = "Patrol"),
+	EMS_Follow UMETA(DisplayName = "Follow"),
+	EMS_Combat UMETA(DisplayName = "Combat"),
+	EMS_Death UMETA(DisplayName = "Death"),
+
+	EMS_MAX
+};
+
+UENUM(BlueprintType)
+enum class EMonsterClass : uint8
+{
+	EMC_Normal UMETA(DisplayName = "Normal"),
+	EMC_Elite UMETA(DisplayName = "Elite"),
+	EMC_Boss UMETA(DisplayName = "Boss"),
+
+	EMC_MAX
+};
+
+USTRUCT(BlueprintType)
+struct FMonsterTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		int32 ID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		EMonsterClass MonsterClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		FText Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		int32 Level;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		float CurHP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		float MaxHP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		float CurGroggy;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		float MaxGroggy;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		float Damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		float Deffence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		float NormalSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		float FollowSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		float DetectRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		float AttackRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		int32 Exp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		int32 Gold;
+
+};
+
+#pragma endregion
+
+
+#pragma region Item Table & Enum Class
+
+UENUM(BlueprintType)
+enum class EItemClass : uint8
+{
+	EIC_Equip UMETA(DisplayName = "Equip"),
+	EIC_Consume UMETA(DisplayName = "Consume"),
+	EIC_Normal UMETA(DisplayName = "Normal"),
+
+	EIC_MAX
+};
+
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	EIT_Weapon UMETA(DisplayName = "Weapon"),
+	EIT_Shield UMETA(DisplayName = "Shield"),
+	EIT_Helmet UMETA(DisplayName = "Helmet"),
+	EIT_Chest UMETA(DisplayName = "Chest"),
+	EIT_Glove UMETA(DisplayName = "Glove"),
+	EIT_Shoulder UMETA(DisplayName = "Shoulder"),
+	EIT_Pants UMETA(DisplayName = "Pants"),
+	EIT_Boots UMETA(DisplayName = "Boots"),
+	EIT_Ring UMETA(DisplayName = "Ring"),
+	EIT_Potion UMETA(DisplayName = "Potion"),
+	EIT_HoldPotion UMETA(DisplayName = "HoldPotion"),
+	EIT_Normal UMETA(DisplayName = "Normal"),
+
+	EIT_MAX
+};
+
+// 헤더파일 : #include "Engine/DataTable.h"
+
+USTRUCT(BlueprintType)
+struct FItemTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		int32 ItemID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		EItemClass ItemClass = EItemClass::EIC_Equip;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		EItemType ItemType = EItemType::EIT_Potion;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		FText Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		FString Description;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		bool bIsDroppable = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		bool bIsSellable = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		int32 BuyPrice;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		int32 SellPrice;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		int32 MaxCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		float Damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		float Deffence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		int32 Strength;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		int32 Dexterity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		int32 Intelligence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		float DurationTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		UStaticMesh* Mesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		class USkeletalMesh* EquipMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
+		UTexture2D* Icon;
+};
+#pragma endregion
+
+
+#pragma region Quest Table & Enum Class
+
+UENUM(BlueprintType)
+enum class EQuestClass : uint8
+{
+	EQC_Main UMETA(DisplayName = "Main"),
+	EQC_Sub UMETA(DisplayName = "Sub"),
+	EQC_Repeat UMETA(DisplayName = "Repeat"),
+
+	EQC_MAX
+};
+
+UENUM(BlueprintType)
+enum class EQuestType : uint8
+{
+	EQT_Kill UMETA(DisplayName = "Kill"),
+	EQT_Collect UMETA(DisplayName = "Collect"),
+	EQT_Use UMETA(DisplayName = "Use"),
+	EQT_Communication UMETA(DisplayName = "Communication"),
+
+	EQT_MAX
+};
+
+// 헤더파일 : #include "Engine/DataTable.h"
+
+USTRUCT(BlueprintType)
+struct FQuestTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 QuestID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 QuestSubID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		EQuestClass QuestClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		EQuestType QuestType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		FText Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		FText Goal;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		FString PreDialogueID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		FString PostDialogueID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 PreQuest;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		bool bCanClear;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		bool bIsClear;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 NpcID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 TargetID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 Count;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 Exp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 Gold;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 PreReward;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 PreRewardCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 PostReward;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 PostRewardCount;
+};
+#pragma endregion
+
+
+UENUM(BlueprintType)
+enum class EDataType : uint8
+{
+	EDT_Item UMETA(DisplayName = "Item"),
+	EDT_Npc UMETA(DisplayName = "Npc"),
+	EDT_Quest UMETA(DisplayName = "Quest"),
+	EDT_Monster UMETA(DisplayName = "Monster"),
+
+	EDT_Max
+
+};
+
+
 UCLASS()
 class SAMPLERPG_API ADataTableManager : public AActor
 {
@@ -51,11 +340,22 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "DataTableManager|DataTable")
 	class AMainPlayer* MainPlayer;
 
-	class UDataTable* NpcTable;
-	FNpcTable* NpcData;
-
+	class UDataTable* NpcTableData;
 	FNpcTable* GetNpcData(int32 NpcID);
 
+	class UDataTable* MonsterTableData;
+	FMonsterTable* GetMonsterData(int32 MonsterID);
+	
+	class UDataTable* ItemTableData;
+	FItemTable* GetItemData(int32 ItemID);
+	
+	class UDataTable* QuestTableData;
+	FQuestTable* GetQuestData(int32 QuestID);
+
+	
+	UFUNCTION(BlueprintCallable)
+	FText GetDataName(EDataType DataType, int32 ID);
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

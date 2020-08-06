@@ -37,6 +37,8 @@ void AGameManager::BeginPlay()
 		if (DialogueManager)
 		{
 			DialogueManager->GameManager = this;
+			DialogueManager->MainPlayer = MainPlayer;
+
 			DialogueManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		}
 	}

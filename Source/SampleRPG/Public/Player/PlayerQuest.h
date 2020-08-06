@@ -29,11 +29,16 @@ public:
 	TMap<int32, FQuestTable> Quests;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Quest")
+	TArray<int32> QuestKey;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Quest")
 	FQuestTable RecentQuest;
 
 	void AddQuest();
 	void RemoveQuest();
 	void CompleteQuest();
+
+	void SetQuestKey();
 
 	UFUNCTION(BlueprintCallable)
 	bool CheckQuest();
@@ -43,7 +48,9 @@ public:
 
 	bool IsPreQuestClear(int32 QuestID);
 
+	UFUNCTION(BlueprintCallable)
 	FQuestTable GetQuestData(int32 QuestID);
+
 
 protected:
 	// Called when the game starts or when spawned

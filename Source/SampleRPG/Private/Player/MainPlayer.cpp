@@ -258,7 +258,7 @@ void AMainPlayer::StartCommunication()
 {
 	if (InteractNPC)
 	{
-		GameManager->DialogueManager->SetActiveDialouge(this, InteractNPC);
+		GameManager->DialogueManager->SetActiveDialouge(true, InteractNPC);
 		
 		PlayerQuest->InteractNPC = InteractNPC;
 	}
@@ -268,7 +268,7 @@ void AMainPlayer::StopCommunication()
 {
 	InteractNPC = nullptr;
 
-	GameManager->DialogueManager->SetActiveDialouge(nullptr, nullptr);
+	GameManager->DialogueManager->SetActiveDialouge(false, nullptr);
 }
 #pragma endregion
 

@@ -4,103 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Engine/DataTable.h"
+#include "Manager/DataTableManager.h"
+
 #include "Item.generated.h"
 
-UENUM(BlueprintType)
-enum class EItemClass : uint8
-{
-	EIC_Equip UMETA(DisplayName = "Equip"),
-	EIC_Consume UMETA(DisplayName = "Consume"),
-	EIC_Normal UMETA(DisplayName = "Normal"),
-
-	EIC_MAX
-};
-
-UENUM(BlueprintType)
-enum class EItemType : uint8
-{
-	EIT_Weapon UMETA(DisplayName = "Weapon"),
-	EIT_Shield UMETA(DisplayName = "Shield"),
-	EIT_Helmet UMETA(DisplayName = "Helmet"),
-	EIT_Chest UMETA(DisplayName = "Chest"),
-	EIT_Glove UMETA(DisplayName = "Glove"),
-	EIT_Shoulder UMETA(DisplayName = "Shoulder"),
-	EIT_Pants UMETA(DisplayName = "Pants"),
-	EIT_Boots UMETA(DisplayName = "Boots"),
-	EIT_Ring UMETA(DisplayName = "Ring"),
-	EIT_Potion UMETA(DisplayName = "Potion"),
-	EIT_HoldPotion UMETA(DisplayName = "HoldPotion"),
-	EIT_Normal UMETA(DisplayName = "Normal"),
-	
-	EIT_MAX
-};
-
-// 헤더파일 : #include "Engine/DataTable.h"
-
-USTRUCT(BlueprintType)
-struct FItemTable : public FTableRowBase
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	int32 ItemID;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	EItemClass ItemClass = EItemClass::EIC_Equip;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	EItemType ItemType = EItemType::EIT_Potion;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	FText Name;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	FString Description;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	bool bIsDroppable = true;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	bool bIsSellable = true;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	int32 BuyPrice;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	int32 SellPrice;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	int32 MaxCount;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	float Damage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	float Deffence;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	int32 Strength;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	int32 Dexterity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	int32 Intelligence;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	float DurationTime;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	UStaticMesh* Mesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	class USkeletalMesh* EquipMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemTable")
-	UTexture2D* Icon;
-};
 
 UENUM(BlueprintType)
 enum class EItemState : uint8
@@ -120,6 +27,9 @@ public:
 	// Sets default values for this actor's properties
 	AItem();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item|Properties")
+	class AGameManager* GameManager;
+
 #pragma region ItemTable
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
 	int32 ItemID; // 해당 ID로 아이템 데이터 테이블의 정보를 가져올 것이다.
@@ -127,10 +37,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
 	int32 Count; // 현재 개수
 
-	class UDataTable* ItemTable;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
-	FItemTable ItemTableValue;
+	FItemTable ItemData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
 	UStaticMeshComponent* Mesh;

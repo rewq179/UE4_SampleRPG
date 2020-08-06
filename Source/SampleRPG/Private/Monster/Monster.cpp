@@ -2,6 +2,7 @@
 
 #include "Monster/Monster.h"
 #include "Player/MainPlayer.h"
+#include "Manager/GameManager.h"
 
 #include "AIController.h"
 #include "Components/SphereComponent.h"
@@ -23,14 +24,7 @@ AMonster::AMonster()
 	CombatColiision = CreateDefaultSubobject<USphereComponent>(TEXT("CombatColiision"));
 	CombatColiision->SetupAttachment(GetRootComponent());
 
-	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("DataTable'/Game/DataTable/MonsterTable.MonsterTable'"));
-
 	AttackTime = 0.1f;
-
-	if (DataTable.Succeeded())
-	{
-		MonsterTable = DataTable.Object;
-	}
 }
 
 // Called when the game starts or when spawned
@@ -78,9 +72,16 @@ void AMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AMonster::SetMonsterData()
 {
-	if (MonsterTable)
+	AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerPawn(this, 0));
+
+	if (Player)
 	{
-		FMonsterTable* MonsterTableRow = MonsterTable->FindRow<FMonsterTable>(FName(*(FString::FormatAsNumber(MonsterID))), FString(""));
+		GameManager = Player->GameManager;
+	}
+
+	if (GameManager)
+	{
+		FMonsterTable* MonsterTableRow = GameManager->DataTableManager->GetMonsterData(MonsterID);
 
 		if (MonsterTableRow)
 		{

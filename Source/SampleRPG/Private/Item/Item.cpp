@@ -3,13 +3,14 @@
 #include "Item/Item.h"
 #include "Monster/Monster.h"
 #include "Player/MainPlayer.h"
+#include "Manager/GameManager.h"
+
 
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "UObject/ConstructorHelpers.h"
 
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -17,7 +18,9 @@
 #include "Engine/World.h"
 #include "Engine/SkeletalMeshSocket.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
 
+#include "TimerManager.h"
 
 // Sets default values
 AItem::AItem()
@@ -25,12 +28,6 @@ AItem::AItem()
  	// Set this actor to call Tick() every f	rame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("DataTable'/Game/DataTable/ItemTable.ItemTable'"));
-
-	if (DataTable.Succeeded())
-	{
-		ItemTable = DataTable.Object;
-	}
 
 #pragma region Collision/Mesh/Particle
 	InteractCollision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
@@ -64,13 +61,14 @@ void AItem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetItemData();
 
 	// 유니티의 TriggerEnter와 Exit 역할 // 꼭 바인딩 해줘야한다.
 	InteractCollision->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnOverlapBegin);
 	InteractCollision->OnComponentEndOverlap.AddDynamic(this, &AItem::OnOverlapEnd);
 	CombatCollision->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnCombatOverlapBegin);
 	//CombatCollision->OnComponentEndOverlap.AddDynamic(this, &AItem::OnCombatOverlapEnd);
+
+	SetItemData();
 }
 
 // Called every frame
@@ -81,45 +79,52 @@ void AItem::Tick(float DeltaTime)
 
 void AItem::SetItemData()
 {
-	if (ItemTable)
+	AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerPawn(this, 0));
+
+	if (Player)
 	{
-		FItemTable* ItemTableRow = ItemTable->FindRow<FItemTable>(FName(*(FString::FormatAsNumber(ItemID))), FString(""));
+		GameManager = Player->GameManager;
+	}
+
+	if (GameManager)
+	{
+		FItemTable* ItemTableRow = GameManager->DataTableManager->GetItemData(ItemID);
 
 		if (ItemTableRow)
 		{
-			ItemTableValue.Name = (*ItemTableRow).Name;
+			ItemData.Name = (*ItemTableRow).Name;
 
-			ItemTableValue.ItemID = (*ItemTableRow).ItemID;
-			ItemTableValue.ItemClass = (*ItemTableRow).ItemClass;
-			ItemTableValue.ItemType = (*ItemTableRow).ItemType;
-			ItemTableValue.Name = (*ItemTableRow).Name;
-			ItemTableValue.Description = (*ItemTableRow).Description;
-			ItemTableValue.bIsDroppable = (*ItemTableRow).bIsDroppable;
-			ItemTableValue.bIsSellable = (*ItemTableRow).bIsSellable;
-			ItemTableValue.BuyPrice = (*ItemTableRow).BuyPrice;
-			ItemTableValue.SellPrice = (*ItemTableRow).SellPrice;
-			ItemTableValue.MaxCount = (*ItemTableRow).MaxCount;
-			ItemTableValue.Damage = (*ItemTableRow).Damage;
-			ItemTableValue.Deffence = (*ItemTableRow).Deffence;
-			ItemTableValue.Strength = (*ItemTableRow).Strength;
-			ItemTableValue.Dexterity = (*ItemTableRow).Dexterity;
-			ItemTableValue.Intelligence = (*ItemTableRow).Intelligence;
-			ItemTableValue.Mesh = (*ItemTableRow).Mesh;
+			ItemData.ItemID = (*ItemTableRow).ItemID;
+			ItemData.ItemClass = (*ItemTableRow).ItemClass;
+			ItemData.ItemType = (*ItemTableRow).ItemType;
+			ItemData.Name = (*ItemTableRow).Name;
+			ItemData.Description = (*ItemTableRow).Description;
+			ItemData.bIsDroppable = (*ItemTableRow).bIsDroppable;
+			ItemData.bIsSellable = (*ItemTableRow).bIsSellable;
+			ItemData.BuyPrice = (*ItemTableRow).BuyPrice;
+			ItemData.SellPrice = (*ItemTableRow).SellPrice;
+			ItemData.MaxCount = (*ItemTableRow).MaxCount;
+			ItemData.Damage = (*ItemTableRow).Damage;
+			ItemData.Deffence = (*ItemTableRow).Deffence;
+			ItemData.Strength = (*ItemTableRow).Strength;
+			ItemData.Dexterity = (*ItemTableRow).Dexterity;
+			ItemData.Intelligence = (*ItemTableRow).Intelligence;
+			ItemData.Mesh = (*ItemTableRow).Mesh;
 
 
 			//Mesh = Cast<UStaticMeshComponent>((*ItemTableRow).Mesh);
 			Mesh->SetStaticMesh((*ItemTableRow).Mesh);
 
-			if (ItemTableValue.ItemClass == EItemClass::EIC_Equip && (*ItemTableRow).EquipMesh != nullptr)
+			if (ItemData.ItemClass == EItemClass::EIC_Equip && (*ItemTableRow).EquipMesh != nullptr)
 			{
-				ItemTableValue.EquipMesh = (*ItemTableRow).EquipMesh;
+				ItemData.EquipMesh = (*ItemTableRow).EquipMesh;
 
 				EquipMesh->SetSkeletalMesh((*ItemTableRow).EquipMesh);
 				EquipMesh->SetVisibility(false);
 			}
 
 			Icon = (*ItemTableRow).Icon;
-			ItemTableValue.Icon = (*ItemTableRow).Icon;
+			ItemData.Icon = (*ItemTableRow).Icon;
 		}
 	}
 }
@@ -166,7 +171,7 @@ void AItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* Other
 
 void AItem::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
-	if (OtherActor && ItemState == EItemState::EIS_Inv && ItemTableValue.ItemType == EItemType::EIT_Weapon)
+	if (OtherActor && ItemState == EItemState::EIS_Inv && ItemData.ItemType == EItemType::EIT_Weapon)
 	{
 		AMonster* Monster = Cast<AMonster>(OtherActor);
 
@@ -185,7 +190,7 @@ void AItem::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor*
 
 void AItem::IgnoreStaticMesh()
 {
-	if (ItemTableValue.ItemClass == EItemClass::EIC_Equip)
+	if (ItemData.ItemClass == EItemClass::EIC_Equip)
 	{
 		Mesh->SetStaticMesh(nullptr);
 	}

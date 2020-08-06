@@ -31,7 +31,7 @@ void AInventory::BeginPlay()
 
 void AInventory::BuyItem(AItem* Item)
 {
-	AddGold(-Item->ItemTableValue.BuyPrice * Item->Count);
+	AddGold(-Item->ItemData.BuyPrice * Item->Count);
 
 	AddItem(Item);
 }
@@ -39,7 +39,7 @@ void AInventory::BuyItem(AItem* Item)
 
 void AInventory::SellItem(AItem* Item, int32 InputCount)
 {
-	AddGold(Item->ItemTableValue.SellPrice * InputCount);
+	AddGold(Item->ItemData.SellPrice * InputCount);
 
 	RemoveItem(Item, InputCount);
 }
@@ -55,7 +55,7 @@ void AInventory::AddItem(AItem* Item)
 	*/
 	int32 InvIndex = GetInventoryIndex(Item);
 	int32 TotalCount = Item->Count;
-	int32 MaxCount = Item->ItemTableValue.MaxCount;
+	int32 MaxCount = Item->ItemData.MaxCount;
 
 	Item->SetItemState(EItemState::EIS_Inv);
 	Item->ItemOwner = MainPlayer;
@@ -99,7 +99,7 @@ void AInventory::AddItem(AItem* Item)
 	}
 
 
-	if (Item->ItemTableValue.ItemClass == EItemClass::EIC_Equip)
+	if (Item->ItemData.ItemClass == EItemClass::EIC_Equip)
 	{
 		Item->IgnoreStaticMesh();
 		Item->SetCombatCollisionEnabled(false);
@@ -114,7 +114,7 @@ int32 AInventory::GetInventoryIndex(AItem* Item)
 	{
 		if (Spaces[InvIndex]->ItemID == Item->ItemID)
 		{
-			if (Spaces[InvIndex]->Count < Item->ItemTableValue.MaxCount)
+			if (Spaces[InvIndex]->Count < Item->ItemData.MaxCount)
 			{
 				return InvIndex;
 			}
@@ -131,9 +131,9 @@ void AInventory::DevideItemCount(AItem* Item, int32 TotalCount)
 		AItem* DevideItem = ItemManager->CreateItemActor(Item->ItemID, 1);
 		DevideItem->SetActorLocation(FVector(255.f));
 
-		if (TotalCount > Item->ItemTableValue.MaxCount)
+		if (TotalCount > Item->ItemData.MaxCount)
 		{
-			DevideItem->Count = Item->ItemTableValue.MaxCount;
+			DevideItem->Count = Item->ItemData.MaxCount;
 		}
 
 		else
@@ -142,7 +142,7 @@ void AInventory::DevideItemCount(AItem* Item, int32 TotalCount)
 		}
 
 		Spaces.Add(DevideItem);
-		TotalCount -= Item->ItemTableValue.MaxCount;
+		TotalCount -= Item->ItemData.MaxCount;
 	}
 }
 
@@ -169,12 +169,12 @@ void AInventory::UseItem(AItem* Item, int32 SlotIndex)
 {
 	if (Item->Count > 0)
 	{
-		if (Item->ItemTableValue.ItemClass == EItemClass::EIC_Equip)
+		if (Item->ItemData.ItemClass == EItemClass::EIC_Equip)
 		{
 			EquipItem(Item, SlotIndex);
 		}
 
-		else if (Item->ItemTableValue.ItemClass == EItemClass::EIC_Consume)
+		else if (Item->ItemData.ItemClass == EItemClass::EIC_Consume)
 		{
 			ConsumeItem(Item, SlotIndex);
 		}
@@ -185,7 +185,7 @@ void AInventory::ConsumeItem(AItem* Item, int32 SlotIndex)
 {
 	Spaces[SlotIndex]->Count--;
 
-	MainPlayer->PlayerStatus->AdjustHP(Item->ItemTableValue.Damage, false);
+	MainPlayer->PlayerStatus->AdjustHP(Item->ItemData.Damage, false);
 
 	if (Item->UseSound)
 	{
@@ -264,7 +264,7 @@ void AInventory::UnEquipItem(int32 SlotIndex)
 
 int32 AInventory::GetEquipmentIndex(AItem* Item)
 {
-	switch (Item->ItemTableValue.ItemType)
+	switch (Item->ItemData.ItemType)
 	{
 	case EItemType::EIT_Weapon:
 		return 0;
@@ -302,20 +302,20 @@ void AInventory::WasStatusChangedByEquip(AItem* Item, bool IsEquip)
 {
 	if (IsEquip)
 	{
-		MainPlayer->PlayerStatus->IncDamage += Item->ItemTableValue.Damage;
-		MainPlayer->PlayerStatus->IncDeffence += Item->ItemTableValue.Deffence;
-		MainPlayer->PlayerStatus->IncStrength += Item->ItemTableValue.Strength;
-		MainPlayer->PlayerStatus->IncDexterity += Item->ItemTableValue.Dexterity;
-		MainPlayer->PlayerStatus->IncIntelligence += Item->ItemTableValue.Intelligence;
+		MainPlayer->PlayerStatus->IncDamage += Item->ItemData.Damage;
+		MainPlayer->PlayerStatus->IncDeffence += Item->ItemData.Deffence;
+		MainPlayer->PlayerStatus->IncStrength += Item->ItemData.Strength;
+		MainPlayer->PlayerStatus->IncDexterity += Item->ItemData.Dexterity;
+		MainPlayer->PlayerStatus->IncIntelligence += Item->ItemData.Intelligence;
 	}
 	
 	else
 	{
-		MainPlayer->PlayerStatus->IncDamage -= Item->ItemTableValue.Damage;
-		MainPlayer->PlayerStatus->IncDeffence -= Item->ItemTableValue.Deffence;
-		MainPlayer->PlayerStatus->IncStrength -= Item->ItemTableValue.Strength;
-		MainPlayer->PlayerStatus->IncDexterity -= Item->ItemTableValue.Dexterity;
-		MainPlayer->PlayerStatus->IncIntelligence -= Item->ItemTableValue.Intelligence;
+		MainPlayer->PlayerStatus->IncDamage -= Item->ItemData.Damage;
+		MainPlayer->PlayerStatus->IncDeffence -= Item->ItemData.Deffence;
+		MainPlayer->PlayerStatus->IncStrength -= Item->ItemData.Strength;
+		MainPlayer->PlayerStatus->IncDexterity -= Item->ItemData.Dexterity;
+		MainPlayer->PlayerStatus->IncIntelligence -= Item->ItemData.Intelligence;
 	}
 }
 
@@ -405,13 +405,13 @@ bool AInventory::IsEnoughGold(int32 Price, int32 Count)
 	return false;
 }
 
-int32 AInventory::GetItemMaxCount(FItemTable ItemTableValue, int32 ItemCount, int32 InputCount, bool IsBuyTep)
+int32 AInventory::GetItemMaxCount(FItemTable ItemData, int32 ItemCount, int32 InputCount, bool IsBuyTep)
 {
 	if (IsBuyTep) // 구매 탭
 	{
-		if (InputCount > ItemTableValue.MaxCount) // 구입 개수가 최대 개수를 넘을 경우
+		if (InputCount > ItemData.MaxCount) // 구입 개수가 최대 개수를 넘을 경우
 		{
-			InputCount = ItemTableValue.MaxCount;
+			InputCount = ItemData.MaxCount;
 		}
 	}
 
@@ -421,7 +421,7 @@ int32 AInventory::GetItemMaxCount(FItemTable ItemTableValue, int32 ItemCount, in
 
 		for (int32 Index = 0; Index < Spaces.Num(); Index++)
 		{
-			if (Spaces[Index]->ItemID == ItemTableValue.ItemID && Spaces[Index]->Count == ItemCount)
+			if (Spaces[Index]->ItemID == ItemData.ItemID && Spaces[Index]->Count == ItemCount)
 			{
 				SlotIndex = Index;
 			}
@@ -436,15 +436,15 @@ int32 AInventory::GetItemMaxCount(FItemTable ItemTableValue, int32 ItemCount, in
 	return InputCount;
 }
 
-int32 AInventory::GetItemPrice(FItemTable ItemTableValue, int32 Count, bool IsBuyTep)
+int32 AInventory::GetItemPrice(FItemTable ItemData, int32 Count, bool IsBuyTep)
 {
 	if (IsBuyTep) // 구매 탭
 	{
-		return ItemTableValue.BuyPrice * Count;
+		return ItemData.BuyPrice * Count;
 	}
 
 	else // 판매 탭
 	{
-		return ItemTableValue.SellPrice * Count;
+		return ItemData.SellPrice * Count;
 	}
 }

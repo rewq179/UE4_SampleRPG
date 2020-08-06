@@ -32,32 +32,20 @@ void ADialogueManager::Tick(float DeltaTime)
 
 }
 
-void ADialogueManager::SetActiveDialouge(class AMainPlayer* Player, class ANpcController* Npc)
+void ADialogueManager::SetActiveDialouge(bool IsActive, ANpcController* Npc)
 {
 	if (InteractNPC != Npc)
 	{
 		InteractNPC = Npc;
 	}
 
-	if (MainPlayer != Player)
+	if (Npc)
 	{
-		MainPlayer = Player;
-	}
-
-	if (MainPlayer && Npc)
-	{
-		SetPlayerBP(false);
-
 		SetDialogueText();
 		UpdateInteractTypeBox();
-
-		SetActiveDialogue();
 	}
 
-	else
-	{
-		SetPlayerBP(true);
-	}
+	SetActiveDialogue(IsActive);
 }
 
 void ADialogueManager::SetDialogueText()
