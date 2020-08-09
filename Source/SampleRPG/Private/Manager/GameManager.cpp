@@ -54,6 +54,20 @@ void AGameManager::BeginPlay()
 		}
 	}
 
+	if (NpcManagerBP)
+	{
+		NpcManager = GetWorld()->SpawnActor<ANpcManager>(NpcManagerBP);
+
+		if (NpcManager)
+		{
+			NpcManager->GameManager = this;
+			NpcManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+			NpcManager->SetAllNpcData();
+
+		}
+	}
+
 	if (QuestManagerBP)
 	{
 		QuestManager = GetWorld()->SpawnActor<AQuestManager>(QuestManagerBP);
@@ -62,7 +76,10 @@ void AGameManager::BeginPlay()
 		{
 			QuestManager->GameManager = this;
 			QuestManager->MainPlayer = MainPlayer;
+			QuestManager->PlayerQuest = MainPlayer->PlayerQuest;
 			QuestManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+			QuestManager->SetAllQuestData();
 		}
 	}
 

@@ -5,21 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
-
+#include "Manager/DataTableManager.h"
 #include "DialogueManager.generated.h"
-
-USTRUCT(BlueprintType)
-struct FDialogueTable : public FTableRowBase
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
-	int32 DialogueID;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
-	FString DialogueText;
-};
 
 UCLASS()
 class SAMPLERPG_API ADialogueManager : public AActor
@@ -38,9 +25,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|Properties")
 	class ANpcController* InteractNPC;
-
-	class UDataTable* DialogueTable;
-	FDialogueTable* DialogueTableRow;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|DataTable")
 	FDialogueTable Dialogue;

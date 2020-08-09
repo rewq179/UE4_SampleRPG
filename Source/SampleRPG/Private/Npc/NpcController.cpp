@@ -5,8 +5,11 @@
 #include "Engine/World.h"
 
 #include "Manager/GameManager.h"
+#include "Manager/NpcManager.h"
 
 #include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ANpcController::ANpcController()
@@ -17,6 +20,14 @@ ANpcController::ANpcController()
 	InteractCollision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
 	InteractCollision->SetSphereRadius(256.f);
 	InteractCollision->SetupAttachment(GetRootComponent());
+
+	QuestionSymbol = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Question"));
+	QuestionSymbol->SetupAttachment(GetRootComponent());
+
+	ExclamationSymbol = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Exclamation"));
+	ExclamationSymbol->SetupAttachment(GetRootComponent());
+
+	ExclamationSymbol->SetVisibility(false);
 }
 
 // Called when the game starts or when spawned
@@ -26,33 +37,29 @@ void ANpcController::BeginPlay()
 
 	InteractCollision->OnComponentBeginOverlap.AddDynamic(this, &ANpcController::OnOverlapBegin);
 	InteractCollision->OnComponentEndOverlap.AddDynamic(this, &ANpcController::OnOverlapEnd);
+	
+	SetActiveSymbol(ESymbolType::EQT_None);
+	SetNpcData();
 }
 
 void ANpcController::SetNpcData()
 {
-	if (!bIsDataSetting)
+	AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerPawn(this, 0));
+
+	if (Player)
 	{
-		bIsDataSetting = true;
+		GameManager = Player->GameManager;
+	}
 
-		FNpcTable* NpcTableRow = GameManager->DataTableManager->GetNpcData(NpcID);
+	if (GameManager)
+	{
+		NpcData = GameManager->NpcManager->GetNpcData(NpcID);
 
-		if (NpcTableRow)
-		{
-			UE_LOG(LogTemp, Log, TEXT("%d"), (*NpcTableRow).NpcID);
+		StringToIntArray(0, NpcData.DialogueID);
+		StringToIntArray(1, NpcData.ItemID);
+		StringToIntArray(2, NpcData.QuestID);
 
-			NpcData.NpcID = (*NpcTableRow).NpcID;
-			NpcData.Name = (*NpcTableRow).Name;
-			NpcData.bHasItem = (*NpcTableRow).bHasItem;
-			NpcData.bHasQuest = (*NpcTableRow).bHasQuest;
-			NpcData.DialogueID = (*NpcTableRow).DialogueID;
-			NpcData.ItemID = (*NpcTableRow).ItemID;
-			NpcData.QuestID = (*NpcTableRow).QuestID;
-
-			StringToIntArray(0, NpcData.DialogueID);
-			StringToIntArray(1, NpcData.ItemID);
-			StringToIntArray(2, NpcData.QuestID);
-
-		}
+		GameManager->NpcManager->NpcMap.Add(NpcData.NpcID, this);
 	}
 }
 
@@ -82,6 +89,30 @@ void ANpcController::StringToIntArray(int32 Type, FString Data)
 	}
 }
 
+void ANpcController::SetActiveSymbol(ESymbolType SymbolType)
+{
+	switch (SymbolType)
+	{
+	case ESymbolType::EQT_None:
+		QuestionSymbol->SetVisibility(false);
+		ExclamationSymbol->SetVisibility(false);
+		break;
+
+	case ESymbolType::EQT_Question:
+		QuestionSymbol->SetVisibility(true);
+		ExclamationSymbol->SetVisibility(false);
+		break;
+
+	case ESymbolType::EQT_Exclamation:
+		QuestionSymbol->SetVisibility(false);
+		ExclamationSymbol->SetVisibility(true);
+		break;
+
+	default:
+		break;
+	}
+}
+
 // Called every frame
 void ANpcController::Tick(float DeltaTime)
 {
@@ -105,12 +136,6 @@ void ANpcController::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 		if (MainPlayer)
 		{
 			MainPlayer->InteractNPC = this;
-
-			if (!bIsDataSetting)
-			{
-				GameManager = MainPlayer->GameManager;
-				SetNpcData();
-			}
 		}
 	}
 }

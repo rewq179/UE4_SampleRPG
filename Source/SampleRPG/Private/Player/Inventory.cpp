@@ -6,6 +6,8 @@
 #include "Item/Item.h"
 #include "Manager/ItemManager.h"
 #include "Manager/SaveGameManager.h"
+#include "Manager/QuestManager.h"
+#include "Player/PlayerQuest.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
@@ -60,6 +62,8 @@ void AInventory::AddItem(AItem* Item)
 	Item->SetItemState(EItemState::EIS_Inv);
 	Item->ItemOwner = MainPlayer;
 	Item->SetActorLocation(FVector(0.f));
+
+	MainPlayer->PlayerQuest->IncreaseCount(EQuestType::EQT_Collect, Item->ItemID, Item->Count);
 
 	if (InvIndex != -1) // 인벤토리에 아이템이 존재한다
 	{
@@ -172,11 +176,15 @@ void AInventory::UseItem(AItem* Item, int32 SlotIndex)
 		if (Item->ItemData.ItemClass == EItemClass::EIC_Equip)
 		{
 			EquipItem(Item, SlotIndex);
+
+			MainPlayer->PlayerQuest->IncreaseCount(EQuestType::EQT_Equip, Item->ItemID, 1);
 		}
 
 		else if (Item->ItemData.ItemClass == EItemClass::EIC_Consume)
 		{
 			ConsumeItem(Item, SlotIndex);
+
+			MainPlayer->PlayerQuest->IncreaseCount(EQuestType::EQT_Use, Item->ItemID, 1);
 		}
 	}
 }

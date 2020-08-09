@@ -236,7 +236,7 @@ enum class EQuestType : uint8
 	EQT_Kill UMETA(DisplayName = "Kill"),
 	EQT_Collect UMETA(DisplayName = "Collect"),
 	EQT_Use UMETA(DisplayName = "Use"),
-	EQT_Communication UMETA(DisplayName = "Communication"),
+	EQT_Equip UMETA(DisplayName = "Equip"),
 
 	EQT_MAX
 };
@@ -268,13 +268,16 @@ public:
 		FText Goal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
-		FString PreDialogueID;
+		int32 PreDialogueID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
-		FString PostDialogueID;
+		int32 PostDialogueID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
 		int32 PreQuest;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		bool bIsAlreadyGive;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
 		bool bCanClear;
@@ -289,7 +292,10 @@ public:
 		int32 TargetID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
-		int32 Count;
+		int32 CurCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		int32 MaxCount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
 		int32 Exp;
@@ -324,6 +330,18 @@ enum class EDataType : uint8
 
 };
 
+USTRUCT(BlueprintType)
+struct FDialogueTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		int32 DialogueID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		FText DialogueText;
+};
 
 UCLASS()
 class SAMPLERPG_API ADataTableManager : public AActor
@@ -340,6 +358,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "DataTableManager|DataTable")
 	class AMainPlayer* MainPlayer;
 
+	class UDataTable* DialogueTableData;
+	FDialogueTable* GetDialogueData(int32 DialogueID);
+
 	class UDataTable* NpcTableData;
 	FNpcTable* GetNpcData(int32 NpcID);
 
@@ -352,6 +373,8 @@ public:
 	class UDataTable* QuestTableData;
 	FQuestTable* GetQuestData(int32 QuestID);
 
+	UFUNCTION(BlueprintCallable)
+	FText GetDialogueText(int32 DialogueID);
 	
 	UFUNCTION(BlueprintCallable)
 	FText GetDataName(EDataType DataType, int32 ID);

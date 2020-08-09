@@ -303,6 +303,7 @@ void AMainPlayer::SaveGame()
 	SaveGameInstance->LevelName = MapName;
 
 	Inventory->SaveInventoryData(SaveGameInstance);
+	PlayerQuest->SaveQuestData(SaveGameInstance);
 
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->PlayerName, SaveGameInstance->UserIndex);
 }
@@ -328,6 +329,7 @@ void AMainPlayer::LoadGame(bool SetPosition)
 	}
 
 	Inventory->LoadInventoryData(LoadGameInstance);
+	PlayerQuest->LoadQuestData(LoadGameInstance);
 }
 
 void AMainPlayer::LoadGameNoSwitch()

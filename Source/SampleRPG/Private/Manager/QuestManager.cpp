@@ -5,6 +5,9 @@
 #include "Manager/ItemManager.h"
 #include "Player/MainPlayer.h"
 #include "Player/PlayerQuest.h"
+#include "Player/Inventory.h"
+#include "Npc/NpcController.h"
+
 #include "UObject/ConstructorHelpers.h"
 
 
@@ -14,20 +17,16 @@ AQuestManager::AQuestManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("DataTable'/Game/DataTable/QuestTable.QuestTable'"));
-
-	if (DataTable.Succeeded())
-	{
-		QuestTable = DataTable.Object;
-	}
 }
 
 // Called when the game starts or when spawned
 void AQuestManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if (QuestTable && QuestMap.Num() > 0)
+}
+void AQuestManager::SetAllQuestData()
+{
+	if (QuestMap.Num() > 0 && GameManager)
 	{
 		for (int32 Count = 0; Count < QuestMap.Num(); Count++)
 		{
@@ -38,37 +37,32 @@ void AQuestManager::BeginPlay()
 
 void AQuestManager::SetQuestData(int32 QuestID)
 {
-	FQuestTable* QuestTableRow = QuestTable->FindRow<FQuestTable>(FName(*(FString::FormatAsNumber(QuestID))), FString(""));
+	FQuestTable* QuestTableData = GameManager->DataTableManager->GetQuestData(QuestID);
 
-	if (QuestTableRow)
+	if (QuestTableData)
 	{
-		QuestMap[QuestID].QuestSubID = (*QuestTableRow).QuestSubID;
-		QuestMap[QuestID].QuestClass = (*QuestTableRow).QuestClass;
-		QuestMap[QuestID].QuestType = (*QuestTableRow).QuestType;
-		QuestMap[QuestID].Name = (*QuestTableRow).Name;
-		QuestMap[QuestID].Goal = (*QuestTableRow).Goal;
-		QuestMap[QuestID].PreDialogueID = (*QuestTableRow).PreDialogueID;
-		QuestMap[QuestID].PostDialogueID = (*QuestTableRow).PostDialogueID;
-		QuestMap[QuestID].PreQuest = (*QuestTableRow).PreQuest;
-		QuestMap[QuestID].bCanClear = (*QuestTableRow).bCanClear;
-		QuestMap[QuestID].bIsClear = (*QuestTableRow).bIsClear;
-		QuestMap[QuestID].NpcID = (*QuestTableRow).NpcID;
-		QuestMap[QuestID].TargetID = (*QuestTableRow).TargetID;
-		QuestMap[QuestID].Count = (*QuestTableRow).Count;
-		QuestMap[QuestID].Exp = (*QuestTableRow).Exp;
-		QuestMap[QuestID].Gold = (*QuestTableRow).Gold;
-		QuestMap[QuestID].PreReward = (*QuestTableRow).PreReward;
-		QuestMap[QuestID].PreRewardCount = (*QuestTableRow).PreRewardCount;
-		QuestMap[QuestID].PostReward = (*QuestTableRow).PostReward;
-		QuestMap[QuestID].PostRewardCount = (*QuestTableRow).PostRewardCount;
+		QuestMap[QuestID].QuestID = (*QuestTableData).QuestID;
+		QuestMap[QuestID].QuestSubID = (*QuestTableData).QuestSubID;
+		QuestMap[QuestID].QuestClass = (*QuestTableData).QuestClass;
+		QuestMap[QuestID].QuestType = (*QuestTableData).QuestType;
+		QuestMap[QuestID].Name = (*QuestTableData).Name;
+		QuestMap[QuestID].Goal = (*QuestTableData).Goal;
+		QuestMap[QuestID].PreDialogueID = (*QuestTableData).PreDialogueID;
+		QuestMap[QuestID].PostDialogueID = (*QuestTableData).PostDialogueID;
+		QuestMap[QuestID].PreQuest = (*QuestTableData).PreQuest;
+		QuestMap[QuestID].bCanClear = (*QuestTableData).bCanClear;
+		QuestMap[QuestID].bIsClear = (*QuestTableData).bIsClear;
+		QuestMap[QuestID].NpcID = (*QuestTableData).NpcID;
+		QuestMap[QuestID].TargetID = (*QuestTableData).TargetID;
+		QuestMap[QuestID].CurCount = (*QuestTableData).CurCount;
+		QuestMap[QuestID].MaxCount = (*QuestTableData).MaxCount;
+		QuestMap[QuestID].Exp = (*QuestTableData).Exp;
+		QuestMap[QuestID].Gold = (*QuestTableData).Gold;
+		QuestMap[QuestID].PreReward = (*QuestTableData).PreReward;
+		QuestMap[QuestID].PreRewardCount = (*QuestTableData).PreRewardCount;
+		QuestMap[QuestID].PostReward = (*QuestTableData).PostReward;
+		QuestMap[QuestID].PostRewardCount = (*QuestTableData).PostRewardCount;
 	}
-}
-
-// Called every frame
-void AQuestManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 
 FQuestTable AQuestManager::GetQuestData(int32 QuestID)
@@ -82,12 +76,36 @@ UTexture2D* AQuestManager::GetRewardIcon(int32 ItemID)
 	return GameManager->ItemManager->GetItemTableData(ItemID).Icon;
 }
 
-void AQuestManager::AcceptQuest()
+void AQuestManager::AcceptQuest(FQuestTable Quest)
 {
 	MainPlayer->PlayerQuest->AddQuest();
+
+	if (Quest.PreRewardCount > 0)
+	{
+		AItem* PreItem = GameManager->ItemManager->CreateItemActor(Quest.PreReward, Quest.PreRewardCount);
+
+		MainPlayer->Inventory->AddItem(PreItem);
+	}
 }
 
-void AQuestManager::ClearQuest()
+void AQuestManager::ClearQuest(FQuestTable Quest)
 {
+	MainPlayer->PlayerQuest->ClearQuest(Quest.QuestID);
 
+	MainPlayer->AddExp(Quest.Exp);
+	MainPlayer->Inventory->AddGold(Quest.Gold);
+
+	if (Quest.PostRewardCount > 0)
+	{
+		AItem* RewardItem = GameManager->ItemManager->CreateItemActor(Quest.PostReward, Quest.PostRewardCount);
+		
+		MainPlayer->Inventory->AddItem(RewardItem);
+	}
+}
+
+void AQuestManager::CheckSymbolMark(int32 NpcID) 
+{
+	ANpcController* Npc = GameManager->NpcManager->NpcMap[NpcID];
+
+	Npc->SetActiveSymbol(ESymbolType::EQT_Question);
 }

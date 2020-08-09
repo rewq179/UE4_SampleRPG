@@ -10,6 +10,7 @@
 #include "Manager/LevelManager.h"
 #include "Manager/DialogueManager.h"
 #include "Manager/ItemManager.h"
+#include "Manager/NpcManager.h"
 #include "Manager/QuestManager.h"
 
 #include "GameManager.generated.h"
@@ -46,6 +47,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
 	class AItemManager* ItemManager;
 
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+	TSubclassOf<class ANpcManager> NpcManagerBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	class ANpcManager* NpcManager;
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
 	TSubclassOf<class AQuestManager> QuestManagerBP;

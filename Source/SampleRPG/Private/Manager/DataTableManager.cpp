@@ -9,6 +9,13 @@ ADataTableManager::ADataTableManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
+	static ConstructorHelpers::FObjectFinder<UDataTable> DialogueTable(TEXT("DataTable'/Game/DataTable/DialogueTable.DialogueTable'"));
+
+	if (DialogueTable.Succeeded())
+	{
+		DialogueTableData = DialogueTable.Object;
+	}
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> NpcTable(TEXT("DataTable'/Game/DataTable/NpcTable.NpcTable'"));
 
@@ -53,6 +60,11 @@ void ADataTableManager::Tick(float DeltaTime)
 
 }
 
+FDialogueTable* ADataTableManager::GetDialogueData(int32 DialogueID)
+{
+	return DialogueTableData->FindRow<FDialogueTable>(FName(*(FString::FormatAsNumber(DialogueID))), FString(""));
+}
+
 FNpcTable* ADataTableManager::GetNpcData(int32 NpcID)
 {
 	return NpcTableData->FindRow<FNpcTable>(FName(*(FString::FormatAsNumber(NpcID))), FString(""));
@@ -71,6 +83,11 @@ FItemTable* ADataTableManager::GetItemData(int32 ItemID)
 FQuestTable* ADataTableManager::GetQuestData(int32 QuestID)
 {
 	return QuestTableData->FindRow<FQuestTable>(FName(*(FString::FormatAsNumber(QuestID))), FString(""));
+}
+
+FText ADataTableManager::GetDialogueText(int32 DialogueID)
+{
+	return GetDialogueData(DialogueID)->DialogueText;
 }
 
 FText ADataTableManager::GetDataName(EDataType DataType, int32 ID)

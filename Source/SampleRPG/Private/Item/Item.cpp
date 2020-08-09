@@ -88,44 +88,17 @@ void AItem::SetItemData()
 
 	if (GameManager)
 	{
-		FItemTable* ItemTableRow = GameManager->DataTableManager->GetItemData(ItemID);
+		ItemData = GameManager->ItemManager->GetItemTableData(ItemID);
 
-		if (ItemTableRow)
+		Mesh->SetStaticMesh(ItemData.Mesh);
+
+		if (ItemData.ItemClass == EItemClass::EIC_Equip && ItemData.EquipMesh != nullptr)
 		{
-			ItemData.Name = (*ItemTableRow).Name;
-
-			ItemData.ItemID = (*ItemTableRow).ItemID;
-			ItemData.ItemClass = (*ItemTableRow).ItemClass;
-			ItemData.ItemType = (*ItemTableRow).ItemType;
-			ItemData.Name = (*ItemTableRow).Name;
-			ItemData.Description = (*ItemTableRow).Description;
-			ItemData.bIsDroppable = (*ItemTableRow).bIsDroppable;
-			ItemData.bIsSellable = (*ItemTableRow).bIsSellable;
-			ItemData.BuyPrice = (*ItemTableRow).BuyPrice;
-			ItemData.SellPrice = (*ItemTableRow).SellPrice;
-			ItemData.MaxCount = (*ItemTableRow).MaxCount;
-			ItemData.Damage = (*ItemTableRow).Damage;
-			ItemData.Deffence = (*ItemTableRow).Deffence;
-			ItemData.Strength = (*ItemTableRow).Strength;
-			ItemData.Dexterity = (*ItemTableRow).Dexterity;
-			ItemData.Intelligence = (*ItemTableRow).Intelligence;
-			ItemData.Mesh = (*ItemTableRow).Mesh;
-
-
-			//Mesh = Cast<UStaticMeshComponent>((*ItemTableRow).Mesh);
-			Mesh->SetStaticMesh((*ItemTableRow).Mesh);
-
-			if (ItemData.ItemClass == EItemClass::EIC_Equip && (*ItemTableRow).EquipMesh != nullptr)
-			{
-				ItemData.EquipMesh = (*ItemTableRow).EquipMesh;
-
-				EquipMesh->SetSkeletalMesh((*ItemTableRow).EquipMesh);
-				EquipMesh->SetVisibility(false);
-			}
-
-			Icon = (*ItemTableRow).Icon;
-			ItemData.Icon = (*ItemTableRow).Icon;
+			EquipMesh->SetSkeletalMesh(ItemData.EquipMesh);
+			EquipMesh->SetVisibility(false);
 		}
+
+		Icon = ItemData.Icon;
 	}
 }
 

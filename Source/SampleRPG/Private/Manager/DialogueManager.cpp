@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Manager/DialogueManager.h"
+#include "Manager/GameManager.h"
 #include "Npc/NpcController.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -9,13 +10,6 @@ ADialogueManager::ADialogueManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("DataTable'/Game/DataTable/DialogueTable.DialogueTable'"));
-
-	if (DataTable.Succeeded())
-	{
-		DialogueTable = DataTable.Object;
-	}
 }
 
 // Called when the game starts or when spawned
@@ -52,15 +46,12 @@ void ADialogueManager::SetDialogueText()
 {
 	DialogueID = FMath::RandRange(InteractNPC->DialogueID[0], InteractNPC->DialogueID[InteractNPC->DialogueID.Num()-1]);
 
-	if (DialogueTable)
-	{
-		DialogueTableRow = DialogueTable->FindRow<FDialogueTable>(FName(*(FString::FormatAsNumber(DialogueID))), FString(""));
+	FDialogueTable* DialogueTableData = GameManager->DataTableManager->GetDialogueData(DialogueID);
 
-		if (DialogueTableRow)
-		{
-			Dialogue.DialogueID = (*DialogueTableRow).DialogueID;
-			Dialogue.DialogueText = (*DialogueTableRow).DialogueText;
-		}
+	if (DialogueTableData)
+	{
+		Dialogue.DialogueID = (*DialogueTableData).DialogueID;
+		Dialogue.DialogueText = (*DialogueTableData).DialogueText;
 	}
 }
 

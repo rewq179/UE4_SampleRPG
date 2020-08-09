@@ -26,6 +26,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FItemTable GetItemTableData(int32 ItemID);
 
+	void SetItemData(class AItem* Item, int32 ItemID);
+
 	UFUNCTION(BlueprintCallable)
 	class AItem* CreateItemActor(int32 ItemID, int32 Count);
 

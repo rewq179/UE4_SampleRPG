@@ -16,7 +16,7 @@ class SAMPLERPG_API USaveGameManager : public USaveGame
 public:
 	USaveGameManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Quest|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGameManager|Properties")
 	class AGameManager* GameManager;
 
 	UPROPERTY(VisibleAnywhere, Category = Basic)
@@ -34,12 +34,15 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	FRotator Rotation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level|Transition")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SaveGameManager|Level")
 	FString LevelName;
 
-	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|SaveData")
+	UPROPERTY(EditDefaultsOnly, Category = "SaveGameManager|SaveData")
 	TMap<int32, int32> InventoryItemMap;
 
-	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|SaveData")
+	UPROPERTY(EditDefaultsOnly, Category = "SaveGameManager|SaveData")
 	TArray<int32> EquipmentItem;
+
+	UPROPERTY(EditDefaultsOnly, Category = "SaveGameManager|SaveData")
+	TMap<int32, bool> PlayerQuestMap;
 };

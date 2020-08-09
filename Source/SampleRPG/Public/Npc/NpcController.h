@@ -8,6 +8,17 @@
 
 #include "NpcController.generated.h"
 
+UENUM(BlueprintType)
+enum class ESymbolType : uint8
+{
+	EQT_None UMETA(DisplayName = "None"),
+	EQT_Question UMETA(DisplayName = "Question"),
+	EQT_Exclamation UMETA(DisplayName = "Exclamation"),
+
+	EQT_MAX
+};
+
+
 UCLASS()
 class SAMPLERPG_API ANpcController : public ACharacter
 {
@@ -21,13 +32,16 @@ public:
 	class AGameManager* GameManager;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|Properties")
-	bool bIsDataSetting;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|Properties")
 	class USphereComponent* InteractCollision; // 영역에 들어왔는지 체크
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Npc|Properties")
 	class UAnimMontage* GestureMontage;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Npc|Symbol")
+	class UStaticMeshComponent* QuestionSymbol;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Npc|Symbol")
+	class UStaticMeshComponent* ExclamationSymbol;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Npc|DataTable")
 	int32 NpcID;
@@ -50,6 +64,8 @@ public:
 	void SetNpcData();
 
 	void StringToIntArray(int32 Type, FString Data);
+
+	void SetActiveSymbol(ESymbolType SymbolType);
 
 protected:
 	// Called when the game starts or when spawned

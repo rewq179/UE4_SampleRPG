@@ -22,12 +22,16 @@ public:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "QuestManager|Properties")
 	class AMainPlayer* MainPlayer;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "QuestManager|Properties")
+	class APlayerQuest* PlayerQuest;
 
 	class UDataTable* QuestTable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestManager|QuestTable")
 	TMap<int32, FQuestTable> QuestMap;
 
+	void SetAllQuestData();
 	void SetQuestData(int32 QuestID);
 
 	UFUNCTION(BlueprintCallable)
@@ -40,10 +44,10 @@ public:
 	UTexture2D* GetRewardIcon(int32 ItemID);
 
 	UFUNCTION(BlueprintCallable)
-	void AcceptQuest();
+	void AcceptQuest(FQuestTable Quest);
 
 	UFUNCTION(BlueprintCallable)
-	void ClearQuest();
+	void ClearQuest(FQuestTable Quest);
 
 protected:
 	// Called when the game starts or when spawned
@@ -51,8 +55,8 @@ protected:
 
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
-	
+	void CheckSymbolMark(int32 NpcID);
+
 	
 };

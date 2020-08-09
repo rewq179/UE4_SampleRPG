@@ -32,25 +32,33 @@ public:
 	TArray<int32> QuestKey;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Quest")
+	TArray<int32> QuestTepList;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Quest")
 	FQuestTable RecentQuest;
 
 	void AddQuest();
 	void RemoveQuest();
-	void CompleteQuest();
+	void ClearQuest(int32 QuestID);
 
 	void SetQuestKey();
-
-	UFUNCTION(BlueprintCallable)
-	bool CheckQuest();
 	
 	UFUNCTION(BlueprintCallable)
-	bool IsQuestExist(int32 QuestID);
+	void SetQuestTepList(bool bIsClearTep);
 
-	bool IsPreQuestClear(int32 QuestID);
+	UFUNCTION(BlueprintCallable)
+	bool IsExistClearQuest();
+
+	UFUNCTION(BlueprintCallable)
+	bool IsExistQuest();
 
 	UFUNCTION(BlueprintCallable)
 	FQuestTable GetQuestData(int32 QuestID);
 
+	void IncreaseCount(EQuestType QuestType, int32 TargetID, int32 Count);
+
+	void SaveQuestData(class USaveGameManager* SaveGameInstance);
+	void LoadQuestData(class USaveGameManager* LoadGameInstance);
 
 protected:
 	// Called when the game starts or when spawned
