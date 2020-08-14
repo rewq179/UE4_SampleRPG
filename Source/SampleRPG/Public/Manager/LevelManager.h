@@ -15,15 +15,15 @@ public:
 	// Sets default values for this actor's properties
 	ALevelManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Quest|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LevelManager|Properties")
 	class AGameManager* GameManager;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level|Transition")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LevelManager|Transition")
 	class UBoxComponent* Transition;
 
 	class UBillboardComponent* Billboard;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level|Transition")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelManager|Transition")
 	FName LevelName;
 
 protected:
@@ -31,9 +31,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	

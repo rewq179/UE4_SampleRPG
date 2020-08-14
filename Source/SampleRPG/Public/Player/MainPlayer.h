@@ -109,7 +109,9 @@ public:
 	//FORCEINLINE void AddGold(int32 Value) { Inventory->AddGold(Value); }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Interact")
-	class AItem* InteractItem;
+	TArray<class AItem*> InteractItems;
+	
+	void AddItem();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Interact")
 	class ANpcController* InteractNPC;
@@ -128,7 +130,6 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Input")
 	bool bIsSprint; // Left Shift Key Down/Up

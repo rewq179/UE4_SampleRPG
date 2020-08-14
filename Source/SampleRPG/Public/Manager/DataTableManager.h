@@ -8,6 +8,7 @@
 
 #include "DataTableManager.generated.h"
 
+#pragma region NPC Table
 USTRUCT(BlueprintType)
 struct FNpcTable : public FTableRowBase
 {
@@ -35,6 +36,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
 		FString QuestID;
 };
+#pragma endregion
 
 #pragma region Monster Table & Enum Class
 
@@ -114,10 +116,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
 		int32 Gold;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		int32 ByProductID;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		int32 RewardID;
 };
 
 #pragma endregion
-
 
 #pragma region Item Table & Enum Class
 
@@ -217,9 +223,103 @@ public:
 };
 #pragma endregion
 
+#pragma region Reward Table
+USTRUCT(BlueprintType)
+struct FRewardBox : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+	int32 BoxID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+	int32 BoxCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+	float BoxPercent;
+};
+
+USTRUCT(BlueprintType)
+struct FRewardRawTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 RewardID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 ID_0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 Count_0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		float Percent_0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 ID_1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 Count_1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		float Percent_1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 ID_2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 Count_2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		float Percent_2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 ID_3;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 Count_3;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		float Percent_3;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 ID_4;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 Count_4;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		float Percent_4;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 ID_5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 Count_5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		float Percent_5;
+};
+
+
+USTRUCT(BlueprintType)
+struct FRewardTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 RewardID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+	TArray<FRewardBox> Boxes;
+};
+#pragma endregion
 
 #pragma region Quest Table & Enum Class
-
 UENUM(BlueprintType)
 enum class EQuestClass : uint8
 {
@@ -277,6 +377,9 @@ public:
 		int32 PreQuest;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
+		bool bIsLastQuest;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
 		bool bIsAlreadyGive;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestTable")
@@ -317,7 +420,7 @@ public:
 };
 #pragma endregion
 
-
+#pragma region Enum Etc...
 UENUM(BlueprintType)
 enum class EDataType : uint8
 {
@@ -329,6 +432,17 @@ enum class EDataType : uint8
 	EDT_Max
 
 };
+
+UENUM(BlueprintType)
+enum class ESymbolType : uint8
+{
+	EQT_None UMETA(DisplayName = "None"),
+	EQT_Question UMETA(DisplayName = "Question"),
+	EQT_Exclamation UMETA(DisplayName = "Exclamation"),
+
+	EQT_MAX
+};
+#pragma endregion
 
 USTRUCT(BlueprintType)
 struct FDialogueTable : public FTableRowBase
@@ -359,19 +473,22 @@ public:
 	class AMainPlayer* MainPlayer;
 
 	class UDataTable* DialogueTableData;
-	FDialogueTable* GetDialogueData(int32 DialogueID);
+	FDialogueTable* GetDialogueTableData(int32 DialogueID);
 
 	class UDataTable* NpcTableData;
-	FNpcTable* GetNpcData(int32 NpcID);
+	FNpcTable* GetNpcTableData(int32 NpcID);
 
 	class UDataTable* MonsterTableData;
-	FMonsterTable* GetMonsterData(int32 MonsterID);
+	FMonsterTable* GetMonsterTableData(int32 MonsterID);
 	
 	class UDataTable* ItemTableData;
-	FItemTable* GetItemData(int32 ItemID);
+	FItemTable* GetItemTableData(int32 ItemID);
 	
+	class UDataTable* RewardRawTableData;
+	FRewardRawTable* GetRewardRawTableData(int32 RewardID);
+
 	class UDataTable* QuestTableData;
-	FQuestTable* GetQuestData(int32 QuestID);
+	FQuestTable* GetQuestTableData(int32 QuestID);
 
 	UFUNCTION(BlueprintCallable)
 	FText GetDialogueText(int32 DialogueID);

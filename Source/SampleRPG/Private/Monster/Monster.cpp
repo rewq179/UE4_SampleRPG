@@ -81,7 +81,7 @@ void AMonster::SetMonsterData()
 
 	if (GameManager)
 	{
-		FMonsterTable* MonsterTableRow = GameManager->DataTableManager->GetMonsterData(MonsterID);
+		FMonsterTable* MonsterTableRow = GameManager->DataTableManager->GetMonsterTableData(MonsterID);
 
 		if (MonsterTableRow)
 		{
@@ -103,6 +103,8 @@ void AMonster::SetMonsterData()
 			Status.AttackRange = (*MonsterTableRow).AttackRange;
 			Status.Exp = (*MonsterTableRow).Exp;	
 			Status.Gold = (*MonsterTableRow).Gold;
+			Status.ByProductID = (*MonsterTableRow).ByProductID;
+			Status.RewardID = (*MonsterTableRow).RewardID;
 
 			DetectColiision->SetSphereRadius(Status.DetectRange);
 			CombatColiision->SetSphereRadius(Status.AttackRange);
@@ -273,7 +275,7 @@ void AMonster::AttackDamage()
 {
 	if (CombatTarget && DamageType)
 	{
-		UGameplayStatics::ApplyDamage(CombatTarget, Status.Damage, AIController, this, DamageType);
+		UGameplayStatics::ApplyDamage(CombatTarget->PlayerStatus, Status.Damage, AIController, this, DamageType);
 
 		if (CombatTarget->GetMovementState() == EMovementState::EMS_Dead)
 		{
@@ -338,8 +340,7 @@ void AMonster::Death()
 	{
 		SetMonsterState(EMonsterState::EMS_Death);
 
-		CombatTarget->AddExp(Status.Exp);
-		//CombatTarget->AddGold(Status.Gold);
+		GameManager->CombatManager->MonsterDeath(this);
 		CombatTarget->RemoveWidgetMonster(this);
 		CombatTarget = nullptr;
 		DetectTarget = nullptr;

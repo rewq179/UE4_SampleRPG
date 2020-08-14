@@ -37,7 +37,7 @@ void AQuestManager::SetAllQuestData()
 
 void AQuestManager::SetQuestData(int32 QuestID)
 {
-	FQuestTable* QuestTableData = GameManager->DataTableManager->GetQuestData(QuestID);
+	FQuestTable* QuestTableData = GameManager->DataTableManager->GetQuestTableData(QuestID);
 
 	if (QuestTableData)
 	{
@@ -50,6 +50,8 @@ void AQuestManager::SetQuestData(int32 QuestID)
 		QuestMap[QuestID].PreDialogueID = (*QuestTableData).PreDialogueID;
 		QuestMap[QuestID].PostDialogueID = (*QuestTableData).PostDialogueID;
 		QuestMap[QuestID].PreQuest = (*QuestTableData).PreQuest;
+		QuestMap[QuestID].bIsLastQuest = (*QuestTableData).bIsLastQuest;
+		QuestMap[QuestID].bIsAlreadyGive = (*QuestTableData).bIsAlreadyGive;
 		QuestMap[QuestID].bCanClear = (*QuestTableData).bCanClear;
 		QuestMap[QuestID].bIsClear = (*QuestTableData).bIsClear;
 		QuestMap[QuestID].NpcID = (*QuestTableData).NpcID;
@@ -73,7 +75,7 @@ FQuestTable AQuestManager::GetQuestData(int32 QuestID)
 
 UTexture2D* AQuestManager::GetRewardIcon(int32 ItemID)
 {
-	return GameManager->ItemManager->GetItemTableData(ItemID).Icon;
+	return GameManager->ItemManager->GetItemData(ItemID).Icon;
 }
 
 void AQuestManager::AcceptQuest(FQuestTable Quest)
@@ -86,6 +88,22 @@ void AQuestManager::AcceptQuest(FQuestTable Quest)
 
 		MainPlayer->Inventory->AddItem(PreItem);
 	}
+
+	if (Quest.QuestID == 2)
+	{
+		FVector Location = GameManager->NpcManager->NpcMap[Quest.NpcID]->GetActorLocation();
+		float x = Location.X;
+		float y = Location.Y;
+			float z = Location.Z;
+
+			UE_LOG(LogTemp, Log, TEXT("%f %f %f"), x, y, z);
+
+		Location += FVector(0.f, 210.f, -78.f);
+
+		GameManager->ItemManager->SpawnItemActor(Quest.TargetID, Quest.MaxCount, Location);
+	}
+
+	GameManager->NpcManager->SetNpcSymbol(ESymbolType::EQT_None, Quest.NpcID);
 }
 
 void AQuestManager::ClearQuest(FQuestTable Quest)
@@ -101,11 +119,57 @@ void AQuestManager::ClearQuest(FQuestTable Quest)
 		
 		MainPlayer->Inventory->AddItem(RewardItem);
 	}
+
+	SetSymbol(ESymbolType::EQT_None, Quest.NpcID);
+	GameManager->NpcManager->CheckNpcSymbol(Quest.NpcID);
+
+	if (Quest.QuestID == 3) // 듀토리얼 종료
+	{
+
+	}
 }
 
-void AQuestManager::CheckSymbolMark(int32 NpcID) 
+void AQuestManager::SetSymbol(ESymbolType SymbolType, int32 QuestID)
 {
-	ANpcController* Npc = GameManager->NpcManager->NpcMap[NpcID];
+	int32 NpcID = QuestMap[QuestID].NpcID;
 
-	Npc->SetActiveSymbol(ESymbolType::EQT_Question);
+	GameManager->NpcManager->SetNpcSymbol(SymbolType, NpcID);
+}
+
+bool AQuestManager::IsExclamationSymbol(TArray<int32> QuestID)
+{
+	for (auto ID : QuestID)
+	{
+		if (IsPrerequisiteMeet(ID))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool AQuestManager::IsPrerequisiteMeet(int32 QuestID) // 선행 조건을 만족했는지?
+{
+	TMap<int32, FQuestTable> Quests = MainPlayer->PlayerQuest->Quests;
+
+	if (!Quests.Contains(QuestID)) // 퀘스트를 보유하지 않았고
+	{
+		int32 PreQuestID = GetPreQuestID(QuestID);
+
+		if (PreQuestID == -1) // 선행 퀘스트가 없다? 그럼 퀘스트를 띄어준다.
+		{
+			return true;
+		}
+
+		else // 선행 퀘스트가 있다?
+		{
+			if (Quests.Contains(PreQuestID) && Quests[PreQuestID].bIsClear)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }

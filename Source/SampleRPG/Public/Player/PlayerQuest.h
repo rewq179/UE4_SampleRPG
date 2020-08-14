@@ -47,10 +47,10 @@ public:
 	void SetQuestTepList(bool bIsClearTep);
 
 	UFUNCTION(BlueprintCallable)
-	bool IsExistClearQuest();
+	bool GetClearQuest();
 
 	UFUNCTION(BlueprintCallable)
-	bool IsExistQuest();
+	bool GetQuest();
 
 	UFUNCTION(BlueprintCallable)
 	FQuestTable GetQuestData(int32 QuestID);

@@ -38,6 +38,13 @@ ADataTableManager::ADataTableManager()
 		ItemTableData = ItemTable.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UDataTable> RewardRawTable(TEXT("DataTable'/Game/DataTable/RewardRawTable.RewardRawTable'"));
+
+	if (RewardRawTable.Succeeded())
+	{
+		RewardRawTableData = RewardRawTable.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UDataTable> QuestTable(TEXT("DataTable'/Game/DataTable/QuestTable.QuestTable'"));
 
 	if (QuestTable.Succeeded())
@@ -60,34 +67,40 @@ void ADataTableManager::Tick(float DeltaTime)
 
 }
 
-FDialogueTable* ADataTableManager::GetDialogueData(int32 DialogueID)
+FDialogueTable* ADataTableManager::GetDialogueTableData(int32 DialogueID)
 {
 	return DialogueTableData->FindRow<FDialogueTable>(FName(*(FString::FormatAsNumber(DialogueID))), FString(""));
 }
 
-FNpcTable* ADataTableManager::GetNpcData(int32 NpcID)
+FNpcTable* ADataTableManager::GetNpcTableData(int32 NpcID)
 {
 	return NpcTableData->FindRow<FNpcTable>(FName(*(FString::FormatAsNumber(NpcID))), FString(""));
 }
 
-FMonsterTable* ADataTableManager::GetMonsterData(int32 MonsterID)
+FMonsterTable* ADataTableManager::GetMonsterTableData(int32 MonsterID)
 {
 	return MonsterTableData->FindRow<FMonsterTable>(FName(*(FString::FormatAsNumber(MonsterID))), FString(""));
 }
 
-FItemTable* ADataTableManager::GetItemData(int32 ItemID)
+FItemTable* ADataTableManager::GetItemTableData(int32 ItemID)
 {
 	return ItemTableData->FindRow<FItemTable>(FName(*(FString::FormatAsNumber(ItemID))), FString(""));
 }
 
-FQuestTable* ADataTableManager::GetQuestData(int32 QuestID)
+FRewardRawTable* ADataTableManager::GetRewardRawTableData(int32 RewardID)
+{
+	return RewardRawTableData->FindRow<FRewardRawTable>(FName(*(FString::FormatAsNumber(RewardID))), FString(""));
+}
+
+
+FQuestTable* ADataTableManager::GetQuestTableData(int32 QuestID)
 {
 	return QuestTableData->FindRow<FQuestTable>(FName(*(FString::FormatAsNumber(QuestID))), FString(""));
 }
 
 FText ADataTableManager::GetDialogueText(int32 DialogueID)
 {
-	return GetDialogueData(DialogueID)->DialogueText;
+	return GetDialogueTableData(DialogueID)->DialogueText;
 }
 
 FText ADataTableManager::GetDataName(EDataType DataType, int32 ID)
@@ -95,16 +108,16 @@ FText ADataTableManager::GetDataName(EDataType DataType, int32 ID)
 	switch (DataType)
 	{
 	case EDataType::EDT_Item:
-		return GetItemData(ID)->Name;
+		return GetItemTableData(ID)->Name;
 
 	case EDataType::EDT_Npc:
-		return GetNpcData(ID)->Name;
+		return GetNpcTableData(ID)->Name;
 
 	case EDataType::EDT_Quest:
-		return GetQuestData(ID)->Name;
+		return GetQuestTableData(ID)->Name;
 
 	case EDataType::EDT_Monster:
-		return GetMonsterData(ID)->Name;
+		return GetMonsterTableData(ID)->Name;
 
 	default:
 		return FText();

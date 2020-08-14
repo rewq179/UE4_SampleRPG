@@ -6,6 +6,7 @@
 
 #include "Manager/GameManager.h"
 #include "Manager/NpcManager.h"
+#include "Manager/QuestManager.h"
 
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -42,13 +43,15 @@ void ANpcController::BeginPlay()
 	SetNpcData();
 }
 
+#pragma region Data Setting
+
 void ANpcController::SetNpcData()
 {
-	AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerPawn(this, 0));
+	MainPlayer = Cast<AMainPlayer>(UGameplayStatics::GetPlayerPawn(this, 0));
 
-	if (Player)
+	if (MainPlayer)
 	{
-		GameManager = Player->GameManager;
+		GameManager = MainPlayer->GameManager;
 	}
 
 	if (GameManager)
@@ -113,19 +116,9 @@ void ANpcController::SetActiveSymbol(ESymbolType SymbolType)
 	}
 }
 
-// Called every frame
-void ANpcController::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+#pragma endregion
 
-}
-
-// Called to bind functionality to input
-void ANpcController::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
+#pragma region Overlap
 
 void ANpcController::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
@@ -139,7 +132,6 @@ void ANpcController::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 		}
 	}
 }
-
 
 void ANpcController::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
@@ -156,3 +148,6 @@ void ANpcController::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AAct
 		}
 	}
 }
+
+#pragma endregion
+

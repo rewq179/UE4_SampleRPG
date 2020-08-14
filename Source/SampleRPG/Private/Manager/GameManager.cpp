@@ -3,6 +3,7 @@
 #include "GameManager.h"
 #include "Player/MainPlayer.h"
 #include "Engine/World.h"
+#include "TimerManager.h"
 
 // Sets default values
 AGameManager::AGameManager()
@@ -16,8 +17,24 @@ AGameManager::AGameManager()
 void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	if (MainPlayer)
+	{
+		MainPlayer->GameManager = this;
+	}
+
 #pragma region Create Manager BP & Set 
+	if (CombatManagerBP)
+	{
+		CombatManager = GetWorld()->SpawnActor<ACombatManager>(CombatManagerBP);
+
+		if (CombatManager)
+		{
+			CombatManager->GameManager = this;
+			CombatManager->MainPlayer = MainPlayer;
+			CombatManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		}
+	}
+
 	if (DataTableManagerBP)
 	{
 		DataTableManager = GetWorld()->SpawnActor<ADataTableManager>(DataTableManagerBP);
@@ -51,6 +68,8 @@ void AGameManager::BeginPlay()
 		{
 			ItemManager->GameManager = this;
 			ItemManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+			ItemManager->SetRewardDataAll();
 		}
 	}
 
@@ -63,7 +82,7 @@ void AGameManager::BeginPlay()
 			NpcManager->GameManager = this;
 			NpcManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 
-			NpcManager->SetAllNpcData();
+			NpcManager->SetNpcDataAll();
 
 		}
 	}
@@ -94,19 +113,16 @@ void AGameManager::BeginPlay()
 		}
 	}
 
-	if (MainPlayer)
-	{
-		MainPlayer->GameManager = this;
-	}
+	FTimerHandle Timer;
+		
+	GetWorldTimerManager().SetTimer(Timer, this, &AGameManager::DelayFunction, 2.f, false);
 
 #pragma endregion
 
 }
 
-// Called every frame
-void AGameManager::Tick(float DeltaTime)
+void AGameManager::DelayFunction()
 {
-	Super::Tick(DeltaTime);
-
+	NpcManager->CheckNpcSymbolAll();
 }
 

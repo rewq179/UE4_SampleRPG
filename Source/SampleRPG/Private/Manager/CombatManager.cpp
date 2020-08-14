@@ -1,7 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Manager/CombatManager.h"
+#include "Manager/GameManager.h"
+#include "Manager/DataTableManager.h"
+#include "Manager/ItemManager.h"
+
 #include "Player/MainPlayer.h"
+#include "Player/Inventory.h"
+
 #include "Monster/Monster.h"
 
 // Sets default values
@@ -17,13 +23,6 @@ void ACombatManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
-}
-
-// Called every frame
-void ACombatManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 
 void ACombatManager::TakeDamageToTarget(AActor* Attacker, AActor* Deffencer, float Damage, bool isTargetPlayer)
@@ -53,3 +52,10 @@ void ACombatManager::TakeDamageToTarget(AActor* Attacker, AActor* Deffencer, flo
 	}
 }
 
+void ACombatManager::MonsterDeath(AMonster* Monster)
+{
+	MainPlayer->AddExp(Monster->Status.Exp);
+	MainPlayer->Inventory->AddGold(Monster->Status.Gold);
+
+	GameManager->ItemManager->GetMonsterItem(Monster->Status.ByProductID, Monster->Status.RewardID, Monster->GetActorLocation());
+}

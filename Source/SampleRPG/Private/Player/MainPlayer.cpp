@@ -85,8 +85,12 @@ void AMainPlayer::BeginPlay()
 		if (Inventory)
 		{
 			Inventory->MainPlayer = this;
-			Inventory->ItemManager = GameManager->ItemManager;
 			Inventory->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+			
+			if (GameManager && GameManager->ItemManager)
+			{
+				Inventory->ItemManager = GameManager->ItemManager;
+			}
 		}
 	}
 
@@ -119,13 +123,17 @@ void AMainPlayer::BeginPlay()
 		if (PlayerCombat)
 		{
 			PlayerQuest->MainPlayer = this;
-			PlayerQuest->QuestManager = GameManager->QuestManager;
 			PlayerQuest->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+			if (GameManager && GameManager->QuestManager)
+			{
+				PlayerQuest->QuestManager = GameManager->QuestManager;
+			}
 		}
 	}
 
-	FString MapName = GetWorld()->GetMapName();
-	MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 맵 이름앞에 XXXXX_X_이름 이런식으로 있기 때문
+	//FString MapName = GetWorld()->GetMapName();
+	//MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 맵 이름앞에 XXXXX_X_이름 이런식으로 있기 때문
 
 	//LoadGameNoSwitch();
 }
@@ -236,14 +244,7 @@ void AMainPlayer::LeftClickDown()
 {
 	bIsLeftClickDown = true;
 
-	if (InteractItem)
-	{
-		Inventory->AddItem(InteractItem);
-
-		InteractItem = nullptr;
-	}
-
-	else if (bIsEquip && !bIsAttackAnim) // 무기를 소유했으며 공격 애니메이션이 종료되었는가?
+	if (bIsEquip && !bIsAttackAnim) // 무기를 소유했으며 공격 애니메이션이 종료되었는가?
 	{
 		PlayerCombat->PlayAttackAnim();
 	}
@@ -256,11 +257,26 @@ void AMainPlayer::LeftClickUp()
 
 void AMainPlayer::StartCommunication()
 {
-	if (InteractNPC)
+	if (InteractItems.Num() > 0)
+	{
+		AddItem();
+	}
+	
+	else if (InteractNPC)
 	{
 		GameManager->DialogueManager->SetActiveDialouge(true, InteractNPC);
 		
 		PlayerQuest->InteractNPC = InteractNPC;
+	}
+}
+
+void AMainPlayer::AddItem()
+{
+	for (auto Item : InteractItems)
+	{
+		Item->SetActiveText(false);
+
+		Inventory->AddItem(Item);
 	}
 }
 
@@ -278,10 +294,13 @@ void AMainPlayer::SwitchLevel(FName LevelName)
 
 	if (World)
 	{
-		FName CurLevelName(*World->GetMapName());
+		FString CurLevelName(*World->GetMapName());
+		CurLevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
 
-		if (CurLevelName != LevelName)
+			UE_LOG(LogTemp, Warning, TEXT("%s // %s"), *LevelName.ToString(), *CurLevelName);
+		if (FName(*CurLevelName) != LevelName)
 		{
+			
 			UGameplayStatics::OpenLevel(World, LevelName);
 		}
 	}

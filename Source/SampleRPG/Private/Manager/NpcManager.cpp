@@ -19,7 +19,7 @@ void ANpcManager::BeginPlay()
 	
 }
 
-void ANpcManager::SetAllNpcData()
+void ANpcManager::SetNpcDataAll()
 {
 	if (NpcDataMap.Num() > 0 && GameManager)
 	{
@@ -32,7 +32,7 @@ void ANpcManager::SetAllNpcData()
 
 void ANpcManager::SetNpcData(int32 NpcID)
 {
-	FNpcTable* NpcTableData = GameManager->DataTableManager->GetNpcData(NpcID);
+	FNpcTable* NpcTableData = GameManager->DataTableManager->GetNpcTableData(NpcID);
 
 	if (NpcTableData)
 	{
@@ -52,12 +52,23 @@ FNpcTable ANpcManager::GetNpcData(int32 NpcID)
 	return NpcDataMap[NpcID];
 }
 
-void ANpcManager::CheckSymbolMark()
+void ANpcManager::CheckNpcSymbolAll()
 {
 	for (auto& Map : NpcMap) // 받을 수 있는 !마크
 	{
-		ANpcController* NpcController = Map.Value;
-
+		CheckNpcSymbol(Map.Key);
 	}
-	
+}
+
+void ANpcManager::CheckNpcSymbol(int32 NpcID)
+{
+	if (GameManager->QuestManager->IsExclamationSymbol(NpcMap[NpcID]->QuestID))
+	{
+		SetNpcSymbol(ESymbolType::EQT_Exclamation, NpcID);
+	}
+}
+
+void ANpcManager::SetNpcSymbol(ESymbolType SymbolType, int32 NpcID)
+{
+	NpcMap[NpcID]->SetActiveSymbol(SymbolType);
 }

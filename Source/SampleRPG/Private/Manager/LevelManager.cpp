@@ -27,14 +27,6 @@ void ALevelManager::BeginPlay()
 	Transition->OnComponentBeginOverlap.AddDynamic(this, &ALevelManager::OnOverlapBegin);
 }
 
-// Called every frame
-void ALevelManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-
 void ALevelManager::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
 	if (OtherActor)

@@ -71,12 +71,6 @@ void AItem::BeginPlay()
 	SetItemData();
 }
 
-// Called every frame
-void AItem::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 void AItem::SetItemData()
 {
 	AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerPawn(this, 0));
@@ -88,7 +82,7 @@ void AItem::SetItemData()
 
 	if (GameManager)
 	{
-		ItemData = GameManager->ItemManager->GetItemTableData(ItemID);
+		ItemData = GameManager->ItemManager->GetItemData(ItemID);
 
 		Mesh->SetStaticMesh(ItemData.Mesh);
 
@@ -117,13 +111,13 @@ void AItem::SetCombatCollisionEnabled(bool IsActive)
 
 void AItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
-	if (OtherActor)
+	if (OtherActor && ItemState == EItemState::EIS_Root)
 	{
 		AMainPlayer* Main = Cast<AMainPlayer>(OtherActor);
 
-		if (Main && ItemState == EItemState::EIS_Root)
+		if (Main)
 		{
-			Main->InteractItem = this;
+			Main->InteractItems.Add(this);
 		}
 	}
 }
@@ -131,13 +125,13 @@ void AItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 
 void AItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor)
+	if (OtherActor && ItemState == EItemState::EIS_Root)
 	{
 		AMainPlayer* Main = Cast<AMainPlayer>(OtherActor);
 
-		if (Main && ItemState == EItemState::EIS_Root)
+		if (Main)
 		{
-			Main->InteractItem = nullptr;
+			Main->InteractItems.Remove(this);
 		}
 	}
 }

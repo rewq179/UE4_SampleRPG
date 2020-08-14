@@ -73,7 +73,7 @@ void APlayerQuest::SetQuestTepList(bool bIsClearTep)
 	}
 }
 
-bool APlayerQuest::IsExistClearQuest()
+bool APlayerQuest::GetClearQuest()
 {
 	for (int32 Index = 0; Index < InteractNPC->QuestID.Num(); Index++)
 	{
@@ -90,7 +90,7 @@ bool APlayerQuest::IsExistClearQuest()
 	return false;
 }
 
-bool APlayerQuest::IsExistQuest()
+bool APlayerQuest::GetQuest()
 {
 	// 퀘스트 상자박스 클릭 -> 해당 NPC의 0번째 퀘스트 부터 검사함
 	// 퀘스트를 소유했는가? -> Yes : 완료했는가? 다음 퀘스트 검사
@@ -99,26 +99,11 @@ bool APlayerQuest::IsExistQuest()
 	{
 		int32 QuestID = InteractNPC->QuestID[Index];
 
-		if (!Quests.Contains(QuestID)) // 퀘스트를 보유하지 않았고
+		if (QuestManager->IsPrerequisiteMeet(QuestID))
 		{
-			int32 PreQuestID = QuestManager->GetPreQuestID(QuestID);
+			RecentQuest = QuestManager->GetQuestData(QuestID);
 
-			if (PreQuestID == -1) // 선행 퀘스트가 없다? 그럼 퀘스트를 띄어준다.
-			{
-				RecentQuest = QuestManager->GetQuestData(QuestID);
-
-				return true;
-			}
-
-			else // 선행 퀘스트가 있다?
-			{
-				if (Quests.Contains(PreQuestID) && Quests[PreQuestID].bIsClear)
-				{
-					RecentQuest = QuestManager->GetQuestData(QuestID);
-
-					return true;
-				}
-			}
+			return true;
 		}
 	}
 	
@@ -142,7 +127,7 @@ void APlayerQuest::IncreaseCount(EQuestType QuestType, int32 TargetID, int32 Cou
 			{
 				Quests[QuestKey[Index]].bCanClear = true;
 				
-				QuestManager->CheckSymbolMark(Quests[QuestKey[Index]].NpcID);
+				QuestManager->SetSymbol(ESymbolType::EQT_Question, QuestKey[Index]);
 			}
 		}
 	}

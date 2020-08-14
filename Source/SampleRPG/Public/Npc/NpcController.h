@@ -8,17 +8,6 @@
 
 #include "NpcController.generated.h"
 
-UENUM(BlueprintType)
-enum class ESymbolType : uint8
-{
-	EQT_None UMETA(DisplayName = "None"),
-	EQT_Question UMETA(DisplayName = "Question"),
-	EQT_Exclamation UMETA(DisplayName = "Exclamation"),
-
-	EQT_MAX
-};
-
-
 UCLASS()
 class SAMPLERPG_API ANpcController : public ACharacter
 {
@@ -73,10 +62,6 @@ protected:
 	
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

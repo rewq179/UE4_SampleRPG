@@ -34,6 +34,8 @@ public:
 	void SetAllQuestData();
 	void SetQuestData(int32 QuestID);
 
+	bool IsPrerequisiteMeet(int32 QuestID);
+
 	UFUNCTION(BlueprintCallable)
 	FQuestTable GetQuestData(int32 QuestID);
 
@@ -56,7 +58,6 @@ protected:
 public:	
 	// Called every frame
 
-	void CheckSymbolMark(int32 NpcID);
-
-	
+	void SetSymbol(ESymbolType SymbolType, int32 QuestID);
+	bool IsExclamationSymbol(TArray<int32> QuestID);
 };

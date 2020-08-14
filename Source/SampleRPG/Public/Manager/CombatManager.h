@@ -15,14 +15,22 @@ public:
 	// Sets default values for this actor's properties
 	ACombatManager();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Properties")
+	class AMainPlayer* MainPlayer;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Properties")
+	class AGameManager* GameManager;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Combat")
+	class AMonster* CombatMonster;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	void TakeDamageToTarget(AActor* Attacker, AActor* Deffencer, float Damage, bool isTargetPlayer);
-	//void AddReward(AMonster* Monster, AMainPlayer Player);
+
+	void MonsterDeath(class AMonster* Monster);
 };

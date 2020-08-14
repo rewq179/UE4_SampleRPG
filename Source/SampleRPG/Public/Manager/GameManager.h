@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 
+#include "Manager/CombatManager.h"
 #include "Manager/DataTableManager.h"
 #include "Manager/SaveGameManager.h"
 #include "Manager/LevelManager.h"
@@ -12,7 +13,6 @@
 #include "Manager/ItemManager.h"
 #include "Manager/NpcManager.h"
 #include "Manager/QuestManager.h"
-
 #include "GameManager.generated.h"
 
 UCLASS()
@@ -26,6 +26,13 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameManager|Properties")
 	class AMainPlayer* MainPlayer;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+	TSubclassOf<class ACombatManager> CombatManagerBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	class ACombatManager* CombatManager;
+
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
 	TSubclassOf<class ADataTableManager> DataTableManagerBP;
@@ -47,11 +54,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
 	class AItemManager* ItemManager;
 
+
 	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
 	TSubclassOf<class ANpcManager> NpcManagerBP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
 	class ANpcManager* NpcManager;
+
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
 	TSubclassOf<class AQuestManager> QuestManagerBP;
@@ -68,13 +77,14 @@ public:
 
 	void GetDataName();
 
+	void DelayFunction();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	
 	

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Manager/DataTableManager.h"
+#include "Npc/NpcController.h"
 #include "NpcManager.generated.h"
 
 UCLASS()
@@ -25,12 +26,14 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NpcManager|Npc")
 	TMap<int32, class ANpcController*> NpcMap;
 
-	void SetAllNpcData();
+	void SetNpcDataAll();
 	void SetNpcData(int32 NpcID);
 
 	FNpcTable GetNpcData(int32 NpcID);
 
-	void CheckSymbolMark();
+	void CheckNpcSymbolAll();
+	void CheckNpcSymbol(int32 NpcID);
+	void SetNpcSymbol(ESymbolType SymbolType, int32 NpcID);
 
 protected:
 	// Called when the game starts or when spawned

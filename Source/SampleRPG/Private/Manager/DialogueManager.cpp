@@ -46,7 +46,7 @@ void ADialogueManager::SetDialogueText()
 {
 	DialogueID = FMath::RandRange(InteractNPC->DialogueID[0], InteractNPC->DialogueID[InteractNPC->DialogueID.Num()-1]);
 
-	FDialogueTable* DialogueTableData = GameManager->DataTableManager->GetDialogueData(DialogueID);
+	FDialogueTable* DialogueTableData = GameManager->DataTableManager->GetDialogueTableData(DialogueID);
 
 	if (DialogueTableData)
 	{
