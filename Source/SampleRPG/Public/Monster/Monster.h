@@ -20,6 +20,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|Properties")
 	class AGameManager* GameManager;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Monster|BehaviorTree")
+	TSubclassOf<class AMonsterAI> MonsterAIBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|BehaviorTree")
+	class AMonsterAI* MonsterAI;
+
 #pragma region MonsterTable
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|MonsterTable")
@@ -37,27 +43,6 @@ public:
 
 	FORCEINLINE void SetMonsterState(EMonsterState State);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Properties")
-	class USphereComponent* DetectColiision; // 감지 범위
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Properties")
-	class USphereComponent* CombatColiision; // 공격 볌위
-
-	/* 
-		기존 Skeleton 메쉬에 Socket을 생성하고, 그곳에 Compnent*를 붙여서 사용할 수 도 있음.
-
-		그럴경우 CombatCollision->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("소켓 명칭"))
-
-		그리고 CombatColiision의 반응 여부 또한 고쳐야한다.
-
-		CombatCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision); // 공격 시작시 Active해주면됨.
-		CombatCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
-		CombatCollision->SetCollisionResponseToChannels(ECollisionResponse::ECR_Ignore);
-		CombatCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-
-		마지막으로 파티클도 소켓의 위치에서 생성하면 끝!
-	*/
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
 	class UParticleSystem* DamagedParticle;
 	
@@ -71,8 +56,6 @@ public:
 #pragma endregion
 
 #pragma region Combat And AI
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	class AAIController* AIController;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	class AMainPlayer* DetectTarget;
@@ -138,20 +121,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
-	virtual void OnDetectOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	virtual void OnDetectOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
-	virtual void OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	virtual void OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
-	//virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
-	void FollowTarget();
+	
 	void PlayMontage(FName Name, float PlayRate);
 };

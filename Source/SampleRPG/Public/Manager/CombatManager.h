@@ -6,6 +6,14 @@
 #include "GameFramework/Actor.h"
 #include "CombatManager.generated.h"
 
+UENUM(BlueprintType)
+enum class EDamageType : uint8
+{
+	EMS_Normal UMETA(DisplayName = "Normal"),
+
+	EMS_MAX
+};
+
 UCLASS()
 class SAMPLERPG_API ACombatManager : public AActor
 {
@@ -29,8 +37,5 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-
-	void TakeDamageToTarget(AActor* Attacker, AActor* Deffencer, float Damage, bool isTargetPlayer);
-
 	void MonsterDeath(class AMonster* Monster);
 };

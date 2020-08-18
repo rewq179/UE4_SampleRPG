@@ -25,32 +25,6 @@ void ACombatManager::BeginPlay()
 	
 }
 
-void ACombatManager::TakeDamageToTarget(AActor* Attacker, AActor* Deffencer, float Damage, bool isTargetPlayer)
-{
-	if (isTargetPlayer)
-	{
-		AMainPlayer* Target = Cast<AMainPlayer>(Deffencer);
-
-		if (Target)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Take Damage(%d) to Player"), Damage)
-
-			//Target->TakeDamage(Damage);
-		}
-	}
-
-	else
-	{
-		AMonster* Target = Cast<AMonster>(Deffencer);
-
-		if (Target)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Take Damage(%d) to Monster"), Damage)
-
-			//Target->TakeDamage(Damage);
-		}
-	}
-}
 
 void ACombatManager::MonsterDeath(AMonster* Monster)
 {

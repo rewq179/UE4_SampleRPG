@@ -1,8 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Monster/Monster.h"
+#include "Monster/MonsterAI.h"
+
 #include "Player/MainPlayer.h"
 #include "Manager/GameManager.h"
+#include "Manager/CombatManager.h"
 
 #include "AIController.h"
 #include "Components/SphereComponent.h"
@@ -13,17 +16,14 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 
+
 // Sets default values
 AMonster::AMonster()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	DetectColiision = CreateDefaultSubobject<USphereComponent>(TEXT("DetectColiision"));
-	DetectColiision->SetupAttachment(GetRootComponent());
-	CombatColiision = CreateDefaultSubobject<USphereComponent>(TEXT("CombatColiision"));
-	CombatColiision->SetupAttachment(GetRootComponent());
-
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	AttackTime = 0.1f;
 }
 
@@ -32,12 +32,16 @@ void AMonster::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	AIController = Cast<AAIController>(GetController());
+	if (MonsterAIBP)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Y!"));
+		MonsterAI = GetWorld()->SpawnActor<AMonsterAI>(MonsterAIBP);
 
-	DetectColiision->OnComponentBeginOverlap.AddDynamic(this, &AMonster::OnDetectOverlapBegin);
-	DetectColiision->OnComponentEndOverlap.AddDynamic(this, &AMonster::OnDetectOverlapEnd);
-	CombatColiision->OnComponentBeginOverlap.AddDynamic(this, &AMonster::OnCombatOverlapBegin);
-	CombatColiision->OnComponentEndOverlap.AddDynamic(this, &AMonster::OnCombatOverlapEnd);
+		if (MonsterAI)
+		{
+			MonsterAI->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		}
+	}
 
 	SetMonsterData();
 }
@@ -55,11 +59,6 @@ void AMonster::Tick(float DeltaTime)
 	if (CombatTarget && !bIsAttackAnim) // 공격 대상이 있는가? and 공격이 끝났는가?
 	{
 		AttackTarget(DeltaTime);
-	}
-
-	if(!CombatTarget && DetectTarget)
-	{
-		FollowTarget();
 	}
 }
 
@@ -106,9 +105,6 @@ void AMonster::SetMonsterData()
 			Status.ByProductID = (*MonsterTableRow).ByProductID;
 			Status.RewardID = (*MonsterTableRow).RewardID;
 
-			DetectColiision->SetSphereRadius(Status.DetectRange);
-			CombatColiision->SetSphereRadius(Status.AttackRange);
-
 			GetCharacterMovement()->MaxWalkSpeed = Status.FollowSpeed;
 		}
 	}
@@ -129,98 +125,8 @@ void AMonster::SetMonsterState(EMonsterState State)
 	}
 }
 
-#pragma region Overlap Begin/End
-
-void  AMonster::OnDetectOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor && !DetectTarget)
-	{
-		AMainPlayer* Player = Cast<AMainPlayer>(OtherActor);
-		 
-		if (Player && Player->MovementState != EMovementState::EMS_Dead)
-		{
-			DetectTarget = Player;
-
-			Player->AddWidgetMonster(this);
-		}
-	}
-}
-
-void  AMonster::OnDetectOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor)
-	{
-		AMainPlayer* Player = Cast<AMainPlayer>(OtherActor);
-
-		if (Player && Player == DetectTarget)
-		{
-			DetectTarget = nullptr;
-			bIsAttackAnim = false;
-
-			Player->RemoveWidgetMonster(this);
-
-			SetMonsterState(EMonsterState::EMS_Idle);
-
-			AIController->StopMovement(); // 범위에서 벗어나면 멈춘다.
-		}
-	}
-}
-
-void  AMonster::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor)
-	{
-		AMainPlayer* Player = Cast<AMainPlayer>(OtherActor);
-
-		if (Player && Player->MovementState != EMovementState::EMS_Dead)
-		{
-			CombatTarget = Cast<AMainPlayer>(OtherActor);
-
-			SetMonsterState(EMonsterState::EMS_Combat);
-
-			bCanAttack = true;
-		}
-	}
-}
-
-void  AMonster::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor)
-	{
-		AMainPlayer* Player = Cast<AMainPlayer>(OtherActor);
-
-		if (Player && Player == CombatTarget)
-		{
-			CombatTarget = nullptr;
-
-			SetMonsterState(EMonsterState::EMS_Follow);
-
-			bCanAttack = false;
-		}
-	}
-}
-
-
-#pragma endregion
-
-void AMonster::FollowTarget()
-{
-	if (AIController && DetectTarget && !bIsAttackAnim)
-	{
-		SetMonsterState(EMonsterState::EMS_Follow);
-	
-		FAIMoveRequest MoveRequest;
-		MoveRequest.SetGoalActor(DetectTarget); // 목표물 : 타겟
-		MoveRequest.SetAcceptanceRadius(10.f); // 어디까지 접근할 것인가?
-
-		FNavPathSharedPtr NavPath;
-
-		AIController->MoveTo(MoveRequest, &NavPath);
-	}
-}
 
 #pragma region Combat Function
-
 void AMonster::AttackTarget(float Time)
 {
 	if (AttackCurTime == 0)
@@ -239,7 +145,6 @@ void AMonster::AttackTarget(float Time)
 	}
 }
 
-
 void AMonster::PlayAttackAnim()
 {
 	if (CombatTarget && !bIsAttackAnim && !bIsAttack)
@@ -247,8 +152,6 @@ void AMonster::PlayAttackAnim()
 		bIsAttack = true;
 
 		int32 Section = FMath::RandRange(0, 1);
-
-		UE_LOG(LogTemp, Log, TEXT("Num = %d"), Section);
 
 		switch (Section)
 		{
@@ -275,7 +178,7 @@ void AMonster::AttackDamage()
 {
 	if (CombatTarget && DamageType)
 	{
-		UGameplayStatics::ApplyDamage(CombatTarget->PlayerStatus, Status.Damage, AIController, this, DamageType);
+		UGameplayStatics::ApplyDamage(CombatTarget->PlayerStatus, Status.Damage, MonsterAI, this, DamageType);
 
 		if (CombatTarget->GetMovementState() == EMovementState::EMS_Dead)
 		{
@@ -347,8 +250,6 @@ void AMonster::Death()
 
 		PlayMontage(FName("Death"), 1.f);
 
-		CombatColiision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		DetectColiision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
