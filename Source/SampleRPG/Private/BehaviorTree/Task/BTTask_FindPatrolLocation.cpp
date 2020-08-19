@@ -31,7 +31,7 @@ EBTNodeResult::Type UBTTask_FindPatrolLocation::ExecuteTask(UBehaviorTreeCompone
 	FVector Origin = OwnerComp.GetBlackboardComponent()->GetValueAsVector(AMonsterAI::HomeLocation); 
 	FNavLocation NextPatrol;
 
-	if (NavSystem->GetRandomPointInNavigableRadius(FVector::ZeroVector, 500.0f, NextPatrol))
+	if (NavSystem->GetRandomPointInNavigableRadius(Origin, 500.0f, NextPatrol)) // origin위치에서 ±500인 지점중 랜덤 포인트를 찾겠다.
 	{
 		OwnerComp.GetBlackboardComponent()->SetValueAsVector(AMonsterAI::PatrolLocation, NextPatrol.Location);
 

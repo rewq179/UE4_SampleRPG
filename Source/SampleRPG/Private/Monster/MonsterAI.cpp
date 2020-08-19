@@ -11,6 +11,7 @@
 const FName AMonsterAI::HomeLocation(TEXT("HomeLocation"));
 const FName AMonsterAI::PatrolLocation(TEXT("PatrolLocation"));
 const FName AMonsterAI::Target(TEXT("Target"));
+const FName AMonsterAI::InDistance(TEXT("InDistance"));
 
 AMonsterAI::AMonsterAI()
 {
@@ -21,12 +22,8 @@ void AMonsterAI::Possess(APawn* InPawn)
 {
 	Super::Possess(InPawn);
 
-	UE_LOG(LogTemp, Log, TEXT("START"));
-
 	if (UseBlackboard(BBAsset, Blackboard))
 	{
-		UE_LOG(LogTemp, Log, TEXT("Exist"));
-
 		Blackboard->SetValueAsVector(HomeLocation, InPawn->GetActorLocation());
 		FVector Location = Blackboard->GetValueAsVector(AMonsterAI::HomeLocation);
 
@@ -34,5 +31,25 @@ void AMonsterAI::Possess(APawn* InPawn)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("AI Controller couldn't run!!!!"));
 		}
+	}
+}
+
+void AMonsterAI::StartAI()
+{
+	auto BehaviorTreeComponent = Cast<UBehaviorTreeComponent>(BrainComponent);
+	
+	if (nullptr != BehaviorTreeComponent)
+	{
+		BehaviorTreeComponent->StartTree(*BTAsset, EBTExecutionMode::Looped);
+	}
+}
+
+void AMonsterAI::StopAI()
+{
+	auto BehaviorTreeComponent = Cast<UBehaviorTreeComponent>(BrainComponent);
+	
+	if (nullptr != BehaviorTreeComponent)
+	{
+		BehaviorTreeComponent->StopTree(EBTStopMode::Safe);
 	}
 }

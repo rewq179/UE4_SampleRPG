@@ -8,6 +8,18 @@
 
 #include "Monster.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnChargingEndDelegate);
+
+UENUM(BlueprintType)
+enum class EAttackType : uint8
+{
+	EAT_Normal UMETA(DisplayName = "Normal"),
+	EAT_Charging UMETA(DisplayName = "Charging"),
+
+	EAT_MAX
+};
+
 UCLASS()
 class SAMPLERPG_API AMonster : public ACharacter
 {
@@ -20,13 +32,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|Properties")
 	class AGameManager* GameManager;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Monster|BehaviorTree")
-	TSubclassOf<class AMonsterAI> MonsterAIBP;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
+	class UParticleSystem* DamagedParticle;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|BehaviorTree")
-	class AMonsterAI* MonsterAI;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
+	class USoundCue* DamagedSound;
 
-#pragma region MonsterTable
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
+	class UAnimMontage* CombatMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
+	FTimerHandle TimeHandle;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|MonsterTable")
 	int32 MonsterID;
@@ -34,94 +51,53 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|MonsterTable")
 	FMonsterTable Status;
 
-	void SetMonsterData();
-#pragma endregion
-
-#pragma region Properties (Components, Particle, Sound, etc...)
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	EMonsterState MonsterState;
 
-	FORCEINLINE void SetMonsterState(EMonsterState State);
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
-	class UParticleSystem* DamagedParticle;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
-	class USoundCue* DamagedSound;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
-	class UAnimMontage* CombatMontage;
-
-
-#pragma endregion
-
-#pragma region Combat And AI
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	class AMainPlayer* DetectTarget;
+	class AMonsterAI* MonsterAI;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	class AMainPlayer* CombatTarget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	float AttackMinTime;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	float AttackMaxTime;
-
-	/*
-		만약 Tick을 이용하지 않는다면 FTimerHandle을 이용해야한다.
-
-		GetWorldTimerManager().SetTimer(시간핸들, this, 실행 함수 명칭, 타이머 시간)과
-		GetWorldTimerManager().ClearTimer(타이머 시간)을 이용하낟.
-	*/
-
-	float AttackCurTime;
-	float AttackTime;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	bool bCanAttack; // 플레이어를 공격(공격 사거리 IN??)할 수 있는가?
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	bool bIsAttack; // 몽타쥬 검색을 1회하기 위함
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	bool bIsAttackAnim; // 공격 애니메이션이 종료됬는가?
-	
-	void AttackTarget(float Time);
-	void PlayAttackAnim();
-
-	UFUNCTION(BlueprintCallable)
-	void AttackStart(); // bIsAttacking = true
-
-	UFUNCTION(BlueprintCallable)
-	void AttackDamage(); // 데미지 주는 시점
-
-	UFUNCTION(BlueprintCallable)
-	void AttackEnd(); // bIsAttacking = false
-
-	void Death();
-	void Respawn();
-
-	UFUNCTION(BlueprintCallable)
-	void DeathEnd();
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category ="Monster|Combat")
 	TSubclassOf<UDamageType> DamageType;
-#pragma endregion
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|Combat")
+	bool bIsChargingDelay;
+
+	FORCEINLINE void SetChargingDelay() { bIsChargingDelay = false; }
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	void SetMonsterData();
+	void SetMonsterState(EMonsterState State);
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	void AttackTarget(class AMainPlayer* Target, EAttackType AttackType);
+	int32 GetAttackNumber(EAttackType AttackType);
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
+	void Death();
 	
+	void TakeGroggy(float DamageAMount, AActor* DamageCauser);
+	void Stun();
+
+	UFUNCTION(BlueprintCallable)
+	void ApplyDamageToTarget(); // 데미지 주는 시점
+
+	UFUNCTION(BlueprintCallable)
+	void AttackAnimEnd();
+	FOnAttackEndDelegate OnAttackEnd;
+
+	UFUNCTION(BlueprintCallable)
+	void ChargingAnimEnd();
+	FOnChargingEndDelegate OnChargingEnd;
+
+	UFUNCTION(BlueprintCallable)
+	void DeathAnimEnd();
+
 	void PlayMontage(FName Name, float PlayRate);
 };

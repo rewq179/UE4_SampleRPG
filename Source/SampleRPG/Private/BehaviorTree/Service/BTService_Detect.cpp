@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BTService_Detect.h"
+
+#include "Monster/Monster.h"
 #include "Monster/MonsterAI.h"
 #include "Player/MainPlayer.h"
 
@@ -17,8 +19,6 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8 * Node
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	UE_LOG(LogTemp, Log, TEXT("Find Object!"));
-
 	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
 	if (nullptr == ControllingPawn)
 	{
@@ -26,12 +26,15 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8 * Node
 	}
 
 	UWorld* World = ControllingPawn->GetWorld();
-	FVector Center = ControllingPawn->GetActorLocation();
-	float DetectRadius = 600.0f;
 	if (nullptr == World)
 	{
 		return;
 	}
+
+	FVector Center = ControllingPawn->GetActorLocation();
+
+	AMonster* Monster = Cast<AMonster>(ControllingPawn);
+	float DetectRange = Monster->Status.DetectRange;
 
 	TArray<FOverlapResult> OverlapResults;
 	FCollisionQueryParams CollisionQueryParam(NAME_None, false, ControllingPawn);
@@ -40,7 +43,7 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8 * Node
 		Center,
 		FQuat::Identity,
 		ECollisionChannel::ECC_GameTraceChannel2,
-		FCollisionShape::MakeSphere(DetectRadius),
+		FCollisionShape::MakeSphere(DetectRange),
 		CollisionQueryParam
 	);
 
@@ -48,12 +51,14 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8 * Node
 	{
 		for (auto OverlapResult : OverlapResults)
 		{
-			AMainPlayer* MainPlayer = Cast<AMainPlayer>(OverlapResult.GetActor());
-			
+			auto MainPlayer = Cast<AMainPlayer>(OverlapResult.GetActor());
+
 			if (MainPlayer && MainPlayer->GetController()->IsPlayerController())
 			{
 				OwnerComp.GetBlackboardComponent()->SetValueAsObject(AMonsterAI::Target, MainPlayer); // ≈∏∞Ÿ ¿˙¿Â
 				
+				auto Target = Cast<AMainPlayer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AMonsterAI::Target));
+
 				return;
 			}
 		}

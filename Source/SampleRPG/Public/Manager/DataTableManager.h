@@ -78,6 +78,15 @@ public:
 		FText Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		int32 AttackCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		int32 SkillCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
+		bool bHasCharging;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
 		int32 Level;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
@@ -495,15 +504,4 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	FText GetDataName(EDataType DataType, int32 ID);
-	
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	
-	
 };

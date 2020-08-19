@@ -16,6 +16,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 
+#include "TimerManager.h"
 
 // Sets default values
 AMonster::AMonster()
@@ -24,7 +25,6 @@ AMonster::AMonster()
 	PrimaryActorTick.bCanEverTick = true;
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-	AttackTime = 0.1f;
 }
 
 // Called when the game starts or when spawned
@@ -32,41 +32,9 @@ void AMonster::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (MonsterAIBP)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Y!"));
-		MonsterAI = GetWorld()->SpawnActor<AMonsterAI>(MonsterAIBP);
-
-		if (MonsterAI)
-		{
-			MonsterAI->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-		}
-	}
+	MonsterAI = Cast<AMonsterAI>(GetController());
 
 	SetMonsterData();
-}
-
-// Called every frame
-void AMonster::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (MonsterState == EMonsterState::EMS_Death)
-	{
-		return;
-	}
-
-	if (CombatTarget && !bIsAttackAnim) // 공격 대상이 있는가? and 공격이 끝났는가?
-	{
-		AttackTarget(DeltaTime);
-	}
-}
-
-// Called to bind functionality to input
-void AMonster::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
 void AMonster::SetMonsterData()
@@ -88,6 +56,9 @@ void AMonster::SetMonsterData()
 
 			Status.ID = (*MonsterTableRow).ID;
 			Status.MonsterClass = (*MonsterTableRow).MonsterClass;
+			Status.AttackCount = (*MonsterTableRow).AttackCount;
+			Status.SkillCount = (*MonsterTableRow).SkillCount;
+			Status.bHasCharging = (*MonsterTableRow).bHasCharging;
 			Status.Name = (*MonsterTableRow).Name;
 			Status.Level = (*MonsterTableRow).Level;
 			Status.CurHP = (*MonsterTableRow).CurHP;
@@ -126,73 +97,57 @@ void AMonster::SetMonsterState(EMonsterState State)
 }
 
 
-#pragma region Combat Function
-void AMonster::AttackTarget(float Time)
+void AMonster::AttackTarget(AMainPlayer* Target, EAttackType AttackType)
 {
-	if (AttackCurTime == 0)
+	if (Target)
 	{
-		AttackTime = FMath::RandRange(AttackMinTime, AttackMaxTime);
-	}
-	
-	AttackCurTime += Time;
+		CombatTarget = Target;
 
-	if (AttackCurTime >= AttackTime && CombatTarget && !bIsAttackAnim && !bIsAttack )
-	{
-		AttackCurTime = 0.f;
-		AttackTime = 0.f;
-
-		PlayAttackAnim();
-	}
-}
-
-void AMonster::PlayAttackAnim()
-{
-	if (CombatTarget && !bIsAttackAnim && !bIsAttack)
-	{
-		bIsAttack = true;
-
-		int32 Section = FMath::RandRange(0, 1);
-
-		switch (Section)
+		if (CombatTarget)
 		{
-		case 0:
-			PlayMontage(FName("Attack_1"), 1.3f);
-			break;
+			FString SectionName = "Attack_";
+			SectionName.Append(FString::FromInt(GetAttackNumber(AttackType)));
 
-		case 1:
-			PlayMontage(FName("Attack_2"), 1.5f);
-			break;
+			if (AttackType == EAttackType::EAT_Normal)
+			{
+				PlayMontage(FName(*SectionName), 1.5f);
+			}
 
-		default:
-			break;
+			else
+			{
+				float Distance = this->GetDistanceTo(CombatTarget);
+
+				UE_LOG(LogTemp, Log, TEXT("Monster.cpp // Dis : %f"), Distance);
+
+				PlayMontage(FName(*SectionName), 1.f);
+				bIsChargingDelay = true;
+
+				GetWorldTimerManager().SetTimer(TimeHandle, this, &AMonster::SetChargingDelay, 10.0f, false);
+			}
 		}
 	}
-}
 
-void AMonster::AttackStart()
-{
-	bIsAttackAnim = true;
-}
-
-void AMonster::AttackDamage()
-{
-	if (CombatTarget && DamageType)
+	else
 	{
-		UGameplayStatics::ApplyDamage(CombatTarget->PlayerStatus, Status.Damage, MonsterAI, this, DamageType);
-
-		if (CombatTarget->GetMovementState() == EMovementState::EMS_Dead)
-		{
-			CombatTarget = nullptr;
-			DetectTarget = nullptr;
-		}
+		CombatTarget = nullptr;
 	}
 }
 
-void AMonster::AttackEnd()
+int32 AMonster::GetAttackNumber(EAttackType AttackType)
 {
-	bIsAttackAnim = false;
-	bIsAttack = false;
+	switch (AttackType)
+	{
+	case EAttackType::EAT_Normal:
+		return FMath::RandRange(0, Status.AttackCount -1 );
+		break;
 
+	case EAttackType::EAT_Charging:
+		return FMath::RandRange(Status.AttackCount, Status.AttackCount);
+		break;
+
+	default:
+		return -1;
+	}
 }
 
 float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser)
@@ -206,26 +161,12 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const & Damag
 		if (Status.CurHP <= 0)
 		{
 			Status.CurHP = 0;
+			
 			Death();
 		}
 
 		if (DamagedParticle)
 		{
-			/* 헤더파일 : #include "Kismet/GameplayStatics.h"
-
-				만약 무기의 어떤 위치에 파티클(Blood)를 출력시키고 싶다면? 무기의 스켈레탈 메쉬에 XXX 소켓을 만들어준다.
-				그리고 아래 코드를 작성한다. 이때 SekeletalMeshSocket을 Include 해줘야함.
-
-				const USkeletonMeshSocket* WeaponSocket = SekeltalMesh->GetSocketByName("XXXSocket");
-
-				if(WeaponSocket)
-				{
-					FVector SocketLocation = WeaponSocket->GetSocketLocation(SkeletalMesh);
-				}
-
-				그리고 GetActorLocation() -> SocketLocation 으로 바꿔주면 된다.
-			*/
-
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), DamagedParticle, GetActorLocation(), FRotator(0.f), false); // true : 재생이후 자동으로 파티클 삭제
 		}
 
@@ -234,6 +175,7 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const & Damag
 			UGameplayStatics::PlaySound2D(this, DamagedSound);
 		}
 	}
+
 	return total;
 }
 
@@ -241,12 +183,13 @@ void AMonster::Death()
 {
 	if (MonsterState != EMonsterState::EMS_Death)
 	{
+		MonsterAI->StopAI();
+
 		SetMonsterState(EMonsterState::EMS_Death);
 
 		GameManager->CombatManager->MonsterDeath(this);
 		CombatTarget->RemoveWidgetMonster(this);
 		CombatTarget = nullptr;
-		DetectTarget = nullptr;
 
 		PlayMontage(FName("Death"), 1.f);
 
@@ -254,19 +197,54 @@ void AMonster::Death()
 	}
 }
 
-void AMonster::DeathEnd()
+void AMonster::TakeGroggy(float DamageAmount, AActor* DamageCauser)
 {
-	// 오브젝트 풀로 다시 되돌리기, 현재는 그냥 파괴시킴
+	Status.CurGroggy -= DamageAmount;
 
+	if (Status.CurGroggy <= 0)
+	{
+		Status.CurGroggy = 0;
+
+		Stun();
+	}
+}
+
+void AMonster::Stun()
+{
+
+}
+
+void AMonster::ApplyDamageToTarget()
+{
+	if (CombatTarget && DamageType)
+	{
+		if (CombatTarget->GetDistanceTo(this) <= Status.AttackRange * 1.5f)
+		{
+			UGameplayStatics::ApplyDamage(CombatTarget->PlayerStatus, Status.Damage, MonsterAI, this, DamageType);
+		}
+
+		if (CombatTarget->GetMovementState() == EMovementState::EMS_Dead)
+		{
+			CombatTarget = nullptr;
+		}
+	}
+}
+
+void AMonster::AttackAnimEnd()
+{
+	OnAttackEnd.Broadcast();
+}
+
+void AMonster::ChargingAnimEnd()
+{
+	OnChargingEnd.Broadcast();
+}
+
+void AMonster::DeathAnimEnd()
+{
 	GetMesh()->bPauseAnims = true;
 	GetMesh()->bNoSkeletonUpdate = true;
 }
-
-void AMonster::Respawn()
-{
-
-}
-#pragma endregion
 
 void AMonster::PlayMontage(FName Name, float PlayRate)
 {

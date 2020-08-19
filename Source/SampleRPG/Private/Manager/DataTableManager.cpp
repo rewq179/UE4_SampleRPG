@@ -54,19 +54,6 @@ ADataTableManager::ADataTableManager()
 
 }
 
-// Called when the game starts or when spawned
-void ADataTableManager::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-// Called every frame
-void ADataTableManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 FDialogueTable* ADataTableManager::GetDialogueTableData(int32 DialogueID)
 {
 	return DialogueTableData->FindRow<FDialogueTable>(FName(*(FString::FormatAsNumber(DialogueID))), FString(""));

@@ -10,7 +10,7 @@
 
 UBTDecorator_IsInAttackRange::UBTDecorator_IsInAttackRange()
 {
-	NodeName = TEXT("IsInAttackRange");
+	NodeName = TEXT("In Attack Range");
 }
 
 bool UBTDecorator_IsInAttackRange::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
@@ -29,7 +29,10 @@ bool UBTDecorator_IsInAttackRange::CalculateRawConditionValue(UBehaviorTreeCompo
 		return false;
 	}
 
-	bResult = (Target->GetDistanceTo(ControllingPawn) <= 100);
+	AMonster* Monster = Cast<AMonster>(ControllingPawn);
+	float AttackRange = Monster->Status.AttackRange;
+
+	bResult = (Target->GetDistanceTo(ControllingPawn) <= AttackRange);
 	return bResult;
 }
 
