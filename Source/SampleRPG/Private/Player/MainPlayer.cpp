@@ -9,6 +9,7 @@
 
 #include "Manager/SaveGameManager.h"
 #include "Manager/GameManager.h"
+#include "Manager/CombatManager.h"
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
@@ -67,6 +68,7 @@ AMainPlayer::AMainPlayer()
 	GetCharacterMovement()->AirControl = 0.2f;
 #pragma endregion
 
+	bCanMove = true;
 	bIsSprint = false;
 	RollCost = 50.f;
 	NormalSpeed = 600.f;
@@ -132,6 +134,8 @@ void AMainPlayer::BeginPlay()
 		}
 	}
 
+	PlayerCombat->CombatManager = GameManager->CombatManager;
+
 	//FString MapName = GetWorld()->GetMapName();
 	//MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 맵 이름앞에 XXXXX_X_이름 이런식으로 있기 때문
 
@@ -174,7 +178,7 @@ void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 #pragma region Movement/Roll Function
 void AMainPlayer::MoveForward(float Value)
 {
-	if (Value != 0.f && Controller && !bIsAttackAnim && MovementState != EMovementState::EMS_Dead && !bIsMenuVisible)
+	if (Value != 0.f && Controller && bCanMove && !bIsAttackAnim && MovementState != EMovementState::EMS_Dead && !bIsMenuVisible)
 	{
 		FRotator Rotation = Controller->GetControlRotation(); // 현재 캐릭터의 회전 매트릭스를 구한다.
 		FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
@@ -196,7 +200,7 @@ void AMainPlayer::MoveForward(float Value)
 
 void AMainPlayer::MoveRight(float Value)
 {
-	if (Value != 0.f && Controller && !bIsAttackAnim && MovementState != EMovementState::EMS_Dead && !bIsMenuVisible)
+	if (Value != 0.f && Controller && bCanMove && !bIsAttackAnim && MovementState != EMovementState::EMS_Dead && !bIsMenuVisible)
 	{
 		FRotator Rotation = Controller->GetControlRotation();
 		FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
@@ -224,16 +228,16 @@ void AMainPlayer::LeftShiftKeyUp()
 
 void AMainPlayer::Roll()
 {
-	if (!bIsRoll && MovementState != EMovementState::EMS_Dead && PlayerStatus->Stat.CurStamina >= RollCost && !bIsMenuVisible)
+	if (!bIsRoll && bCanMove  && MovementState != EMovementState::EMS_Dead && PlayerStatus->Stat.CurStamina >= RollCost && !bIsMenuVisible)
 	{
 		PlayerStatus->Stat.CurStamina -= RollCost;
 		bIsRoll = true;
-
+		
 		PlayerCombat->PlayMontage(FName("Roll"), 1.f);
 	}
 }
 
-void AMainPlayer::RollEnd()
+void AMainPlayer::RollAnimEnd()
 {
 	bIsRoll = false;
 }
@@ -246,6 +250,7 @@ void AMainPlayer::LeftClickDown()
 
 	if (bIsEquip && !bIsAttackAnim) // 무기를 소유했으며 공격 애니메이션이 종료되었는가?
 	{
+		PlayerCombat->SetDamagedType(EDamagedType::EDT_Normal);
 		PlayerCombat->PlayAttackAnim();
 	}
 }

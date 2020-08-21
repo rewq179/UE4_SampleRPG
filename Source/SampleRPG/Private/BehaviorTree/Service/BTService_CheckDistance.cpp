@@ -20,19 +20,18 @@ void UBTService_CheckDistance::TickNode(UBehaviorTreeComponent& OwnerComp, uint8
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
 	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
-	if (nullptr == ControllingPawn) return;
-
-	auto Monster = Cast<AMonster>(OwnerComp.GetAIOwner()->GetPawn());
-
-	bool bResult;
+	if (nullptr == ControllingPawn)
+	{
+		return;
+	}
 
 	auto Target = Cast<AMainPlayer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AMonsterAI::Target));
-
 	if (nullptr == Target)
+	{
 		return;
+	}
 
-	bResult = (Target->GetDistanceTo(ControllingPawn) < Monster->Status.DetectRange);
-
+	bool bResult = (Target->GetDistanceTo(ControllingPawn) < Distance);
 	OwnerComp.GetBlackboardComponent()->SetValueAsBool(AMonsterAI::InDistance, bResult);
 }
 

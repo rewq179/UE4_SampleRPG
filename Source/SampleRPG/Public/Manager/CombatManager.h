@@ -7,11 +7,13 @@
 #include "CombatManager.generated.h"
 
 UENUM(BlueprintType)
-enum class EDamageType : uint8
+enum class EDamagedType : uint8
 {
-	EMS_Normal UMETA(DisplayName = "Normal"),
+	EDT_Normal UMETA(DisplayName = "Normal"),
+	EDT_KnockBack UMETA(DisplayName = "KnockBack"),
+	EDT_Stun UMETA(DisplayName = "Stun"),
 
-	EMS_MAX
+	EDT_MAX
 };
 
 UCLASS()
@@ -37,5 +39,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+
+	void ApplyDamage(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EDamagedType DamagedType, bool bIsPlayerDamaged);
 	void MonsterDeath(class AMonster* Monster);
 };

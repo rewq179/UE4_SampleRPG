@@ -28,8 +28,6 @@ AItem::AItem()
  	// Set this actor to call Tick() every f	rame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-
-#pragma region Collision/Mesh/Particle
 	InteractCollision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
 	InteractCollision->SetSphereRadius(48.f);
 	RootComponent = InteractCollision;
@@ -52,7 +50,6 @@ AItem::AItem()
 
 	IdleParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("IdleParticle"));
 	IdleParticle->SetupAttachment(GetRootComponent());
-#pragma endregion
 
 }
 
@@ -60,7 +57,6 @@ AItem::AItem()
 void AItem::BeginPlay()
 {
 	Super::BeginPlay();
-
 
 	// 유니티의 TriggerEnter와 Exit 역할 // 꼭 바인딩 해줘야한다.
 	InteractCollision->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnOverlapBegin);

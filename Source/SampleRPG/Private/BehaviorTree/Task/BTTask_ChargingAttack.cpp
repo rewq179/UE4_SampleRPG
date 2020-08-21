@@ -26,11 +26,6 @@ EBTNodeResult::Type UBTTask_ChargingAttack::ExecuteTask(UBehaviorTreeComponent& 
 		return EBTNodeResult::Failed;
 	}
 
-	if (Monster->bIsChargingDelay)
-	{
-		return EBTNodeResult::Failed;
-	}
-
 	auto Target = Cast<AMainPlayer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AMonsterAI::Target));
 
 	Monster->AttackTarget(Target, EAttackType::EAT_Charging);

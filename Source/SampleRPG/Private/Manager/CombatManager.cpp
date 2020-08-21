@@ -5,10 +5,14 @@
 #include "Manager/DataTableManager.h"
 #include "Manager/ItemManager.h"
 
+#include "Monster/Monster.h"
+
 #include "Player/MainPlayer.h"
 #include "Player/Inventory.h"
+#include "Player/PlayerStatus.h"
 
-#include "Monster/Monster.h"
+#include "Kismet/GameplayStatics.h"
+
 
 // Sets default values
 ACombatManager::ACombatManager()
@@ -25,6 +29,31 @@ void ACombatManager::BeginPlay()
 	
 }
 
+void ACombatManager::ApplyDamage(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EDamagedType DamagedType, bool bIsPlayerDamaged)
+{
+	if (DamagedActor && (BaseDamage != 0.f))
+	{
+		if (bIsPlayerDamaged)
+		{
+			auto PlayerStatus = Cast<APlayerStatus>(DamagedActor);
+
+			if (PlayerStatus)
+			{
+				PlayerStatus->TakeDamage(BaseDamage, DamageCauser, DamagedType);
+			}
+		}
+
+		else
+		{
+			auto Monster = Cast<AMonster>(DamagedActor);
+
+			if (Monster)
+			{
+				Monster->TakeDamage(BaseDamage, DamageCauser, DamagedType);
+			}
+		}
+	}
+}
 
 void ACombatManager::MonsterDeath(AMonster* Monster)
 {

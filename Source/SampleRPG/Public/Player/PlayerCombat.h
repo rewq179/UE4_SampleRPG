@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Monster.h"
+
+#include "Manager/CombatManager.h"
+
 #include "PlayerCombat.generated.h"
 
 UCLASS()
@@ -22,8 +25,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Properties")
 	class UAnimMontage* CombatMontage;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Combat")
-	TSubclassOf<UDamageType> DamageType;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	class ACombatManager* CombatManager;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Combat")
 	TArray<class AMonster*> TargetMonsters;
@@ -46,29 +49,30 @@ public:
 
 	// 아래는 애니메이션 Notify와 연동된 함수들
 
-	UFUNCTION(BlueprintCallable)
-	void AttackStart(); // CombatCollision 활성화
-	UFUNCTION(BlueprintCallable)
-	void AttackDamage(); // 데미지 주는 시점
-	UFUNCTION(BlueprintCallable)
-	void AttackEnd(); // CombatCollision 비활성화
-
-	void PlayMontage(FName Name, float PlayRate);
-
 	float InterpSpeed;
 	bool bIsInterp;
 
 	FRotator GetTargetDirection(FVector Target);
 	void InterpToMonster(float DeltaTime); // 캐릭터가 공격대상을 바라보게함
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Combat")
+	EDamagedType DamagedType;
+
+	FORCEINLINE void SetDamagedType(EDamagedType DamagedType) { this->DamagedType = DamagedType; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+	UFUNCTION(BlueprintCallable)
+	void ApplyDamageToTarget(); // 데미지 주는 시점
 	
+	UFUNCTION(BlueprintCallable)
+	void AttackAnimStart(); // CombatCollision 활성화
+	UFUNCTION(BlueprintCallable)
+	void AttackAnimEnd(); // CombatCollision 비활성화
+
+	void PlayMontage(FName Name, float PlayRate);
 	
 };

@@ -1,8 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Player/PlayerStatus.h"
-#include "Player/MainPlayer.h"
 #include "Player/PlayerCombat.h"
+#include "Player/MainPlayer.h"
+
 #include "Manager/SaveGameManager.h"
 
 #include "Components/SkeletalMeshComponent.h"
@@ -124,12 +125,14 @@ void APlayerStatus::AdjustHP(float Amount, bool CanDie)
 	}
 }
 
-float APlayerStatus::TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser)
+void APlayerStatus::TakeDamage(float DamageAmount, AActor* DamageCauser, EDamagedType DamagedType)
 {
 	if (MainPlayer->bIsRoll)
 	{
-		return 0.f;
+		return;
 	}
+
+	SetPlayerCrowdControl(DamagedType);
 
 	float total = DamageAmount - GetTotalDeffence();
 
@@ -146,11 +149,33 @@ float APlayerStatus::TakeDamage(float DamageAmount, struct FDamageEvent const & 
 		if (DamagedSound)
 		{
 			UGameplayStatics::PlaySound2D(this, DamagedSound, 0.5f);
-
 		}
 	}
+}
 
-	return total;
+void  APlayerStatus::SetPlayerCrowdControl(EDamagedType DamagedType)
+{
+	switch (DamagedType)
+	{
+	case EDamagedType::EDT_Normal:
+
+		break;
+	case EDamagedType::EDT_KnockBack:
+		MainPlayer->bCanMove = false;
+		MainPlayer->PlayerCombat->PlayMontage(FName("KnockDown"), 1.f);
+		break;
+
+	case EDamagedType::EDT_Stun:
+		break;
+
+	default:
+		break;
+	}
+}
+
+void APlayerStatus::KnockDownAnimEnd()
+{
+	MainPlayer->bCanMove = true;
 }
 
 void APlayerStatus::Death()
@@ -160,7 +185,7 @@ void APlayerStatus::Death()
 	MainPlayer->PlayerCombat->PlayMontage(FName("Death"), 0.7f);
 }
 
-void APlayerStatus::DeathEnd()
+void APlayerStatus::DeathAnimEnd()
 {
 	MainPlayer->GetMesh()->bPauseAnims = true;
 	MainPlayer->GetMesh()->bNoSkeletonUpdate = true;
