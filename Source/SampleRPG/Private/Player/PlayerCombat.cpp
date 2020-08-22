@@ -29,15 +29,6 @@ void APlayerCombat::BeginPlay()
 	
 }
 
-// Called every frame
-void APlayerCombat::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	InterpToMonster(DeltaTime);
-}
-
-
 void APlayerCombat::PlayAttackAnim()
 {
 	// 헤더파일 : #include "Engine/SkeletalMeshSocket.h"
@@ -47,7 +38,7 @@ void APlayerCombat::PlayAttackAnim()
 	bIsInterp = true;
 }
 
-void APlayerCombat::AttackDamage()
+void APlayerCombat::ApplyDamageToTarget()
 {
 	if (TargetMonsters.Num() > 0)
 	{
@@ -55,12 +46,7 @@ void APlayerCombat::AttackDamage()
 
 		for (auto Monster : TargetMonsters)
 		{
-			if (DamageType)
-			{
-				UGameplayStatics::ApplyDamage(Monster, MainPlayer->PlayerStatus->Stat.Damage, MainPlayer->GetController(), this, DamageType);
-			}
-
-			//Monster->TakeDamage(GetTotalDamage());
+			CombatManager->ApplyDamage(Monster, MainPlayer->PlayerStatus->Stat.Damage, this, DamagedType, false);
 		}
 
 		if (MainPlayer->Inventory->Equipments[0]->AttackSound)
@@ -70,14 +56,14 @@ void APlayerCombat::AttackDamage()
 	}
 }
 
-void APlayerCombat::AttackStart()
+void APlayerCombat::AttackAnimStart()
 {
 	MainPlayer->bIsAttackAnim = true;
 
 	MainPlayer->Inventory->Equipments[0]->SetCombatCollisionEnabled(true);
 }
 
-void APlayerCombat::AttackEnd()
+void APlayerCombat::AttackAnimEnd()
 {
 	MainPlayer->bIsAttackAnim = false;
 	bIsInterp = false;

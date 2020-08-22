@@ -26,19 +26,13 @@ EBTNodeResult::Type UBTTask_ChargingAttack::ExecuteTask(UBehaviorTreeComponent& 
 		return EBTNodeResult::Failed;
 	}
 
-	if (Monster->bIsChargingDelay)
-	{
-		return EBTNodeResult::Failed;
-	}
-
 	auto Target = Cast<AMainPlayer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AMonsterAI::Target));
 
 	Monster->AttackTarget(Target, EAttackType::EAT_Charging);
 	IsCharging = true;
 	Monster->OnChargingEnd.AddLambda([this]() -> void { IsCharging = false; });
 
-	OrginWalkSpeed = Monster->GetCharacterMovement()->GetMaxSpeed();
-	Monster->GetCharacterMovement()->MaxWalkSpeed *= 1.5f;
+	Monster->GetCharacterMovement()->MaxWalkSpeed = Monster->Status.FollowSpeed * 1.5f; 
 
 	return EBTNodeResult::InProgress;
 }
@@ -53,7 +47,8 @@ void UBTTask_ChargingAttack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* 
 
 		if (nullptr != Monster)
 		{
-			Monster->GetCharacterMovement()->MaxWalkSpeed = OrginWalkSpeed;
+			Monster->GetCharacterMovement()->MaxWalkSpeed = Monster->Status.NormalSpeed;
+
 		}
 
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);

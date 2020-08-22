@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+
 #include "MainPlayer.generated.h"
 
 UENUM(BlueprintType) // 해당 Enum을 사용하기 위해선 표시해줘야한다.
@@ -78,9 +79,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
 	bool bIsMenuVisible;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
+	bool bCanMove;
 #pragma endregion
 
 #pragma region Combat
+
 	void AddExp(int32 Exp);
 	void AdjustHP(float Amount, bool CanDie);
 
@@ -150,7 +154,7 @@ public:
 	void Roll();
 
 	UFUNCTION(BlueprintCallable)
-	void RollEnd();
+	void RollAnimEnd();
 
 	void SwitchLevel(FName LevelName);
 

@@ -116,9 +116,6 @@ void AGameManager::BeginPlay()
 	FTimerHandle Timer;
 		
 	GetWorldTimerManager().SetTimer(Timer, this, &AGameManager::DelayFunction, 2.f, false);
-
-#pragma endregion
-
 }
 
 void AGameManager::DelayFunction()

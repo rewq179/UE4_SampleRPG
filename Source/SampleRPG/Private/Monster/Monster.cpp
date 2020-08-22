@@ -5,16 +5,19 @@
 
 #include "Player/MainPlayer.h"
 #include "Manager/GameManager.h"
-#include "Manager/CombatManager.h"
 
 #include "AIController.h"
 #include "Components/SphereComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "UObject/ConstructorHelpers.h"
+#include "Components/BoxComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+
+
 
 #include "TimerManager.h"
 
@@ -24,6 +27,10 @@ AMonster::AMonster()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	CombatCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("CombatCollision"));
+	CombatCollision->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("RightAttackSocket"));
+		
+	bCanChargingAttack = true;
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
@@ -33,6 +40,9 @@ void AMonster::BeginPlay()
 	Super::BeginPlay();
 	
 	MonsterAI = Cast<AMonsterAI>(GetController());
+	
+	CombatCollision->OnComponentBeginOverlap.AddDynamic(this, &AMonster::OnCombatOverlapBegin);
+	CombatCollision->OnComponentEndOverlap.AddDynamic(this, &AMonster::OnCombatOverlapEnd);
 
 	SetMonsterData();
 }
@@ -76,8 +86,10 @@ void AMonster::SetMonsterData()
 			Status.ByProductID = (*MonsterTableRow).ByProductID;
 			Status.RewardID = (*MonsterTableRow).RewardID;
 
-			GetCharacterMovement()->MaxWalkSpeed = Status.FollowSpeed;
+			GetCharacterMovement()->MaxWalkSpeed = Status.NormalSpeed;
 		}
+
+		CombatManager = GameManager->CombatManager;
 	}
 }
 
@@ -105,24 +117,28 @@ void AMonster::AttackTarget(AMainPlayer* Target, EAttackType AttackType)
 
 		if (CombatTarget)
 		{
+			SetCombatCollisionEnabled(true);
+
 			FString SectionName = "Attack_";
 			SectionName.Append(FString::FromInt(GetAttackNumber(AttackType)));
 
+			UE_LOG(LogTemp, Log, TEXT("Section Name : %s"), *SectionName);
+
 			if (AttackType == EAttackType::EAT_Normal)
 			{
+				SetDamagedType(EDamagedType::EDT_Normal);
+				
 				PlayMontage(FName(*SectionName), 1.5f);
 			}
 
 			else
 			{
-				float Distance = this->GetDistanceTo(CombatTarget);
-
-				UE_LOG(LogTemp, Log, TEXT("Monster.cpp // Dis : %f"), Distance);
+				SetDamagedType(EDamagedType::EDT_KnockBack);
 
 				PlayMontage(FName(*SectionName), 1.f);
-				bIsChargingDelay = true;
+				bCanChargingAttack = false;
 
-				GetWorldTimerManager().SetTimer(TimeHandle, this, &AMonster::SetChargingDelay, 10.0f, false);
+				GetWorldTimerManager().SetTimer(TimeHandle, this, &AMonster::SetChargingAttack, 20.0f, false);
 			}
 		}
 	}
@@ -150,7 +166,7 @@ int32 AMonster::GetAttackNumber(EAttackType AttackType)
 	}
 }
 
-float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser)
+void AMonster::TakeDamage(float DamageAmount, AActor* DamageCauser, EDamagedType DamageType)
 {
 	float total = DamageAmount - Status.Deffence;
 
@@ -175,8 +191,6 @@ float AMonster::TakeDamage(float DamageAmount, struct FDamageEvent const & Damag
 			UGameplayStatics::PlaySound2D(this, DamagedSound);
 		}
 	}
-
-	return total;
 }
 
 void AMonster::Death()
@@ -216,12 +230,11 @@ void AMonster::Stun()
 
 void AMonster::ApplyDamageToTarget()
 {
-	if (CombatTarget && DamageType)
+	if (CombatTarget && bCanApplyDamage)
 	{
-		if (CombatTarget->GetDistanceTo(this) <= Status.AttackRange * 1.5f)
-		{
-			UGameplayStatics::ApplyDamage(CombatTarget->PlayerStatus, Status.Damage, MonsterAI, this, DamageType);
-		}
+		bCanApplyDamage = false;
+
+		CombatManager->ApplyDamage(CombatTarget->PlayerStatus, Status.Damage, this, DamagedType, true);
 
 		if (CombatTarget->GetMovementState() == EMovementState::EMS_Dead)
 		{
@@ -232,11 +245,15 @@ void AMonster::ApplyDamageToTarget()
 
 void AMonster::AttackAnimEnd()
 {
+	SetCombatCollisionEnabled(false);
+
 	OnAttackEnd.Broadcast();
 }
 
 void AMonster::ChargingAnimEnd()
 {
+	SetCombatCollisionEnabled(false);
+
 	OnChargingEnd.Broadcast();
 }
 
@@ -254,5 +271,44 @@ void AMonster::PlayMontage(FName Name, float PlayRate)
 	{
 		AnimInstance->Montage_Play(CombatMontage, PlayRate); // 해당 몽타쥬를 n배 빠르게 재상한다.
 		AnimInstance->Montage_JumpToSection(Name, CombatMontage);
+	}
+}
+
+void AMonster::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+{
+	if (OtherActor)
+	{
+		auto Player = Cast<AMainPlayer>(OtherActor);
+
+		if (Player && Player == CombatTarget)
+		{
+			bCanApplyDamage = true;
+		}
+	}
+}
+
+void AMonster::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor)
+	{
+		auto Player = Cast<AMainPlayer>(OtherActor);
+
+		if (Player && Player == CombatTarget && Player->GetDistanceTo(this) > Status.AttackRange*1.5f)
+		{
+			bCanApplyDamage = false;
+		}
+	}
+}
+
+void AMonster::SetCombatCollisionEnabled(bool IsActive)
+{
+	if (IsActive)
+	{
+		CombatCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	}
+
+	else
+	{
+		CombatCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }

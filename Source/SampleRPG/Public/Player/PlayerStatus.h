@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
+
+#include "Manager/CombatManager.h"
+
 #include "PlayerStatus.generated.h"
 
 USTRUCT(BlueprintType)
@@ -13,40 +16,40 @@ struct FPlayerStatTable : public FTableRowBase
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		int32 Level;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		int32 CurExp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		int32 MaxExp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		float CurHP;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		float MaxHP;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		float CurStamina;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		float MaxStamina;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		float Damage;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		float Deffence;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		int32 Strength;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		int32 Dexterity;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MainCharacter|Status")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainCharacter|Status")
 		int32 Intelligence;
 };
 
@@ -93,13 +96,27 @@ public:
 	FORCEINLINE float GetTotalDeffence() { return IncDeffence + Stat.Deffence; }
 
 	bool bIsPlayerDead;
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
 	void AdjustHP(float Amount, bool CanDie);
 
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
+	void TakeDamage(float DamageAmount, AActor* DamageCauser, EDamagedType DamageType);
+	void SetPlayerCrowdControl(EDamagedType DamagedType);
 	
-	void Death();
 	UFUNCTION(BlueprintCallable)
-	void DeathEnd();
+	void KnockDownAnimEnd();
+
+	void Death();
+
+	UFUNCTION(BlueprintCallable)
+	void DeathAnimEnd();
 
 	void Revive();
 
@@ -109,14 +126,7 @@ public:
 
 	void SavePlayerStatData(class USaveGameManager* SaveGameInstance);
 	void LoadPlayerStatData(class USaveGameManager* LoadGameInstance);
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 	
 	void IncreaseStamina(float DeltaTime);
+
 };

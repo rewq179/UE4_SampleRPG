@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "Manager/DataTableManager.h"
 
+#include "Manager/CombatManager.h"
+
 #include "Monster.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
@@ -51,6 +53,18 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|MonsterTable")
 	FMonsterTable Status;
 
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
+	class ACombatManager* CombatManager;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Combat")
+	class UBoxComponent* CombatCollision;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
+	EDamagedType DamagedType;
+	FORCEINLINE void SetDamagedType(EDamagedType Type) { DamagedType = Type; }
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	EMonsterState MonsterState;
 
@@ -60,13 +74,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	class AMainPlayer* CombatTarget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category ="Monster|Combat")
-	TSubclassOf<UDamageType> DamageType;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
+	bool bCanApplyDamage;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|Combat")
-	bool bIsChargingDelay;
-
-	FORCEINLINE void SetChargingDelay() { bIsChargingDelay = false; }
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
+	bool bCanChargingAttack;
+	
+	FORCEINLINE void SetChargingAttack() { bCanChargingAttack = true; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -79,7 +93,7 @@ public:
 	void AttackTarget(class AMainPlayer* Target, EAttackType AttackType);
 	int32 GetAttackNumber(EAttackType AttackType);
 
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
+	void TakeDamage(float DamageAmount, AActor* DamageCauser, EDamagedType DamageType);
 	void Death();
 	
 	void TakeGroggy(float DamageAMount, AActor* DamageCauser);
@@ -100,4 +114,12 @@ public:
 	void DeathAnimEnd();
 
 	void PlayMontage(FName Name, float PlayRate);
+
+	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
+	void OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
+	void OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
+	void SetCombatCollisionEnabled(bool IsActive);
 };

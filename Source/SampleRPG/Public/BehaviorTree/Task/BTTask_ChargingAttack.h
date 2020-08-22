@@ -23,6 +23,4 @@ protected:
 
 private:
 	bool IsCharging;
-	
-	float OrginWalkSpeed;
 };

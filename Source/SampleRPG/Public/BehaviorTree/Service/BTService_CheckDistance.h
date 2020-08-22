@@ -17,7 +17,11 @@ class SAMPLERPG_API UBTService_CheckDistance : public UBTService
 public:
 	UBTService_CheckDistance();
 	
+	UPROPERTY(Category = "Value", EditAnywhere)
+	float Distance;
+
 protected:
 	virtual void TickNode(UBehaviorTreeComponent & OwnerComp, uint8 * NodeMemory, float DeltaSeconds) override;
-	
+
+
 };
