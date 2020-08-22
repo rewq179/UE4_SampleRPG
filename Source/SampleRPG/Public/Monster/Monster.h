@@ -64,7 +64,7 @@ public:
 	EDamagedType DamagedType;
 	FORCEINLINE void SetDamagedType(EDamagedType Type) { DamagedType = Type; }
 
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	EMonsterState MonsterState;
 
@@ -79,7 +79,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	bool bCanChargingAttack;
-	
+
 	FORCEINLINE void SetChargingAttack() { bCanChargingAttack = true; }
 
 protected:
