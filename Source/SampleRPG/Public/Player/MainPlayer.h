@@ -27,6 +27,7 @@ public:
 	// Sets default values for this character's properties
 	AMainPlayer();
 
+#pragma region Properties
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
 	class AGameManager* GameManager;
 
@@ -53,6 +54,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
 	class APlayerQuest* PlayerQuest;
+#pragma endregion
 
 #pragma region State
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
@@ -81,20 +83,15 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
 	bool bCanMove;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Input")
+	bool bIsSprint; // Left Shift Key Down/Up
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Input")
+	bool bIsRoll;
+
 #pragma endregion
 
-#pragma region Combat
-
-	void AddExp(int32 Exp);
-	void AdjustHP(float Amount, bool CanDie);
-
-	void AddTargetMonster(class AMonster* Monster);
-	void AddWidgetMonster(class AMonster* Monster);
-	void RemoveWidgetMonster(class AMonster* Monster);
-#pragma endregion
-
-
-#pragma region Camera
 	/*
 		원리 : 카메라를 고정 해놓은 SpringArm이 나를 따라 움직여서 나를 계속 보도록 만든다.
 		meta = (AllowPrivateAccess = "true") : private 변수도 블루프린트 스크립트에서 활용이 가능해진다.
@@ -107,10 +104,6 @@ public:
 	class UCameraComponent* FollowCamera; // 카메라
 
 	FVector2D CameraInputValue; // 마우스 이동에 따른 값
-#pragma endregion
-
-
-	//FORCEINLINE void AddGold(int32 Value) { Inventory->AddGold(Value); }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Interact")
 	TArray<class AItem*> InteractItems;
@@ -120,9 +113,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Interact")
 	class ANpcController* InteractNPC;
 
-	void StartCommunication();
-	void StopCommunication();
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Interact")
+	FName NextLevelName;
 
 protected:
 	// Called when the game starts or when spawned
@@ -135,9 +127,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Input")
-	bool bIsSprint; // Left Shift Key Down/Up
-
 	void LeftShiftKeyDown();
 	void LeftShiftKeyUp();
 
@@ -148,20 +137,22 @@ public:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Input")
-	bool bIsRoll;
-
 	void Roll();
-
 	UFUNCTION(BlueprintCallable)
 	void RollAnimEnd();
 
-	void SwitchLevel(FName LevelName);
+
+	void InteractObject();
+	void StopCommunication();
+
+	void SwitchLevel();
+	bool IsLevelChange(FName NextLevelName);
+
 
 	UFUNCTION(BlueprintCallable)
 	void SaveGame();
 	UFUNCTION(BlueprintCallable)
-	void LoadGame(bool SetPosition);
+	void LoadGame();
 
 	void LoadGameNoSwitch();
 };

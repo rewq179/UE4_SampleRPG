@@ -42,4 +42,8 @@ public:
 
 	void ApplyDamage(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EDamagedType DamagedType, bool bIsPlayerDamaged);
 	void MonsterDeath(class AMonster* Monster);
+
+	void AddTargetMonster(class AMonster* Monster);
+	void AddWidgetMonster(class AMonster* Monster);
+	void RemoveWidgetMonster(class AMonster* Monster);
 };

@@ -3,8 +3,9 @@
 #include "Item/Item.h"
 #include "Monster/Monster.h"
 #include "Player/MainPlayer.h"
-#include "Manager/GameManager.h"
 
+#include "Manager/GameManager.h"
+#include "Manager/CombatManager.h"
 
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -136,11 +137,11 @@ void AItem::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 {
 	if (OtherActor && ItemState == EItemState::EIS_Inv && ItemData.ItemType == EItemType::EIT_Weapon)
 	{
-		AMonster* Monster = Cast<AMonster>(OtherActor);
+		auto Monster = Cast<AMonster>(OtherActor);
 
-		if (Monster && ItemOwner )
+		if (Monster && ItemOwner)
 		{
-			ItemOwner->AddTargetMonster(Monster);
+			GameManager->CombatManager->AddTargetMonster(Monster);
 		}
 	}
 }

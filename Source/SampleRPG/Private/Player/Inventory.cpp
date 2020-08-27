@@ -61,7 +61,7 @@ void AInventory::AddItem(AItem* Item)
 
 	Item->SetItemState(EItemState::EIS_Inv);
 	Item->ItemOwner = MainPlayer;
-	Item->SetActorLocation(FVector(0.f));
+	Item->SetActorLocation(FVector(255.f, 255.f, 255.f));
 
 	MainPlayer->PlayerQuest->IncreaseCount(EQuestType::EQT_Collect, Item->ItemID, Item->Count);
 

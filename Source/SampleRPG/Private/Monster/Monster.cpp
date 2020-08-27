@@ -2,6 +2,7 @@
 
 #include "Monster/Monster.h"
 #include "Monster/MonsterAI.h"
+#include "Monster/MonsterSkill.h"
 
 #include "Player/MainPlayer.h"
 #include "Manager/GameManager.h"
@@ -90,6 +91,15 @@ void AMonster::SetMonsterData()
 		}
 
 		CombatManager = GameManager->CombatManager;
+	}
+
+	if (Status.SkillCount > 0)
+	{
+		if (MonsterSkillBP)
+		{
+			MonsterSkill = GetWorld()->SpawnActor<AMonsterSkill>(MonsterSkillBP);
+
+		}
 	}
 }
 
@@ -202,7 +212,6 @@ void AMonster::Death()
 		SetMonsterState(EMonsterState::EMS_Death);
 
 		GameManager->CombatManager->MonsterDeath(this);
-		CombatTarget->RemoveWidgetMonster(this);
 		CombatTarget = nullptr;
 
 		PlayMontage(FName("Death"), 1.f);

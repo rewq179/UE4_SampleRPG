@@ -25,17 +25,32 @@ void ALevelManager::BeginPlay()
 	Super::BeginPlay();
 	
 	Transition->OnComponentBeginOverlap.AddDynamic(this, &ALevelManager::OnOverlapBegin);
+	Transition->OnComponentEndOverlap.AddDynamic(this, &ALevelManager::OnOverlapEnd);
 }
 
 void ALevelManager::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
 	if (OtherActor)
 	{
-		AMainPlayer* Main = Cast<AMainPlayer>(OtherActor);
+		auto Main = Cast<AMainPlayer>(OtherActor);
 
 		if (Main)
 		{
-			Main->SwitchLevel(LevelName);
+			Main->NextLevelName = LevelName;
+		}
+	}
+}
+
+
+void ALevelManager::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor)
+	{
+		auto Main = Cast<AMainPlayer>(OtherActor);
+
+		if (Main)
+		{
+			Main->NextLevelName = FName("None");
 		}
 	}
 }

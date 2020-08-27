@@ -43,16 +43,19 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
 	class UAnimMontage* CombatMontage;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
-	FTimerHandle TimeHandle;
+	UPROPERTY(EditDefaultsOnly, Category = "Monster|Properties")
+	TSubclassOf<class AMonsterSkill> MonsterSkillBP;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Properties")
+	class AMonsterSkill* MonsterSkill;
+	
+	FTimerHandle TimeHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|MonsterTable")
 	int32 MonsterID;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|MonsterTable")
 	FMonsterTable Status;
-
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	class ACombatManager* CombatManager;

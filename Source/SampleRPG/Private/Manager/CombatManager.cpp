@@ -10,6 +10,7 @@
 #include "Player/MainPlayer.h"
 #include "Player/Inventory.h"
 #include "Player/PlayerStatus.h"
+#include "Player/PlayerCombat.h"
 
 #include "Kismet/GameplayStatics.h"
 
@@ -57,8 +58,22 @@ void ACombatManager::ApplyDamage(AActor* DamagedActor, float BaseDamage, AActor*
 
 void ACombatManager::MonsterDeath(AMonster* Monster)
 {
-	MainPlayer->AddExp(Monster->Status.Exp);
+	MainPlayer->PlayerStatus->AddExp(Monster->Status.Exp);
 	MainPlayer->Inventory->AddGold(Monster->Status.Gold);
+	RemoveWidgetMonster(Monster);
 
 	GameManager->ItemManager->GetMonsterItem(Monster->Status.ByProductID, Monster->Status.RewardID, Monster->GetActorLocation());
+}
+
+void ACombatManager::AddTargetMonster(class AMonster* Monster)
+{
+	MainPlayer->PlayerCombat->AddTargetMonster(Monster);
+}
+void ACombatManager::AddWidgetMonster(class AMonster* Monster)
+{
+	MainPlayer->PlayerCombat->AddWidgetMonster(Monster);
+}
+void ACombatManager::RemoveWidgetMonster(class AMonster* Monster)
+{
+	MainPlayer->PlayerCombat->RemoveWidgetMonster(Monster);
 }

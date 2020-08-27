@@ -12,6 +12,7 @@
 #include "Manager/CombatManager.h"
 
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 
 #include "Camera/CameraComponent.h"
@@ -136,10 +137,7 @@ void AMainPlayer::BeginPlay()
 
 	PlayerCombat->CombatManager = GameManager->CombatManager;
 
-	//FString MapName = GetWorld()->GetMapName();
-	//MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix); // 맵 이름앞에 XXXXX_X_이름 이런식으로 있기 때문
-
-	//LoadGameNoSwitch();
+	LoadGame();
 }
 
 // Called every frame
@@ -160,7 +158,7 @@ void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AMainPlayer::LeftClickDown);
 
 	PlayerInputComponent->BindAction("Roll", IE_Pressed, this, &AMainPlayer::Roll);
-	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AMainPlayer::StartCommunication);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AMainPlayer::InteractObject);
 
 	// PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMainPlayer::Jump);
 	// PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
@@ -202,6 +200,7 @@ void AMainPlayer::MoveRight(float Value)
 {
 	if (Value != 0.f && Controller && bCanMove && !bIsAttackAnim && MovementState != EMovementState::EMS_Dead && !bIsMenuVisible)
 	{
+
 		FRotator Rotation = Controller->GetControlRotation();
 		FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
 
@@ -232,13 +231,15 @@ void AMainPlayer::Roll()
 	{
 		PlayerStatus->Stat.CurStamina -= RollCost;
 		bIsRoll = true;
-		
+		//bCanMove = false;
+
 		PlayerCombat->PlayMontage(FName("Roll"), 1.f);
 	}
 }
 
 void AMainPlayer::RollAnimEnd()
 {
+	bCanMove = true;
 	bIsRoll = false;
 }
 #pragma endregion
@@ -250,6 +251,8 @@ void AMainPlayer::LeftClickDown()
 
 	if (bIsEquip && !bIsAttackAnim) // 무기를 소유했으며 공격 애니메이션이 종료되었는가?
 	{
+		bIsAttackAnim = true;
+
 		PlayerCombat->SetDamagedType(EDamagedType::EDT_Normal);
 		PlayerCombat->PlayAttackAnim();
 	}
@@ -260,19 +263,29 @@ void AMainPlayer::LeftClickUp()
 	bIsLeftClickDown = false;
 }
 
-void AMainPlayer::StartCommunication()
+void AMainPlayer::InteractObject()
 {
+	if (IsLevelChange(NextLevelName))
+	{
+		SwitchLevel();
+
+		return;
+	}
+
 	if (InteractItems.Num() > 0)
 	{
 		AddItem();
 	}
 	
+
 	else if (InteractNPC)
 	{
 		GameManager->DialogueManager->SetActiveDialouge(true, InteractNPC);
 		
 		PlayerQuest->InteractNPC = InteractNPC;
 	}
+
+	InteractItems.Empty();
 }
 
 void AMainPlayer::AddItem()
@@ -293,8 +306,25 @@ void AMainPlayer::StopCommunication()
 }
 #pragma endregion
 
-void AMainPlayer::SwitchLevel(FName LevelName)
+void AMainPlayer::SwitchLevel()
 {
+	UWorld* World = GetWorld();
+
+	if (World)
+	{
+		UGameplayStatics::OpenLevel(World, NextLevelName);
+
+		NextLevelName = FName("None");
+	}
+}
+
+bool AMainPlayer::IsLevelChange(FName NextLevelName)
+{
+	if (NextLevelName.IsEqual(FName("None")))
+	{
+		return false;
+	}
+
 	UWorld* World = GetWorld();
 
 	if (World)
@@ -302,15 +332,14 @@ void AMainPlayer::SwitchLevel(FName LevelName)
 		FString CurLevelName(*World->GetMapName());
 		CurLevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
 
-			UE_LOG(LogTemp, Warning, TEXT("%s // %s"), *LevelName.ToString(), *CurLevelName);
-		if (FName(*CurLevelName) != LevelName)
+		if (FName(*CurLevelName) != NextLevelName)
 		{
-			
-			UGameplayStatics::OpenLevel(World, LevelName);
+			return true;
 		}
 	}
-}
 
+	return false;
+}
 
 void AMainPlayer::SaveGame()
 {
@@ -332,26 +361,22 @@ void AMainPlayer::SaveGame()
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->PlayerName, SaveGameInstance->UserIndex);
 }
 
-void AMainPlayer::LoadGame(bool SetPosition)
+void AMainPlayer::LoadGame()
 {
 	USaveGameManager* LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::CreateSaveGameObject(USaveGameManager::StaticClass()));
 	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->PlayerName, LoadGameInstance->UserIndex));
-	
 
 	PlayerStatus->LoadPlayerStatData(LoadGameInstance);
 
-	if (SetPosition)
+	NextLevelName = FName(*LoadGameInstance->LevelName);
+	if (IsLevelChange(NextLevelName))
 	{
+		SwitchLevel();
+
 		SetActorLocation(LoadGameInstance->Location);
 		SetActorRotation(LoadGameInstance->Rotation);
 	}
-
-	if (!LoadGameInstance->LevelName.Equals("ElvenRuins"))
-	{
-		FName LevelName(*LoadGameInstance->LevelName);
-		SwitchLevel(LevelName);
-	}
-
+	
 	Inventory->LoadInventoryData(LoadGameInstance);
 	PlayerQuest->LoadQuestData(LoadGameInstance);
 }
@@ -359,7 +384,6 @@ void AMainPlayer::LoadGame(bool SetPosition)
 void AMainPlayer::LoadGameNoSwitch()
 {
 	USaveGameManager* LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::CreateSaveGameObject(USaveGameManager::StaticClass()));
-
 	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->PlayerName, LoadGameInstance->UserIndex));
 
 	PlayerStatus->LoadPlayerStatData(LoadGameInstance);
@@ -380,27 +404,4 @@ void AMainPlayer::SetMovementState(EMovementState State) // 캐릭터상태에따라 최�
 	{
 		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed; // 최대 속도를 일반 달리기 속도로
 	}
-}
-
-void AMainPlayer::AddExp(int32 Exp)
-{
-	PlayerStatus->AddExp(Exp);
-}
-
-void AMainPlayer::AdjustHP(float Amount, bool CanDie)
-{
-	PlayerStatus->AdjustHP(Amount, CanDie);
-}
-
-void AMainPlayer::AddTargetMonster(class AMonster* Monster)
-{
-	PlayerCombat->AddTargetMonster(Monster);
-}
-void AMainPlayer::AddWidgetMonster(class AMonster* Monster)
-{
-	PlayerCombat->AddWidgetMonster(Monster);
-}
-void AMainPlayer::RemoveWidgetMonster(class AMonster* Monster)
-{
-	PlayerCombat->RemoveWidgetMonster(Monster);
 }

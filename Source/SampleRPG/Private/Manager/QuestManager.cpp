@@ -110,7 +110,7 @@ void AQuestManager::ClearQuest(FQuestTable Quest)
 {
 	MainPlayer->PlayerQuest->ClearQuest(Quest.QuestID);
 
-	MainPlayer->AddExp(Quest.Exp);
+	MainPlayer->PlayerStatus->AddExp(Quest.Exp);
 	MainPlayer->Inventory->AddGold(Quest.Gold);
 
 	if (Quest.PostRewardCount > 0)

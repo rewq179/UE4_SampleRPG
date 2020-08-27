@@ -139,17 +139,22 @@ void APlayerStatus::TakeDamage(float DamageAmount, AActor* DamageCauser, EDamage
 	if (total > 0)
 	{
 		Stat.CurHP -= total;
+	}
 
-		if (Stat.CurHP <= 0)
-		{
-			Stat.CurHP = 0;
-			Death();
-		}
+	else
+	{
+		Stat.CurHP--;
+	}
 
-		if (DamagedSound)
-		{
-			UGameplayStatics::PlaySound2D(this, DamagedSound, 0.5f);
-		}
+	if (Stat.CurHP <= 0)
+	{
+		Stat.CurHP = 0;
+		Death();
+	}
+
+	if (DamagedSound)
+	{
+		UGameplayStatics::PlaySound2D(this, DamagedSound, 0.5f);
 	}
 }
 
