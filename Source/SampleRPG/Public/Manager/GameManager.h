@@ -13,6 +13,8 @@
 #include "Manager/ItemManager.h"
 #include "Manager/NpcManager.h"
 #include "Manager/QuestManager.h"
+#include "Manager/SkillManager.h"
+
 #include "GameManager.generated.h"
 
 UCLASS()
@@ -70,12 +72,17 @@ public:
 
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+	TSubclassOf<class ASkillManager> SkillManagerBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	class ASkillManager* SkillManager;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
 	TSubclassOf<class ALevelManager> LevelManagerBP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
 	class ALevelManager* LevelManager;
-
-	void GetDataName();
 
 	void DelayFunction();
 

@@ -102,6 +102,17 @@ void AGameManager::BeginPlay()
 		}
 	}
 
+	if (SkillManagerBP)
+	{
+		SkillManager = GetWorld()->SpawnActor<ASkillManager>(SkillManagerBP);
+
+		if (SkillManager)
+		{
+			SkillManager->GameManager = this;
+			SkillManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		}
+	}
+
 	if (LevelManagerBP)
 	{
 		LevelManager = GetWorld()->SpawnActor<ALevelManager>(LevelManagerBP);

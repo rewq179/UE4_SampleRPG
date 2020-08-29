@@ -31,6 +31,14 @@ ADataTableManager::ADataTableManager()
 		MonsterTableData = MonsterTable.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UDataTable> SkillRawTable(TEXT("DataTable'/Game/DataTable/SkillRawTable.SkillRawTable'"));
+
+	if (SkillRawTable.Succeeded())
+	{
+		SkillRawTableData = SkillRawTable.Object;
+	}
+
+
 	static ConstructorHelpers::FObjectFinder<UDataTable> ItemTable(TEXT("DataTable'/Game/DataTable/ItemTable.ItemTable'"));
 
 	if (ItemTable.Succeeded())
@@ -69,6 +77,11 @@ FMonsterTable* ADataTableManager::GetMonsterTableData(int32 MonsterID)
 	return MonsterTableData->FindRow<FMonsterTable>(FName(*(FString::FormatAsNumber(MonsterID))), FString(""));
 }
 
+FSkillRawTable* ADataTableManager::GetSkillRawTableData(int32 SkillID)
+{
+	return SkillRawTableData->FindRow<FSkillRawTable>(FName(*(FString::FormatAsNumber(SkillID))), FString(""));
+}
+
 FItemTable* ADataTableManager::GetItemTableData(int32 ItemID)
 {
 	return ItemTableData->FindRow<FItemTable>(FName(*(FString::FormatAsNumber(ItemID))), FString(""));
@@ -90,20 +103,20 @@ FText ADataTableManager::GetDialogueText(int32 DialogueID)
 	return GetDialogueTableData(DialogueID)->DialogueText;
 }
 
-FText ADataTableManager::GetDataName(EDataType DataType, int32 ID)
+FText ADataTableManager::GetObjectName(EObjectType ObjectType, int32 ID)
 {
-	switch (DataType)
+	switch (ObjectType)
 	{
-	case EDataType::EDT_Item:
+	case EObjectType::EOT_Item:
 		return GetItemTableData(ID)->Name;
 
-	case EDataType::EDT_Npc:
+	case EObjectType::EOT_Npc:
 		return GetNpcTableData(ID)->Name;
 
-	case EDataType::EDT_Quest:
+	case EObjectType::EOT_Quest:
 		return GetQuestTableData(ID)->Name;
 
-	case EDataType::EDT_Monster:
+	case EObjectType::EOT_Monster:
 		return GetMonsterTableData(ID)->Name;
 
 	default:

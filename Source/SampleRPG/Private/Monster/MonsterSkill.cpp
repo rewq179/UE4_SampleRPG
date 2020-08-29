@@ -1,7 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MonsterSkill.h"
-
+#include "Monster.h"
+#include "Skill.h"
+#include "GameManager.h"
 
 // Sets default values
 AMonsterSkill::AMonsterSkill()
@@ -18,10 +20,19 @@ void AMonsterSkill::BeginPlay()
 	
 }
 
-// Called every frame
-void AMonsterSkill::Tick(float DeltaTime)
+void AMonsterSkill::AddSkill(int32 SkillID)
 {
-	Super::Tick(DeltaTime);
+	auto Skill = GameManager->SkillManager->CreateSkillActor(SkillID);
+	Skill->Monster = Monster;
+
+	Skill->SetCollisionSize(Skill->SkillData.SkillShape);
+
+	SkillMaps.Add(SkillID, Skill);
+}
+
+void AMonsterSkill::ApplySkillDamage(int32 SkillID)
+{
+
 
 }
 

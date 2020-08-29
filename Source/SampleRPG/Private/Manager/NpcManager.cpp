@@ -64,7 +64,7 @@ void ANpcManager::CheckNpcSymbol(int32 NpcID)
 {
 	if (GameManager->QuestManager->IsExclamationSymbol(NpcMap[NpcID]->QuestID))
 	{
-		SetNpcSymbol(ESymbolType::EQT_Exclamation, NpcID);
+		SetNpcSymbol(ESymbolType::EST_Exclamation, NpcID);
 	}
 }
 

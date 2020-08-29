@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+
+#include "Manager/DataTableManager.h"
+
 #include "MonsterSkill.generated.h"
 
 UCLASS()
@@ -15,19 +18,21 @@ public:
 	// Sets default values for this actor's properties
 	AMonsterSkill();
 
-	float SkillCount;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MonsterSkill|Properties")
+	class AGameManager* GameManager;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterSkill|Properties")
-	TArray<class UParticleSystem*> SkillParticles;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterSkill|Properties")
+	class AMonster* Monster;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterSkill|SkillTable")
+	TMap<int32, class ASkill*> SkillMaps;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+public:
+	void AddSkill(int32 SkillID);
+	void ApplySkillDamage(int32 SkillID);
 
-	
-	
 };

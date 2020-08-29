@@ -67,10 +67,6 @@ public:
 	EDamagedType DamagedType;
 	FORCEINLINE void SetDamagedType(EDamagedType Type) { DamagedType = Type; }
 
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	EMonsterState MonsterState;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	class AMonsterAI* MonsterAI;
 
@@ -91,7 +87,7 @@ protected:
 
 public:	
 	void SetMonsterData();
-	void SetMonsterState(EMonsterState State);
+	void ParseStringToInt(FString Data);
 
 	void AttackTarget(class AMainPlayer* Target, EAttackType AttackType);
 	int32 GetAttackNumber(EAttackType AttackType);

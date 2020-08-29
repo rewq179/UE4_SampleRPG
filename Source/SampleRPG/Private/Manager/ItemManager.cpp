@@ -128,8 +128,6 @@ void AItemManager::SetRewardData(int32 RewardID)
 FRewardBox AItemManager::RewardBox(int32 ID, int32 Count, float Percent)
 {
 	FRewardBox RewardBox;
-
-	RewardBox.BoxID = ID;
 	RewardBox.BoxCount = Count;
 	RewardBox.BoxPercent = Percent;
 

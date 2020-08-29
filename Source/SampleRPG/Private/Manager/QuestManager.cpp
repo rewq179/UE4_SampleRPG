@@ -103,7 +103,7 @@ void AQuestManager::AcceptQuest(FQuestTable Quest)
 		GameManager->ItemManager->SpawnItemActor(Quest.TargetID, Quest.MaxCount, Location);
 	}
 
-	GameManager->NpcManager->SetNpcSymbol(ESymbolType::EQT_None, Quest.NpcID);
+	GameManager->NpcManager->SetNpcSymbol(ESymbolType::EST_None, Quest.NpcID);
 }
 
 void AQuestManager::ClearQuest(FQuestTable Quest)
@@ -120,7 +120,7 @@ void AQuestManager::ClearQuest(FQuestTable Quest)
 		MainPlayer->Inventory->AddItem(RewardItem);
 	}
 
-	SetSymbol(ESymbolType::EQT_None, Quest.NpcID);
+	SetSymbol(ESymbolType::EST_None, Quest.NpcID);
 	GameManager->NpcManager->CheckNpcSymbol(Quest.NpcID);
 
 	if (Quest.QuestID == 3) // 듀토리얼 종료

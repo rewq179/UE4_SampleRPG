@@ -127,7 +127,7 @@ void APlayerQuest::IncreaseCount(EQuestType QuestType, int32 TargetID, int32 Cou
 			{
 				Quests[QuestKey[Index]].bCanClear = true;
 				
-				QuestManager->SetSymbol(ESymbolType::EQT_Question, QuestKey[Index]);
+				QuestManager->SetSymbol(ESymbolType::EST_Question, QuestKey[Index]);
 			}
 		}
 	}

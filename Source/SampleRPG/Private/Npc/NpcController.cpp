@@ -39,7 +39,7 @@ void ANpcController::BeginPlay()
 	InteractCollision->OnComponentBeginOverlap.AddDynamic(this, &ANpcController::OnOverlapBegin);
 	InteractCollision->OnComponentEndOverlap.AddDynamic(this, &ANpcController::OnOverlapEnd);
 	
-	SetActiveSymbol(ESymbolType::EQT_None);
+	SetActiveSymbol(ESymbolType::EST_None);
 	SetNpcData();
 }
 
@@ -96,17 +96,17 @@ void ANpcController::SetActiveSymbol(ESymbolType SymbolType)
 {
 	switch (SymbolType)
 	{
-	case ESymbolType::EQT_None:
+	case ESymbolType::EST_None:
 		QuestionSymbol->SetVisibility(false);
 		ExclamationSymbol->SetVisibility(false);
 		break;
 
-	case ESymbolType::EQT_Question:
+	case ESymbolType::EST_Question:
 		QuestionSymbol->SetVisibility(true);
 		ExclamationSymbol->SetVisibility(false);
 		break;
 
-	case ESymbolType::EQT_Exclamation:
+	case ESymbolType::EST_Exclamation:
 		QuestionSymbol->SetVisibility(false);
 		ExclamationSymbol->SetVisibility(true);
 		break;

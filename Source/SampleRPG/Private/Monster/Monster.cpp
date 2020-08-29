@@ -68,7 +68,7 @@ void AMonster::SetMonsterData()
 			Status.ID = (*MonsterTableRow).ID;
 			Status.MonsterClass = (*MonsterTableRow).MonsterClass;
 			Status.AttackCount = (*MonsterTableRow).AttackCount;
-			Status.SkillCount = (*MonsterTableRow).SkillCount;
+			Status.SkillID = (*MonsterTableRow).SkillID;
 			Status.bHasCharging = (*MonsterTableRow).bHasCharging;
 			Status.Name = (*MonsterTableRow).Name;
 			Status.Level = (*MonsterTableRow).Level;
@@ -93,31 +93,31 @@ void AMonster::SetMonsterData()
 		CombatManager = GameManager->CombatManager;
 	}
 
-	if (Status.SkillCount > 0)
+	if (Status.MonsterClass == EMonsterClass::EMC_Boss)
 	{
 		if (MonsterSkillBP)
 		{
 			MonsterSkill = GetWorld()->SpawnActor<AMonsterSkill>(MonsterSkillBP);
+			MonsterSkill->Monster = this;
+			MonsterSkill->GameManager = GameManager;
 
+			ParseStringToInt(Status.SkillID);
 		}
 	}
 }
 
-void AMonster::SetMonsterState(EMonsterState State)
+void AMonster::ParseStringToInt(FString Data)
 {
-	MonsterState = State;
+	TArray<FString> StringID;
 
-	if (MonsterState == EMonsterState::EMS_Follow)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = Status.FollowSpeed;
-	}
+	FString DataString(Data);
+	DataString.ParseIntoArray(StringID, TEXT("/"), true);
 
-	else
+	for (auto ID : StringID)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = Status.NormalSpeed;
+		MonsterSkill->AddSkill(FCString::Atoi(*ID));
 	}
 }
-
 
 void AMonster::AttackTarget(AMainPlayer* Target, EAttackType AttackType)
 {
@@ -205,19 +205,14 @@ void AMonster::TakeDamage(float DamageAmount, AActor* DamageCauser, EDamagedType
 
 void AMonster::Death()
 {
-	if (MonsterState != EMonsterState::EMS_Death)
-	{
-		MonsterAI->StopAI();
+	MonsterAI->StopAI();
 
-		SetMonsterState(EMonsterState::EMS_Death);
+	GameManager->CombatManager->MonsterDeath(this);
+	CombatTarget = nullptr;
 
-		GameManager->CombatManager->MonsterDeath(this);
-		CombatTarget = nullptr;
+	PlayMontage(FName("Death"), 1.f);
 
-		PlayMontage(FName("Death"), 1.f);
-
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	}
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AMonster::TakeGroggy(float DamageAmount, AActor* DamageCauser)

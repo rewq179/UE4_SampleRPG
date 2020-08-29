@@ -12,6 +12,9 @@ enum class EDamagedType : uint8
 	EDT_Normal UMETA(DisplayName = "Normal"),
 	EDT_KnockBack UMETA(DisplayName = "KnockBack"),
 	EDT_Stun UMETA(DisplayName = "Stun"),
+	EDT_Poison UMETA(DisplayName = "Poison"),
+	EDT_Frostbite UMETA(DisplayName = "Frostbite"),
+	EDT_None UMETA(DisplayName = "None"),
 
 	EDT_MAX
 };
