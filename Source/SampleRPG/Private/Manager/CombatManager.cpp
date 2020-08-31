@@ -30,7 +30,7 @@ void ACombatManager::BeginPlay()
 	
 }
 
-void ACombatManager::ApplyDamage(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EDamagedType DamagedType, bool bIsPlayerDamaged)
+void ACombatManager::ApplyDamageHP(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EAttackType AttackType, bool bIsPlayerDamaged, bool bIsPercent)
 {
 	if (DamagedActor && (BaseDamage != 0.f))
 	{
@@ -38,9 +38,14 @@ void ACombatManager::ApplyDamage(AActor* DamagedActor, float BaseDamage, AActor*
 		{
 			auto PlayerStatus = Cast<APlayerStatus>(DamagedActor);
 
+			if (bIsPercent)
+			{
+				BaseDamage = GetPercentBaseDamage(BaseDamage, PlayerStatus->Stat.MaxHP);
+			}
+
 			if (PlayerStatus)
 			{
-				PlayerStatus->TakeDamage(BaseDamage, DamageCauser, DamagedType);
+				PlayerStatus->TakeDamageHP(BaseDamage, DamageCauser, AttackType);
 			}
 		}
 
@@ -48,13 +53,42 @@ void ACombatManager::ApplyDamage(AActor* DamagedActor, float BaseDamage, AActor*
 		{
 			auto Monster = Cast<AMonster>(DamagedActor);
 
+			if (bIsPercent)
+			{
+				BaseDamage = GetPercentBaseDamage(BaseDamage, Monster->Status.MaxHP);
+			}
+
 			if (Monster)
 			{
-				Monster->TakeDamage(BaseDamage, DamageCauser, DamagedType);
+				Monster->TakeDamageHP(BaseDamage, DamageCauser, AttackType);
 			}
 		}
 	}
 }
+
+void ACombatManager::ApplyDamageST(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EAttackType DamagedType, bool bIsPercent)
+{
+	if (DamagedActor && (BaseDamage != 0.f))
+	{
+		auto PlayerStatus = Cast<APlayerStatus>(DamagedActor);
+
+		if (bIsPercent)
+		{
+			BaseDamage = GetPercentBaseDamage(BaseDamage, PlayerStatus->Stat.MaxStamina);
+		}
+
+		if (PlayerStatus)
+		{
+			PlayerStatus->TakeDamageST(BaseDamage, DamageCauser, DamagedType);
+		}
+	}
+}
+
+float ACombatManager::GetPercentBaseDamage(float Percent, float MaxHP)
+{
+	return MaxHP / Percent;
+}
+
 
 void ACombatManager::MonsterDeath(AMonster* Monster)
 {
@@ -64,6 +98,8 @@ void ACombatManager::MonsterDeath(AMonster* Monster)
 
 	GameManager->ItemManager->GetMonsterItem(Monster->Status.ByProductID, Monster->Status.RewardID, Monster->GetActorLocation());
 }
+
+
 
 void ACombatManager::AddTargetMonster(class AMonster* Monster)
 {

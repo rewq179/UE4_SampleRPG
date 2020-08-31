@@ -2,7 +2,7 @@
 
 #include "Monster/Monster.h"
 #include "Monster/MonsterAI.h"
-#include "Monster/MonsterSkill.h"
+#include "Monster/MonsterPattern.h"
 
 #include "Player/MainPlayer.h"
 #include "Manager/GameManager.h"
@@ -68,7 +68,7 @@ void AMonster::SetMonsterData()
 			Status.ID = (*MonsterTableRow).ID;
 			Status.MonsterClass = (*MonsterTableRow).MonsterClass;
 			Status.AttackCount = (*MonsterTableRow).AttackCount;
-			Status.SkillID = (*MonsterTableRow).SkillID;
+			Status.PatternID = (*MonsterTableRow).PatternID;
 			Status.bHasCharging = (*MonsterTableRow).bHasCharging;
 			Status.Name = (*MonsterTableRow).Name;
 			Status.Level = (*MonsterTableRow).Level;
@@ -95,13 +95,14 @@ void AMonster::SetMonsterData()
 
 	if (Status.MonsterClass == EMonsterClass::EMC_Boss)
 	{
-		if (MonsterSkillBP)
+		if (MonsterPatternBP)
 		{
-			MonsterSkill = GetWorld()->SpawnActor<AMonsterSkill>(MonsterSkillBP);
-			MonsterSkill->Monster = this;
-			MonsterSkill->GameManager = GameManager;
+			MonsterPattern = GetWorld()->SpawnActor<AMonsterPattern>(MonsterPatternBP);
+			MonsterPattern->Monster = this;
+			MonsterPattern->GameManager = GameManager;
+			MonsterPattern->CombatManager = GameManager->CombatManager;
 
-			ParseStringToInt(Status.SkillID);
+			ParseStringToInt(Status.PatternID);
 		}
 	}
 }
@@ -115,40 +116,56 @@ void AMonster::ParseStringToInt(FString Data)
 
 	for (auto ID : StringID)
 	{
-		MonsterSkill->AddSkill(FCString::Atoi(*ID));
+		MonsterPattern->AddPattern(FCString::Atoi(*ID));
 	}
 }
 
-void AMonster::AttackTarget(AMainPlayer* Target, EAttackType AttackType)
+void AMonster::AttackTarget(AMainPlayer* Target, EPatternClass PatternClass, int32 AttackNumber)
 {
 	if (Target)
 	{
 		CombatTarget = Target;
+		MonsterPattern->CombatTarget = Target;
 
 		if (CombatTarget)
 		{
 			SetCombatCollisionEnabled(true);
 
 			FString SectionName = "Attack_";
-			SectionName.Append(FString::FromInt(GetAttackNumber(AttackType)));
+			SectionName.Append(FString::FromInt(AttackNumber));
 
 			UE_LOG(LogTemp, Log, TEXT("Section Name : %s"), *SectionName);
+			int32 Index = AttackNumber - Status.AttackCount;
 
-			if (AttackType == EAttackType::EAT_Normal)
+			switch (PatternClass)
 			{
-				SetDamagedType(EDamagedType::EDT_Normal);
-				
+			case EPatternClass::EPC_Normal:
+				SetAttackType(EAttackType::EAT_Normal);
+
 				PlayMontage(FName(*SectionName), 1.5f);
-			}
+				break;
 
-			else
-			{
-				SetDamagedType(EDamagedType::EDT_KnockBack);
+			case EPatternClass::EPC_Charging:
+				SetAttackType(EAttackType::EAT_KnockBack);
 
 				PlayMontage(FName(*SectionName), 1.f);
 				bCanChargingAttack = false;
 
 				GetWorldTimerManager().SetTimer(TimeHandle, this, &AMonster::SetChargingAttack, 20.0f, false);
+				break;
+
+			case EPatternClass::EPC_Skill:
+				if (Status.bHasCharging)
+				{
+					Index--;
+				}
+				
+				MonsterPattern->SelectedPattern = MonsterPattern->PatternMaps[Index];
+				PlayMontage(FName(*SectionName), 1.f);
+				break;
+
+			default:
+				break;
 			}
 		}
 	}
@@ -159,24 +176,8 @@ void AMonster::AttackTarget(AMainPlayer* Target, EAttackType AttackType)
 	}
 }
 
-int32 AMonster::GetAttackNumber(EAttackType AttackType)
-{
-	switch (AttackType)
-	{
-	case EAttackType::EAT_Normal:
-		return FMath::RandRange(0, Status.AttackCount -1 );
-		break;
 
-	case EAttackType::EAT_Charging:
-		return FMath::RandRange(Status.AttackCount, Status.AttackCount);
-		break;
-
-	default:
-		return -1;
-	}
-}
-
-void AMonster::TakeDamage(float DamageAmount, AActor* DamageCauser, EDamagedType DamageType)
+void AMonster::TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAttackType AttackType)
 {
 	float total = DamageAmount - Status.Deffence;
 
@@ -238,7 +239,7 @@ void AMonster::ApplyDamageToTarget()
 	{
 		bCanApplyDamage = false;
 
-		CombatManager->ApplyDamage(CombatTarget->PlayerStatus, Status.Damage, this, DamagedType, true);
+		CombatManager->ApplyDamageHP(CombatTarget->PlayerStatus, Status.Damage, this, AttackType, true, false);
 
 		if (CombatTarget->GetMovementState() == EMovementState::EMS_Dead)
 		{

@@ -21,17 +21,21 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SkillManager|Properties")
 	class AGameManager* GameManager;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SkillManager|SkillData")
-	TMap<int32, TSubclassOf<class ASkill>> SkillMap;
+	class UDataTable* SkillTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillManager|SkillTable")
+	TMap<int32, FSkillTable> SkillMap;
+
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+
 
 public:	
-	class ASkill* CreateSkillActor(int32 SkillID);
-	void SetSkillData(class ASkill* Skill, int32 SkillID);
-	FSkillShape SkillShape(EShape Shape, float X, float Y);
+	void SetAllSkillData();
+	void SetSkillData(int32 SkillID);
 
+	FSkillTable GetSkillData(int32 SkillID);
+
+	
 	
 };

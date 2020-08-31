@@ -1,13 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SkillManager.h"
-#include "GameManager.h"
 
-#include "Skill.h"
-
-#include "Engine/World.h"
-#include "Particles/ParticleSystemComponent.h"
-
+#include "Manager/GameManager.h"
 
 // Sets default values
 ASkillManager::ASkillManager()
@@ -17,63 +12,41 @@ ASkillManager::ASkillManager()
 
 }
 
-// Called when the game starts or when spawned
-void ASkillManager::BeginPlay()
+void ASkillManager::SetAllSkillData()
 {
-	Super::BeginPlay();
-	
+	if (SkillMap.Num() > 0 && GameManager)
+	{
+		for (int32 Count = 0; Count < SkillMap.Num(); Count++)
+		{
+			SetSkillData(Count);
+		}
+	}
 }
 
-ASkill* ASkillManager::CreateSkillActor(int32 SkillID)
+void ASkillManager::SetSkillData(int32 SkillID)
 {
-	ASkill* Skill = GetWorld()->SpawnActor<ASkill>(SkillMap[SkillID]);
+	FSkillTable* SkillTableData = GameManager->DataTableManager->GetSkillTableData(SkillID);
 
-	Skill->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	if (SkillTableData)
+	{
+		SkillMap[SkillID].SkillID = (*SkillTableData).SkillID;
+		SkillMap[SkillID].SkillID = (*SkillTableData).SkillID;
+		SkillMap[SkillID].SkillClass = (*SkillTableData).SkillClass;
+		SkillMap[SkillID].Name = (*SkillTableData).Name;
+		SkillMap[SkillID].DurationTime = (*SkillTableData).DurationTime;
+		SkillMap[SkillID].IncPerDamage = (*SkillTableData).IncPerDamage;
+		SkillMap[SkillID].IncPerDeffence = (*SkillTableData).IncPerDeffence;
+		SkillMap[SkillID].CurHP = (*SkillTableData).CurHP;
+		SkillMap[SkillID].PerHP = (*SkillTableData).PerHP;
+		SkillMap[SkillID].CurST = (*SkillTableData).CurST;
+		SkillMap[SkillID].PerST = (*SkillTableData).PerST;
+		SkillMap[SkillID].PerShield = (*SkillTableData).PerShield;
+		SkillMap[SkillID].PerSpeed = (*SkillTableData).PerSpeed;
 
-	SetSkillData(Skill, SkillID);
-
-	return Skill;
+	}
 }
 
-void ASkillManager::SetSkillData(ASkill* Skill, int32 SkillID)
+FSkillTable ASkillManager::GetSkillData(int32 SkillID)
 {
-	FSkillRawTable* SkillRawTableRow = GameManager->DataTableManager->GetSkillRawTableData(SkillID);
-	
-	Skill->SkillData.SkillID = (*SkillRawTableRow).SkillID;
-	Skill->SkillData.SkillClass = (*SkillRawTableRow).SkillClass;
-	Skill->SkillData.SkillType = (*SkillRawTableRow).SkillType;
-	Skill->SkillData.DamagedType = (*SkillRawTableRow).DamagedType;
-	Skill->SkillData.Name = (*SkillRawTableRow).Name;
-	Skill->SkillData.DurationTime = (*SkillRawTableRow).DurationTime;
-	Skill->SkillData.CastTime = (*SkillRawTableRow).CastTime;
-	Skill->SkillData.IncPerDamage = (*SkillRawTableRow).IncPerDamage;
-	Skill->SkillData.CurHP = (*SkillRawTableRow).CurHP;
-	Skill->SkillData.PerHP = (*SkillRawTableRow).PerHP;
-	Skill->SkillData.CurST = (*SkillRawTableRow).CurST;
-	Skill->SkillData.PerST = (*SkillRawTableRow).PerST;
-	Skill->SkillData.PerShield = (*SkillRawTableRow).PerShield;
-
-	Skill->SkillData.SkillShape = SkillShape((*SkillRawTableRow).Shape, (*SkillRawTableRow).X, (*SkillRawTableRow).Y);
-
-	Skill->SkillData.UseParticle = (*SkillRawTableRow).UseParticle;
-	Skill->UseParticle->SetTemplate((*SkillRawTableRow).UseParticle);
-
-	Skill->SkillData.NotifyFieldParticle = (*SkillRawTableRow).NotifyFieldParticle;
-	Skill->NotifyFieldParticle->SetTemplate((*SkillRawTableRow).NotifyFieldParticle);
-
-	Skill->SkillData.DamageFieldParticle = (*SkillRawTableRow).DamageFieldParticle;
-	Skill->DamageFieldParticle->SetTemplate((*SkillRawTableRow).DamageFieldParticle);
-
-	Skill->SkillData.AnimationName = (*SkillRawTableRow).AnimationName;
-	Skill->AnimationName = (*SkillRawTableRow).AnimationName;
-}
-
-FSkillShape ASkillManager::SkillShape(EShape Shape, float X, float Y)
-{
-	FSkillShape SkillShape;
-
-	SkillShape.Shape = Shape;
-	SkillShape.Size = FVector(X, Y, 0.f);
-
-	return SkillShape;
+	return SkillMap[SkillID];
 }

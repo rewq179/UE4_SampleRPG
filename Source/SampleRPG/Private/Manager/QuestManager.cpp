@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "QuestManager.h"
-#include "Manager/GameManager.h"
-#include "Manager/ItemManager.h"
+
 #include "Player/MainPlayer.h"
 #include "Player/PlayerQuest.h"
 #include "Player/Inventory.h"
+
 #include "Npc/NpcController.h"
 
 #include "UObject/ConstructorHelpers.h"
@@ -19,11 +19,6 @@ AQuestManager::AQuestManager()
 
 }
 
-// Called when the game starts or when spawned
-void AQuestManager::BeginPlay()
-{
-	Super::BeginPlay();
-}
 void AQuestManager::SetAllQuestData()
 {
 	if (QuestMap.Num() > 0 && GameManager)

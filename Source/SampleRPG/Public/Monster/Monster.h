@@ -13,14 +13,6 @@
 DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnChargingEndDelegate);
 
-UENUM(BlueprintType)
-enum class EAttackType : uint8
-{
-	EAT_Normal UMETA(DisplayName = "Normal"),
-	EAT_Charging UMETA(DisplayName = "Charging"),
-
-	EAT_MAX
-};
 
 UCLASS()
 class SAMPLERPG_API AMonster : public ACharacter
@@ -44,10 +36,10 @@ public:
 	class UAnimMontage* CombatMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster|Properties")
-	TSubclassOf<class AMonsterSkill> MonsterSkillBP;
+	TSubclassOf<class AMonsterPattern> MonsterPatternBP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Properties")
-	class AMonsterSkill* MonsterSkill;
+	class AMonsterPattern* MonsterPattern;
 	
 	FTimerHandle TimeHandle;
 
@@ -64,8 +56,8 @@ public:
 	class UBoxComponent* CombatCollision;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	EDamagedType DamagedType;
-	FORCEINLINE void SetDamagedType(EDamagedType Type) { DamagedType = Type; }
+	EAttackType AttackType;
+	FORCEINLINE void SetAttackType(EAttackType Type) { AttackType = Type; }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	class AMonsterAI* MonsterAI;
@@ -75,6 +67,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	bool bCanApplyDamage;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
+	bool bCanApplySkillDamage;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	bool bCanChargingAttack;
@@ -89,10 +84,9 @@ public:
 	void SetMonsterData();
 	void ParseStringToInt(FString Data);
 
-	void AttackTarget(class AMainPlayer* Target, EAttackType AttackType);
-	int32 GetAttackNumber(EAttackType AttackType);
+	void AttackTarget(class AMainPlayer* Target, EPatternClass PatternClass, int32 AttackNumber);
 
-	void TakeDamage(float DamageAmount, AActor* DamageCauser, EDamagedType DamageType);
+	void TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAttackType DamageType);
 	void Death();
 	
 	void TakeGroggy(float DamageAMount, AActor* DamageCauser);

@@ -7,6 +7,7 @@
 #include "Engine/DataTable.h"
 
 #include "Manager/CombatManager.h"
+#include "Manager/DataTableManager.h"
 
 #include "PlayerStatus.generated.h"
 
@@ -65,11 +66,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
 	class AMainPlayer* MainPlayer;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	class ASkillManager* SkillManager;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainCharacter|Properties")
 	class USoundCue* DamagedSound;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|Properties")
 	float StaminaRate; // 스테미나 증가량
+
+	FTimerHandle TimeHandle;
 
 	class UDataTable* PlayerStatTable;
 	FPlayerStatTable* PlayerStatTableRow;
@@ -92,10 +98,22 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Stat")
 	int32 IncIntelligence;
 
+
 	FORCEINLINE float GetTotalDamage() { return IncDamage + Stat.Damage; }
 	FORCEINLINE float GetTotalDeffence() { return IncDeffence + Stat.Deffence; }
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Stat")
 	bool bIsPlayerDead;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|Skill")
+	TMap<int32, FSkillTable> SkillMaps;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|Skill")
+	float LifeTime;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Skill")
+	float OriginSpeed;
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -104,11 +122,13 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	void IncreaseStamina(float DeltaTime);
 
 	void AdjustHP(float Amount, bool CanDie);
 
-	void TakeDamage(float DamageAmount, AActor* DamageCauser, EDamagedType DamageType);
-	void SetPlayerCrowdControl(EDamagedType DamagedType);
+	void TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAttackType AttackType);
+	void TakeDamageST(float DamageAmount, AActor* DamageCauser, EAttackType DamageType);
+	void SetPlayerCrowdControl(EAttackType AttackType);
 	
 	UFUNCTION(BlueprintCallable)
 	void KnockDownAnimEnd();
@@ -127,6 +147,8 @@ public:
 	void SavePlayerStatData(class USaveGameManager* SaveGameInstance);
 	void LoadPlayerStatData(class USaveGameManager* LoadGameInstance);
 	
-	void IncreaseStamina(float DeltaTime);
+	void SetPoison();
+	void SetFrostbite();
+	void ResetStatus();
 
 };

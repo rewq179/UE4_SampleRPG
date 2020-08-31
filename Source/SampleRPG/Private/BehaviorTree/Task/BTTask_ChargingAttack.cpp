@@ -21,14 +21,14 @@ EBTNodeResult::Type UBTTask_ChargingAttack::ExecuteTask(UBehaviorTreeComponent& 
 	EBTNodeResult::Type Result = Super::ExecuteTask(OwnerComp, NodeMemory);
 
 	auto Monster = Cast<AMonster>(OwnerComp.GetAIOwner()->GetPawn());
-	if (nullptr == Monster)
+	auto Target = Cast<AMainPlayer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AMonsterAI::Target));
+	if (nullptr == Monster || nullptr == Target)
 	{
 		return EBTNodeResult::Failed;
 	}
 
-	auto Target = Cast<AMainPlayer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AMonsterAI::Target));
 
-	Monster->AttackTarget(Target, EAttackType::EAT_Charging);
+	Monster->AttackTarget(Target, EPatternClass::EPC_Charging, AttackNumber);
 	IsCharging = true;
 	Monster->OnChargingEnd.AddLambda([this]() -> void { IsCharging = false; });
 

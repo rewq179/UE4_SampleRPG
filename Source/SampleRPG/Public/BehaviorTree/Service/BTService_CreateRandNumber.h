@@ -15,6 +15,15 @@ class SAMPLERPG_API UBTService_CreateRandNumber : public UBTService
 	GENERATED_BODY()
 	
 	
-	
-	
+public:
+	UBTService_CreateRandNumber();
+
+	UPROPERTY(Category = "Value", EditAnywhere)
+	TArray<int32> Percents;
+
+protected:
+	virtual void OnBecomeRelevant(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+
+public:
+	int32 GetPatternNumber(int InputNumber);
 };

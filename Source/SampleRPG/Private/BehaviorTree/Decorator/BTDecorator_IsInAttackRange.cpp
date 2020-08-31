@@ -18,17 +18,13 @@ bool UBTDecorator_IsInAttackRange::CalculateRawConditionValue(UBehaviorTreeCompo
 	bool bResult = Super::CalculateRawConditionValue(OwnerComp, NodeMemory);
 
 	auto Monster = Cast<AMonster>(OwnerComp.GetAIOwner()->GetPawn());
-	if (nullptr == Monster)
+	auto Target = Cast<AMainPlayer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AMonsterAI::Target));
+
+	if (nullptr == Monster || nullptr == Target)
 	{
 		return false;
 	}
 	
-	auto Target = Cast<AMainPlayer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AMonsterAI::Target));
-	if (nullptr == Target)
-	{
-		return false;
-	}
-
 	bResult = (Target->GetDistanceTo(Monster) <= Monster->Status.AttackRange);
 	return bResult;
 }

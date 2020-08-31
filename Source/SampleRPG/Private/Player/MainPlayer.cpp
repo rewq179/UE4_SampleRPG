@@ -112,9 +112,10 @@ void AMainPlayer::BeginPlay()
 	{
 		PlayerStatus = GetWorld()->SpawnActor<APlayerStatus>(PlayerStatusBP);
 
-		if (PlayerCombat)
+		if (PlayerStatus)
 		{
 			PlayerStatus->MainPlayer = this;
+			PlayerStatus->SkillManager = GameManager->SkillManager;
 			PlayerStatus->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		}
 	}
@@ -253,7 +254,7 @@ void AMainPlayer::LeftClickDown()
 	{
 		bIsAttackAnim = true;
 
-		PlayerCombat->SetDamagedType(EDamagedType::EDT_Normal);
+		PlayerCombat->SetAttackType(EAttackType::EAT_Normal);
 		PlayerCombat->PlayAttackAnim();
 	}
 }

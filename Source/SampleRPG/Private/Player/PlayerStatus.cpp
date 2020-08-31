@@ -5,6 +5,7 @@
 #include "Player/MainPlayer.h"
 
 #include "Manager/SaveGameManager.h"
+#include "Manager/SkillManager.h"
 
 #include "Components/SkeletalMeshComponent.h"
 
@@ -13,6 +14,7 @@
 #include "Sound/SoundCue.h"
 #include "Animation/AnimInstance.h"
 
+#include "TimerManager.h"
 
 // Sets default values
 APlayerStatus::APlayerStatus()
@@ -125,14 +127,14 @@ void APlayerStatus::AdjustHP(float Amount, bool CanDie)
 	}
 }
 
-void APlayerStatus::TakeDamage(float DamageAmount, AActor* DamageCauser, EDamagedType DamagedType)
+void APlayerStatus::TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAttackType AttackType)
 {
 	if (MainPlayer->bIsRoll)
 	{
 		return;
 	}
 
-	SetPlayerCrowdControl(DamagedType);
+	SetPlayerCrowdControl(AttackType);
 
 	float total = DamageAmount - GetTotalDeffence();
 
@@ -158,24 +160,94 @@ void APlayerStatus::TakeDamage(float DamageAmount, AActor* DamageCauser, EDamage
 	}
 }
 
-void  APlayerStatus::SetPlayerCrowdControl(EDamagedType DamagedType)
+void APlayerStatus::TakeDamageST(float DamageAmount, AActor* DamageCauser, EAttackType AttackType)
 {
-	switch (DamagedType)
+	if (MainPlayer->bIsRoll)
 	{
-	case EDamagedType::EDT_Normal:
+		return;
+	}
 
+	float total = DamageAmount - GetTotalDeffence();
+
+	if (total > 0)
+	{
+		Stat.CurStamina -= total;
+	}
+
+	else
+	{
+		Stat.CurStamina--;
+	}
+
+	if (Stat.CurStamina <= 0)
+	{
+		Stat.CurStamina = 0;
+	}
+}
+
+void  APlayerStatus::SetPlayerCrowdControl(EAttackType AttackType)
+{
+	switch (AttackType)
+	{
+	case EAttackType::EAT_Normal:
 		break;
-	case EDamagedType::EDT_KnockBack:
+
+	case EAttackType::EAT_KnockBack:
 		MainPlayer->bCanMove = false;
 		MainPlayer->PlayerCombat->PlayMontage(FName("KnockDown"), 1.f);
 		break;
 
-	case EDamagedType::EDT_Stun:
+	case EAttackType::EAT_Stun:
+		break;
+
+	case EAttackType::EAT_Poison:
+
+		GetWorldTimerManager().SetTimer(TimeHandle, this, &APlayerStatus::SetPoison, 1.f, true, 0.f);
+		UE_LOG(LogTemp, Log, TEXT("StartTime : %f"), GetWorldTimerManager().GetTimerElapsed(TimeHandle));
+		break;
+
+	case EAttackType::EAT_Frostbite:
 		break;
 
 	default:
 		break;
 	}
+}
+
+void APlayerStatus::SetPoison()
+{
+	LifeTime += GetWorldTimerManager().GetTimerElapsed(TimeHandle);
+	auto SkillData = SkillManager->GetSkillData(0);
+
+	if (LifeTime > SkillData.DurationTime)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Time out!"));
+		GetWorldTimerManager().ClearTimer(TimeHandle);
+		LifeTime = 0.f;
+
+		return;
+	}
+
+	if (!SkillMaps.Find(SkillData.SkillID))
+	{
+		SkillMaps.Add(SkillData.SkillID, SkillData);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("LifeTime : %f"), LifeTime);
+
+	float Damage = Stat.MaxHP * SkillData.PerHP * 0.01f;
+
+	AdjustHP(-Damage, false);
+}
+
+void APlayerStatus::SetFrostbite()
+{
+
+}
+
+void APlayerStatus::ResetStatus()
+{
+
 }
 
 void APlayerStatus::KnockDownAnimEnd()

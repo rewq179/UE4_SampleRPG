@@ -46,7 +46,7 @@ void APlayerCombat::ApplyDamageToTarget()
 
 		for (auto Monster : TargetMonsters)
 		{
-			CombatManager->ApplyDamage(Monster, MainPlayer->PlayerStatus->Stat.Damage, this, DamagedType, false);
+			CombatManager->ApplyDamageHP(Monster, MainPlayer->PlayerStatus->Stat.Damage, this, AttackType, false, false);
 		}
 
 		if (MainPlayer->Inventory->Equipments[0]->AttackSound)

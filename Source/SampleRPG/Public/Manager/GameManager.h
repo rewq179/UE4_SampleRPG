@@ -13,6 +13,7 @@
 #include "Manager/ItemManager.h"
 #include "Manager/NpcManager.h"
 #include "Manager/QuestManager.h"
+#include "Manager/PatternManager.h"
 #include "Manager/SkillManager.h"
 
 #include "GameManager.generated.h"
@@ -72,11 +73,17 @@ public:
 
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
-	TSubclassOf<class ASkillManager> SkillManagerBP;
+	TSubclassOf<class APatternManager> PatternManagerBP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
-	class ASkillManager* SkillManager;
+	class APatternManager* PatternManager;
 
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+		TSubclassOf<class ASkillManager> SkillManagerBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+		class ASkillManager* SkillManager;
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
 	TSubclassOf<class ALevelManager> LevelManagerBP;

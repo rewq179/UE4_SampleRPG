@@ -12,6 +12,7 @@ const FName AMonsterAI::HomeLocation(TEXT("HomeLocation"));
 const FName AMonsterAI::PatrolLocation(TEXT("PatrolLocation"));
 const FName AMonsterAI::Target(TEXT("Target"));
 const FName AMonsterAI::InDistance(TEXT("InDistance"));
+const FName AMonsterAI::AttackPattern(TEXT("AttackPattern"));
 
 AMonsterAI::AMonsterAI()
 {

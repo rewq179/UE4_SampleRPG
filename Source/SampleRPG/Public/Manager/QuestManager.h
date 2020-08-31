@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+
 #include "Manager/DataTableManager.h"
 
 #include "QuestManager.generated.h"
@@ -31,6 +32,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestManager|QuestTable")
 	TMap<int32, FQuestTable> QuestMap;
 
+protected:
+
+public:	
 	void SetAllQuestData();
 	void SetQuestData(int32 QuestID);
 
@@ -50,13 +54,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ClearQuest(FQuestTable Quest);
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
 
 	void SetSymbol(ESymbolType SymbolType, int32 QuestID);
 	bool IsExclamationSymbol(TArray<int32> QuestID);

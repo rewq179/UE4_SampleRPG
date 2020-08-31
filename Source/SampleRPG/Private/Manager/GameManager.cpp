@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GameManager.h"
+
 #include "Player/MainPlayer.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
@@ -102,6 +103,17 @@ void AGameManager::BeginPlay()
 		}
 	}
 
+	if (PatternManagerBP)
+	{
+		PatternManager = GetWorld()->SpawnActor<APatternManager>(PatternManagerBP);
+
+		if (PatternManager)
+		{
+			PatternManager->GameManager = this;
+			PatternManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		}
+	}
+
 	if (SkillManagerBP)
 	{
 		SkillManager = GetWorld()->SpawnActor<ASkillManager>(SkillManagerBP);
@@ -110,6 +122,8 @@ void AGameManager::BeginPlay()
 		{
 			SkillManager->GameManager = this;
 			SkillManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+			SkillManager->SetAllSkillData();
 		}
 	}
 

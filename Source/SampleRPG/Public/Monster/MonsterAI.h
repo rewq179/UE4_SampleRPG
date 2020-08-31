@@ -22,6 +22,7 @@ public:
 	static const FName PatrolLocation;
 	static const FName Target;
 	static const FName InDistance;
+	static const FName AttackPattern;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Monster|BehaviorTree")

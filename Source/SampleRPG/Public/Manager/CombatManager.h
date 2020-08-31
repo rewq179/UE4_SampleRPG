@@ -7,17 +7,30 @@
 #include "CombatManager.generated.h"
 
 UENUM(BlueprintType)
+enum class EAttackType : uint8
+{
+	EAT_None UMETA(DisplayName = "None"),
+	EAT_Normal UMETA(DisplayName = "Normal"),
+	EAT_KnockBack UMETA(DisplayName = "KnockBack"),
+	EAT_Stun UMETA(DisplayName = "Stun"),
+	EAT_Poison UMETA(DisplayName = "Poison"),
+	EAT_Frostbite UMETA(DisplayName = "Frostbite"),
+
+	EAT_MAX
+};
+
+UENUM(BlueprintType)
 enum class EDamagedType : uint8
 {
-	EDT_Normal UMETA(DisplayName = "Normal"),
-	EDT_KnockBack UMETA(DisplayName = "KnockBack"),
-	EDT_Stun UMETA(DisplayName = "Stun"),
-	EDT_Poison UMETA(DisplayName = "Poison"),
-	EDT_Frostbite UMETA(DisplayName = "Frostbite"),
 	EDT_None UMETA(DisplayName = "None"),
-
-	EDT_MAX
+	EDT_CurHp UMETA(DisplayName = "Cur Health"),
+	EDT_PerHP UMETA(DisplayName = "Per Health"),
+	EDT_CurST UMETA(DisplayName = "Cur Stamina"),
+	EDT_PerST UMETA(DisplayName = "Per Stamina"),
+	
+	EDT_Max
 };
+
 
 UCLASS()
 class SAMPLERPG_API ACombatManager : public AActor
@@ -42,9 +55,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-
-	void ApplyDamage(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EDamagedType DamagedType, bool bIsPlayerDamaged);
+	void ApplyDamageHP(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EAttackType AttackType, bool bIsPlayerDamaged, bool bIsPercent);
+	void ApplyDamageST(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EAttackType AttackType, bool bIsPercent);
 	void MonsterDeath(class AMonster* Monster);
+	float GetPercentBaseDamage(float Percent, float MaxHP);
 
 	void AddTargetMonster(class AMonster* Monster);
 	void AddWidgetMonster(class AMonster* Monster);

@@ -56,9 +56,9 @@ public:
 	void InterpToMonster(float DeltaTime); // 캐릭터가 공격대상을 바라보게함
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Combat")
-	EDamagedType DamagedType;
+	EAttackType AttackType;
 
-	FORCEINLINE void SetDamagedType(EDamagedType DamagedType) { this->DamagedType = DamagedType; }
+	FORCEINLINE void SetAttackType(EAttackType AttackType) { this->AttackType = AttackType; }
 
 protected:
 	// Called when the game starts or when spawned

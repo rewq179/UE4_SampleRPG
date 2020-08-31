@@ -11,55 +11,53 @@ ADataTableManager::ADataTableManager()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	static ConstructorHelpers::FObjectFinder<UDataTable> DialogueTable(TEXT("DataTable'/Game/DataTable/DialogueTable.DialogueTable'"));
-
 	if (DialogueTable.Succeeded())
 	{
 		DialogueTableData = DialogueTable.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> NpcTable(TEXT("DataTable'/Game/DataTable/NpcTable.NpcTable'"));
-
 	if (NpcTable.Succeeded())
 	{
 		NpcTableData = NpcTable.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> MonsterTable(TEXT("DataTable'/Game/DataTable/MonsterTable.MonsterTable'"));
-
 	if (MonsterTable.Succeeded())
 	{
 		MonsterTableData = MonsterTable.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UDataTable> SkillRawTable(TEXT("DataTable'/Game/DataTable/SkillRawTable.SkillRawTable'"));
-
-	if (SkillRawTable.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UDataTable> PatternRawTable(TEXT("DataTable'/Game/DataTable/PatternRawTable.PatternRawTable'"));
+	if (PatternRawTable.Succeeded())
 	{
-		SkillRawTableData = SkillRawTable.Object;
+		PatternRawTableData = PatternRawTable.Object;
 	}
 
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> ItemTable(TEXT("DataTable'/Game/DataTable/ItemTable.ItemTable'"));
-
 	if (ItemTable.Succeeded())
 	{
 		ItemTableData = ItemTable.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> RewardRawTable(TEXT("DataTable'/Game/DataTable/RewardRawTable.RewardRawTable'"));
-
 	if (RewardRawTable.Succeeded())
 	{
 		RewardRawTableData = RewardRawTable.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> QuestTable(TEXT("DataTable'/Game/DataTable/QuestTable.QuestTable'"));
-
 	if (QuestTable.Succeeded())
 	{
 		QuestTableData = QuestTable.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UDataTable> SkillTable(TEXT("DataTable'/Game/DataTable/SkillTable.SkillTable'"));
+	if (SkillTable.Succeeded())
+	{
+		SkillTableData = SkillTable.Object;
+	}
 }
 
 FDialogueTable* ADataTableManager::GetDialogueTableData(int32 DialogueID)
@@ -77,9 +75,9 @@ FMonsterTable* ADataTableManager::GetMonsterTableData(int32 MonsterID)
 	return MonsterTableData->FindRow<FMonsterTable>(FName(*(FString::FormatAsNumber(MonsterID))), FString(""));
 }
 
-FSkillRawTable* ADataTableManager::GetSkillRawTableData(int32 SkillID)
+FPatternRawTable* ADataTableManager::GetPatternRawTableData(int32 PatternID)
 {
-	return SkillRawTableData->FindRow<FSkillRawTable>(FName(*(FString::FormatAsNumber(SkillID))), FString(""));
+	return PatternRawTableData->FindRow<FPatternRawTable>(FName(*(FString::FormatAsNumber(PatternID))), FString(""));
 }
 
 FItemTable* ADataTableManager::GetItemTableData(int32 ItemID)
@@ -96,6 +94,11 @@ FRewardRawTable* ADataTableManager::GetRewardRawTableData(int32 RewardID)
 FQuestTable* ADataTableManager::GetQuestTableData(int32 QuestID)
 {
 	return QuestTableData->FindRow<FQuestTable>(FName(*(FString::FormatAsNumber(QuestID))), FString(""));
+}
+
+FSkillTable* ADataTableManager::GetSkillTableData(int32 SkillID)
+{
+	return SkillTableData->FindRow<FSkillTable>(FName(*(FString::FormatAsNumber(SkillID))), FString(""));
 }
 
 FText ADataTableManager::GetDialogueText(int32 DialogueID)

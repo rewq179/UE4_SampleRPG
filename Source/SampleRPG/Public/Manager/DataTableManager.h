@@ -6,7 +6,64 @@
 #include "GameFramework/Actor.h"
 #include "Engine/DataTable.h"
 #include "CombatManager.h"
+
 #include "DataTableManager.generated.h"
+
+#pragma region Enum Etc...
+UENUM(BlueprintType)
+enum class EObjectType : uint8
+{
+	EOT_Item UMETA(DisplayName = "Item"),
+	EOT_Npc UMETA(DisplayName = "Npc"),
+	EOT_Quest UMETA(DisplayName = "Quest"),
+	EOT_Monster UMETA(DisplayName = "Monster"),
+
+	EOT_Max
+};
+
+UENUM(BlueprintType)
+enum class ESymbolType : uint8
+{
+	EST_None UMETA(DisplayName = "None"),
+	EST_Question UMETA(DisplayName = "Question"),
+	EST_Exclamation UMETA(DisplayName = "Exclamation"),
+
+	EST_MAX
+};
+
+UENUM(BlueprintType)
+enum class EApplyType : uint8
+{
+	EAT_None UMETA(DisplayName = "None"),
+	EAT_Set UMETA(DisplayName = "Set"),
+	EAT_Normal UMETA(DisplayName = "Normal"),
+	EAT_Percent UMETA(DisplayName = "Percent"),
+
+	EAT_MAX
+};
+
+UENUM(BlueprintType)
+enum class EOperatorType : uint8
+{
+	EOT_None UMETA(DisplayName = "None"),
+	EOT_Add UMETA(DisplayName = "Add"),
+	EOT_Subtract UMETA(DisplayName = "Substract"),
+	EOT_Multiply UMETA(DisplayName = "Multiply"),
+	EOT_Devide UMETA(DisplayName = "Devide"),
+
+	EOT_MAX
+};
+
+UENUM(BlueprintType)
+enum class EShape : uint8
+{
+	ES_None UMETA(DisplayName = "None"),
+	ES_Circle UMETA(DisplayName = "Circle"),
+	ES_Rectangle UMETA(DisplayName = "Rectangle"),
+
+	ES_MAX
+};
+#pragma endregion
 
 
 #pragma region NPC Table
@@ -50,7 +107,6 @@ enum class EMonsterClass : uint8
 
 	EMC_MAX
 };
-
 USTRUCT(BlueprintType)
 struct FMonsterTable : public FTableRowBase
 {
@@ -70,7 +126,7 @@ public:
 		int32 AttackCount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
-		FString SkillID;
+		FString PatternID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MonsterTable")
 		bool bHasCharging;
@@ -123,115 +179,168 @@ public:
 
 #pragma endregion
 
-#pragma region MonsterSkill & Enum Class
+#pragma region Monster Pattern & Enum Class
 
 UENUM(BlueprintType)
-enum class ESkillClass : uint8
+enum class EPatternClass : uint8
 {
-	ESC_Attack UMETA(DisplayName = "Attack"),
-	ESC_Buff UMETA(DisplayName = "Buff"),
-	ESC_Debuff UMETA(DisplayName = "Debuff"),
+	EPC_Normal UMETA(DisplayName = "Normal"),
+	EPC_Charging UMETA(DisplayName = "Charging"),
+	EPC_Skill UMETA(DisplayName = "Skill"),
+	EPC_Deffence UMETA(DisplayName = "Deffence"),
 
-	ESC_MAX
+	EPC_MAX
 };
 
 UENUM(BlueprintType)
-enum class ESkillType : uint8
+enum class EPatternType : uint8
 {
-	EST_Realtime UMETA(DisplayName = "RealTime"),
-	EST_Duration UMETA(DisplayName = "Duration"),
+	EPT_Realtime UMETA(DisplayName = "RealTime"),
+	EPT_Duration UMETA(DisplayName = "Duration"),
 
-	EST_MAX
-};
-
-UENUM(BlueprintType)
-enum class EShape : uint8
-{
-	ES_None UMETA(DisplayName = "None"),
-	ES_Circle UMETA(DisplayName = "Circle"),
-	ES_Rectangle UMETA(DisplayName = "Rectangle"),
-
-	ES_MAX
+	EPT_MAX
 };
 
 USTRUCT(BlueprintType)
-struct FSkillShape : public FTableRowBase
+struct FPatternShape : public FTableRowBase
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillShape")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternShape")
 		EShape Shape;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillShape")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternShape")
 		FVector Size;
 };
 
 USTRUCT(BlueprintType)
-struct FSkillRawTable : public FTableRowBase
+struct FPatternRawTable : public FTableRowBase
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		int32 SkillID;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
+		int32 PatternID;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		ESkillClass SkillClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
+		EPatternClass PatternClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		ESkillType SkillType;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
+		EPatternType PatternType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		EDamagedType DamagedType;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
 		FText Name;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		float DurationTime;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
+		EAttackType AttackType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		float CastTime;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
+		EDamagedType DamagedType;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
+		int32 SkillID;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		float IncPerDamage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
 		float CurHP;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
 		float PerHP;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
 		float CurST;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
 		float PerST;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		float PerShield;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
 		EShape Shape;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
 		float X;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
 		float Y;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
 		UParticleSystem* UseParticle;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
 		UParticleSystem* NotifyFieldParticle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
 		UParticleSystem* DamageFieldParticle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
 		FString AnimationName;
+};
+
+USTRUCT(BlueprintType)
+struct FPatternTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		int32 PatternID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		EPatternClass PatternClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		EPatternType PatternType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		FText Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		EAttackType AttackType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		EDamagedType DamagedType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		int32 SkillID;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		float CurHP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		float PerHP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		float CurST;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		float PerST;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		FPatternShape PatternShape;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		UParticleSystem* UseParticle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		UParticleSystem* NotifyFieldParticle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		UParticleSystem* DamageFieldParticle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
+		FString AnimationName;
+};
+
+#pragma endregion
+
+#pragma region Skill Table & Enum Class
+UENUM(BlueprintType)
+enum class ESkillClass : uint8
+{
+	ESC_Active UMETA(DisplayName = "Active"),
+	ESC_Buff UMETA(DisplayName = "Buff"),
+	ESC_Debbuf UMETA(DisplayName = "Debuff"),
+
+	ESC_MAX
 };
 
 USTRUCT(BlueprintType)
@@ -247,22 +356,16 @@ public:
 		ESkillClass SkillClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		ESkillType SkillType;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		EDamagedType DamagedType;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
 		FText Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
 		float DurationTime;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		float CastTime;
+		float IncPerDamage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		float IncPerDamage;
+		float IncPerDeffence;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
 		float CurHP;
@@ -280,22 +383,10 @@ public:
 		float PerShield;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		FSkillShape SkillShape;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		UParticleSystem* UseParticle;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		UParticleSystem* NotifyFieldParticle;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		UParticleSystem* DamageFieldParticle;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillTable")
-		FString AnimationName;
+		float PerSpeed;
 };
-
 #pragma endregion
+
 
 #pragma region Item Table & Enum Class
 
@@ -592,32 +683,6 @@ public:
 };
 #pragma endregion
 
-#pragma region Enum Etc...
-UENUM(BlueprintType)
-enum class EObjectType : uint8
-{
-	EOT_Item UMETA(DisplayName = "Item"),
-	EOT_Npc UMETA(DisplayName = "Npc"),
-	EOT_Quest UMETA(DisplayName = "Quest"),
-	EOT_Monster UMETA(DisplayName = "Monster"),
-
-	EOT_Max
-};
-
-UENUM(BlueprintType)
-enum class ESymbolType : uint8
-{
-	EST_None UMETA(DisplayName = "None"),
-	EST_Question UMETA(DisplayName = "Question"),
-	EST_Exclamation UMETA(DisplayName = "Exclamation"),
-
-	EST_MAX
-};
-
-
-#pragma endregion
-
-
 USTRUCT(BlueprintType)
 struct FDialogueTable : public FTableRowBase
 {
@@ -655,8 +720,8 @@ public:
 	class UDataTable* MonsterTableData;
 	FMonsterTable* GetMonsterTableData(int32 MonsterID);
 	
-	class UDataTable* SkillRawTableData;
-	FSkillRawTable* GetSkillRawTableData(int32 SkillID);
+	class UDataTable* PatternRawTableData;
+	FPatternRawTable* GetPatternRawTableData(int32 PatternID);
 
 	class UDataTable* ItemTableData;
 	FItemTable* GetItemTableData(int32 ItemID);
@@ -666,6 +731,9 @@ public:
 
 	class UDataTable* QuestTableData;
 	FQuestTable* GetQuestTableData(int32 QuestID);
+
+	class UDataTable* SkillTableData;
+	FSkillTable* GetSkillTableData(int32 SkillID);
 
 	UFUNCTION(BlueprintCallable)
 	FText GetDialogueText(int32 DialogueID);

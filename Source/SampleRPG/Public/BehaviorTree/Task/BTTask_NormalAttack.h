@@ -22,5 +22,7 @@ protected:
 	void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 	
 private:
+	UPROPERTY(Category = "Value", EditAnywhere)
+	int32 AttackNumber;
 	bool IsAttacking;
 };
