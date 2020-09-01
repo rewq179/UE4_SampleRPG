@@ -201,12 +201,14 @@ void  APlayerStatus::SetPlayerCrowdControl(EAttackType AttackType)
 		break;
 
 	case EAttackType::EAT_Poison:
-
+		SetSystemText();
 		GetWorldTimerManager().SetTimer(TimeHandle, this, &APlayerStatus::SetPoison, 1.f, true, 0.f);
-		UE_LOG(LogTemp, Log, TEXT("StartTime : %f"), GetWorldTimerManager().GetTimerElapsed(TimeHandle));
 		break;
 
 	case EAttackType::EAT_Frostbite:
+		SetSystemText();
+
+
 		break;
 
 	default:
@@ -230,10 +232,9 @@ void APlayerStatus::SetPoison()
 
 	if (!SkillMaps.Find(SkillData.SkillID))
 	{
-		SkillMaps.Add(SkillData.SkillID, SkillData);
+		RecentSkill = SkillData;
+		SkillMaps.Add(RecentSkill.SkillID, RecentSkill);
 	}
-
-	UE_LOG(LogTemp, Log, TEXT("LifeTime : %f"), LifeTime);
 
 	float Damage = Stat.MaxHP * SkillData.PerHP * 0.01f;
 

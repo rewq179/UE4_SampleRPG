@@ -28,35 +28,72 @@ void AMonsterPattern::BeginPlay()
 
 void AMonsterPattern::AddPattern(int32 PatternID)
 {
-	auto Pattern = GameManager->PatternManager->CreatePatternActor(PatternID);
-	Pattern->Monster = Monster;
+	auto PatternData = GameManager->PatternManager->GetPatternData(PatternID);
+	
+	Patterns.Add(SetPatternStruct(PatternID, PatternData.Count));
+}
 
-	Pattern->SetCollisionSize();
+FGatherPatterns AMonsterPattern::SetPatternStruct(int32 PatternID, int32 Count)
+{
+	FGatherPatterns PatternStruct;
+	TArray<APattern*> Patterns;
 
-	PatternMaps.Add(PatternID, Pattern);
+	for (int32 Index = 0; Index < Count; Index++)
+	{
+		auto Pattern = GameManager->PatternManager->CreatePatternActor(PatternID);
+		Pattern->Monster = Monster;
+
+		Pattern->SetCollisionSize();
+		Pattern->SetActiveCollision(false);
+
+		Patterns.Add(Pattern);
+	}
+
+	PatternStruct.Patterns = Patterns;
+
+	return PatternStruct;
 }
 
 void AMonsterPattern::PatternAnimStart()
 {
-	SelectedPattern->PlayParticle(0);
+	SelectedPatterns.Patterns[0]->PlayUseParticle();
 }
 
 void AMonsterPattern::PatternNotifyField()
 {
-	SelectedPattern->PlayParticle(1);
+	SelectedPatterns.Patterns[0]->PlayNotifyParticle(true);
+
+	for (int32 Index = 1; Index < SelectedPatterns.Patterns.Num(); Index++)
+	{
+		SelectedPatterns.Patterns[Index]->PlayNotifyParticle(false);
+	}
 }
 
 void AMonsterPattern::PatternDamageField()
 {
-	SelectedPattern->SetActiveCollision(true);
-	SelectedPattern->PlayParticle(2);
+	SelectedPatterns.Patterns[0]->PlayDamageParticle(true);
+
+	for (int32 Index = 1; Index < SelectedPatterns.Patterns.Num(); Index++)
+	{
+		SelectedPatterns.Patterns[Index]->PlayDamageParticle(false);
+	}
+
+}
+
+void AMonsterPattern::PatternApplyBuff()
+{
+
 }
 
 void AMonsterPattern::PatternAnimEnd()
 {
 	Monster->SetCombatCollisionEnabled(false);
-	SelectedPattern->Target = nullptr;
-	SelectedPattern->SetActiveCollision(false);
+	
+	for (int32 Index = 0; Index < SelectedPatterns.Patterns.Num(); Index++)
+	{
+		SelectedPatterns.Patterns[Index]->Target = nullptr;
+		SelectedPatterns.Patterns[Index]->SetActiveCollision(false);
+	}
 
 	OnPatternEnd.Broadcast();
 
@@ -67,6 +104,8 @@ void AMonsterPattern::PatternAnimEnd()
 
 void AMonsterPattern::ApplyPatternDamageToTarget()
 {
+	auto SelectedPattern = SelectedPatterns.Patterns[0];
+
 	if (CombatTarget && SelectedPattern && bCanApplyPatternDamage)
 	{
 		bCanApplyPatternDamage = false;

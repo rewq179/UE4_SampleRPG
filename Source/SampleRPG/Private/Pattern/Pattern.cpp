@@ -11,16 +11,20 @@
 #include "Components/SphereComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 
+#include "Engine/World.h"
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 APattern::APattern()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
+	BoxComponent->SetupAttachment(GetRootComponent());
 
 	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
 	SphereCollision->SetupAttachment(GetRootComponent());
@@ -54,6 +58,24 @@ void APattern::BeginPlay()
 	BoxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
+
+void APattern::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bIsNotifyFieldActive && PatternData.PatternClass == EPatternClass::EPT_Teleport)
+	{
+		SetTargetLocationByGroundSurface();
+
+		NotifyFieldParticle->SetRelativeLocation(TargetLocation);
+
+		if (!NotifyFieldParticle->IsActive())
+		{
+			NotifyFieldParticle->ToggleActive();
+		}
+	}
+}
+
 
 void APattern::SetCollisionSize()
 {
@@ -109,31 +131,96 @@ void APattern::SetActiveCollision(bool bIsActive)
 	}
 }
 
-
-void APattern::PlayParticle(int32 ParticleIndex)
+void APattern::PlayUseParticle()
 {
-	switch (ParticleIndex)
+	UseParticle->SetRelativeLocation(Monster->GetMesh()->GetSocketLocation("UsePattern"));
+	UseParticle->ToggleActive();
+}
+
+void APattern::PlayNotifyParticle(bool bIsTargetLocation)
+{
+	if (bIsTargetLocation) // 타겟 위치에 발동되는 패턴
 	{
-	case 0:
-		UseParticle->SetRelativeLocation(Monster->GetMesh()->GetSocketLocation("UsePattern"));
-		UseParticle->ToggleActive();
-		break;
+		if (PatternData.PatternClass == EPatternClass::EPT_Teleport)
+		{
+			bIsNotifyFieldActive = true;
 
-	case 1:
-		Location = Monster->CombatTarget->GetActorLocation();
-		Location.Z = 5.f;
+			return;
+		}
 
-		SetActorLocation(Location);
-		NotifyFieldParticle->SetRelativeLocation(Location);
+		SetTargetLocationByGroundSurface();
+
+		NotifyFieldParticle->SetRelativeLocation(TargetLocation);
 		NotifyFieldParticle->ToggleActive();
-		break;
+	}
 
-	case 2:
-		DamageFieldParticle->SetRelativeLocation(Location);
-		DamageFieldParticle->ToggleActive();
-		break;
+	else // 랜덤 위치에 발동되는 패턴
+	{
+		SetRandLocationByGroundSurface();
+
+		NotifyFieldParticle->SetRelativeLocation(RandLocation);
+		NotifyFieldParticle->ToggleActive();
 	}
 }
+
+void APattern::PlayDamageParticle(bool bIsTargetLocation)
+{
+	SetActiveCollision(true);
+
+	if (bIsTargetLocation)
+	{
+		bIsNotifyFieldActive = false;
+
+		if (PatternData.PatternClass == EPatternClass::EPT_Teleport)
+		{
+			Monster->SetActorLocation(TargetLocation);
+		}
+
+		DamageFieldParticle->SetRelativeLocation(TargetLocation);
+		DamageFieldParticle->ToggleActive();
+	}
+
+	else
+	{
+		DamageFieldParticle->SetRelativeLocation(RandLocation);
+		DamageFieldParticle->ToggleActive();
+	}
+}
+
+
+void APattern::SetTargetLocationByGroundSurface()
+{
+	FHitResult Hit;
+
+	FVector Start = Monster->CombatTarget->GetActorLocation();
+	FVector End = Start - FVector(0.f, 0.f, 500.f);
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(Monster->CombatTarget);
+
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, CollisionParams))
+	{
+		if (Hit.bBlockingHit)
+		{
+			TargetLocation = Hit.ImpactPoint;
+		}
+	}
+
+	SetActorLocation(TargetLocation);
+}
+
+void APattern::SetRandLocationByGroundSurface()
+{
+	SetTargetLocationByGroundSurface();
+
+	FVector Extent = BoxComponent->GetScaledBoxExtent();
+	FVector Origin = BoxComponent->GetComponentLocation();
+
+	RandLocation = UKismetMathLibrary::RandomPointInBoundingBox(Origin, Extent);
+	RandLocation.Z = TargetLocation.Z;
+
+	SetActorLocation(RandLocation);
+}
+
 
 
 void APattern::OnBoxOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)

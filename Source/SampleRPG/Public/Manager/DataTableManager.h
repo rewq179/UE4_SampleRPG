@@ -182,21 +182,23 @@ public:
 #pragma region Monster Pattern & Enum Class
 
 UENUM(BlueprintType)
-enum class EPatternClass : uint8
+enum class EAttackClass : uint8
 {
-	EPC_Normal UMETA(DisplayName = "Normal"),
-	EPC_Charging UMETA(DisplayName = "Charging"),
-	EPC_Skill UMETA(DisplayName = "Skill"),
-	EPC_Deffence UMETA(DisplayName = "Deffence"),
+	EAC_Normal UMETA(DisplayName = "Normal"),
+	EAC_Charging UMETA(DisplayName = "Charging"),
+	EAC_Pattern UMETA(DisplayName = "Pattern"),
+	EAC_Deffence UMETA(DisplayName = "Deffence"),
 
-	EPC_MAX
+	EAC_MAX
 };
 
 UENUM(BlueprintType)
-enum class EPatternType : uint8
+enum class EPatternClass : uint8
 {
-	EPT_Realtime UMETA(DisplayName = "RealTime"),
-	EPT_Duration UMETA(DisplayName = "Duration"),
+	EPT_None UMETA(DisplayName = "None"),
+	EPT_Melee UMETA(DisplayName = "Melee"),
+	EPT_Range UMETA(DisplayName = "Range"),
+	EPT_Teleport UMETA(DisplayName = "Teleport"),
 
 	EPT_MAX
 };
@@ -225,12 +227,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
 		EPatternClass PatternClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
-		EPatternType PatternType;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
 		FText Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
+		int32 Count;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
 		EAttackType AttackType;
@@ -286,12 +288,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
 		EPatternClass PatternClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
-		EPatternType PatternType;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
 		FText Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternRawTable")
+		int32 Count;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "PatternTable")
 		EAttackType AttackType;

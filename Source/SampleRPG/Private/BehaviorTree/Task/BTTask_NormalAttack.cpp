@@ -26,7 +26,7 @@ EBTNodeResult::Type UBTTask_NormalAttack::ExecuteTask(UBehaviorTreeComponent& Ow
 
 	auto Target = Cast<AMainPlayer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(AMonsterAI::Target));
 	
-	Monster->AttackTarget(Target, EPatternClass::EPC_Normal, AttackNumber);
+	Monster->AttackTarget(Target, EAttackClass::EAC_Normal, AttackNumber);
 	IsAttacking = true;
 	Monster->OnAttackEnd.AddLambda([this]() -> void { IsAttacking = false;});
 

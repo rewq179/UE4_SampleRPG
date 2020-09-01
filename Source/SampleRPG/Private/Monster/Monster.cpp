@@ -120,7 +120,7 @@ void AMonster::ParseStringToInt(FString Data)
 	}
 }
 
-void AMonster::AttackTarget(AMainPlayer* Target, EPatternClass PatternClass, int32 AttackNumber)
+void AMonster::AttackTarget(AMainPlayer* Target, EAttackClass AttackClass, int32 AttackNumber)
 {
 	if (Target)
 	{
@@ -137,15 +137,14 @@ void AMonster::AttackTarget(AMainPlayer* Target, EPatternClass PatternClass, int
 			UE_LOG(LogTemp, Log, TEXT("Section Name : %s"), *SectionName);
 			int32 Index = AttackNumber - Status.AttackCount;
 
-			switch (PatternClass)
+			switch (AttackClass)
 			{
-			case EPatternClass::EPC_Normal:
+			case EAttackClass::EAC_Normal:
 				SetAttackType(EAttackType::EAT_Normal);
-
 				PlayMontage(FName(*SectionName), 1.5f);
 				break;
 
-			case EPatternClass::EPC_Charging:
+			case EAttackClass::EAC_Charging:
 				SetAttackType(EAttackType::EAT_KnockBack);
 
 				PlayMontage(FName(*SectionName), 1.f);
@@ -154,13 +153,13 @@ void AMonster::AttackTarget(AMainPlayer* Target, EPatternClass PatternClass, int
 				GetWorldTimerManager().SetTimer(TimeHandle, this, &AMonster::SetChargingAttack, 20.0f, false);
 				break;
 
-			case EPatternClass::EPC_Skill:
+			case EAttackClass::EAC_Pattern:
 				if (Status.bHasCharging)
 				{
 					Index--;
 				}
 				
-				MonsterPattern->SelectedPattern = MonsterPattern->PatternMaps[Index];
+				MonsterPattern->SelectedPatterns = MonsterPattern->Patterns[Index];
 				PlayMontage(FName(*SectionName), 1.f);
 				break;
 

@@ -17,6 +17,8 @@ class SAMPLERPG_API APattern : public AActor
 public:	
 	// Sets default values for this actor's properties
 	APattern();
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Pattern|Properties")
+	class UBoxComponent* BoxComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Pattern|Properties")
 	class AGameManager* GameManager;
@@ -53,13 +55,22 @@ public:
 	FString AnimationName;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|Combat")
-	FVector Location;
+	FVector TargetLocation;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|Combat")
+	FVector RandLocation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|Combat")
+	bool bIsNotifyFieldActive;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
 	UFUNCTION()
 	void OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -76,5 +87,10 @@ public:
 	void SetCollisionSize();
 	void SetActiveCollision(bool bIsActive);
 
-	void PlayParticle(int32 ParticleIndex);
+	void PlayUseParticle();
+	void PlayNotifyParticle(bool bIsTargetLocation);
+	void PlayDamageParticle(bool bIsTargetLocation);
+	
+	void SetTargetLocationByGroundSurface();
+	void SetRandLocationByGroundSurface();
 };

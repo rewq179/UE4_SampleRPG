@@ -109,6 +109,9 @@ public:
 	TMap<int32, FSkillTable> SkillMaps;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|Skill")
+	FSkillTable RecentSkill;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|Skill")
 	float LifeTime;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Skill")
@@ -151,4 +154,6 @@ public:
 	void SetFrostbite();
 	void ResetStatus();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetSystemText();
 };

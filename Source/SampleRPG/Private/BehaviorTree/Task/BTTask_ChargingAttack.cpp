@@ -28,7 +28,7 @@ EBTNodeResult::Type UBTTask_ChargingAttack::ExecuteTask(UBehaviorTreeComponent& 
 	}
 
 
-	Monster->AttackTarget(Target, EPatternClass::EPC_Charging, AttackNumber);
+	Monster->AttackTarget(Target, EAttackClass::EAC_Charging, AttackNumber);
 	IsCharging = true;
 	Monster->OnChargingEnd.AddLambda([this]() -> void { IsCharging = false; });
 

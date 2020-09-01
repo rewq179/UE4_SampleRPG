@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PatternManager.h"
+#include "Manager/GameManager.h"
 
 #include "Pattern.h"
 
@@ -23,12 +24,21 @@ void APatternManager::BeginPlay()
 	
 }
 
+FPatternTable APatternManager::GetPatternData(int32 PatternID)
+{
+	auto Pattern = PatternMap[PatternID].GetDefaultObject();
+	Pattern->PatternID = PatternID;
+
+	SetPatternData(Pattern, PatternID);
+
+	return Pattern->PatternData;
+}
+
 APattern* APatternManager::CreatePatternActor(int32 PatternID)
 {
-	APattern* Pattern = GetWorld()->SpawnActor<APattern>(PatternMap[PatternID]);
+	auto Pattern = GetWorld()->SpawnActor<APattern>(PatternMap[PatternID]);
 
 	Pattern->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-
 	SetPatternData(Pattern, PatternID);
 
 	return Pattern;
@@ -40,8 +50,8 @@ void APatternManager::SetPatternData(APattern* Pattern, int32 PatternID)
 	
 	Pattern->PatternData.PatternID = (*PatternRawTableRow).PatternID;
 	Pattern->PatternData.PatternClass = (*PatternRawTableRow).PatternClass;
-	Pattern->PatternData.PatternType = (*PatternRawTableRow).PatternType;
 	Pattern->PatternData.Name = (*PatternRawTableRow).Name;
+	Pattern->PatternData.Count = (*PatternRawTableRow).Count;
 	Pattern->PatternData.AttackType = (*PatternRawTableRow).AttackType;
 	Pattern->PatternData.DamagedType = (*PatternRawTableRow).DamagedType;
 	Pattern->PatternData.SkillID = (*PatternRawTableRow).SkillID;

@@ -84,7 +84,7 @@ public:
 	void SetMonsterData();
 	void ParseStringToInt(FString Data);
 
-	void AttackTarget(class AMainPlayer* Target, EPatternClass PatternClass, int32 AttackNumber);
+	void AttackTarget(class AMainPlayer* Target, EAttackClass AttackClass, int32 AttackNumber);
 
 	void TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAttackType DamageType);
 	void Death();

@@ -29,9 +29,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	class APattern* CreatePatternActor(int32 PatternID);
+	FPatternTable GetPatternData(int32 PatternID);
+
 	void SetPatternData(class APattern* Pattern, int32 PatternID);
 	FPatternShape PatternShape(EShape Shape, float X, float Y);
 
-	
+	class APattern* CreatePatternActor(int32 PatternID);
 };

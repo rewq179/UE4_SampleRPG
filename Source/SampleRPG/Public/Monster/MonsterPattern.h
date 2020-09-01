@@ -10,6 +10,16 @@
 
 DECLARE_MULTICAST_DELEGATE(FOnPatternEndDelegate);
 
+USTRUCT(BlueprintType)
+struct FGatherPatterns
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|PatternTable")
+	TArray<class APattern*> Patterns;
+};
+
 UCLASS()
 class SAMPLERPG_API AMonsterPattern : public AActor
 {
@@ -29,10 +39,10 @@ public:
 	class AMonster* Monster;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|PatternTable")
-	TMap<int32, class APattern*> PatternMaps;
+	TArray<FGatherPatterns> Patterns;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|Combat")
-	class APattern* SelectedPattern;
+	FGatherPatterns SelectedPatterns;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|Combat")
 	class AMainPlayer* CombatTarget;
@@ -46,6 +56,7 @@ protected:
 
 public:
 	void AddPattern(int32 PatternID);
+	FGatherPatterns SetPatternStruct(int32 PatternID, int32 Count);
 
 	UFUNCTION(BlueprintCallable)
 	void PatternAnimStart();
@@ -55,6 +66,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void PatternDamageField();
+
+	UFUNCTION(BlueprintCallable)
+	void PatternApplyBuff();
 
 	UFUNCTION(BlueprintCallable)
 	void PatternAnimEnd();
