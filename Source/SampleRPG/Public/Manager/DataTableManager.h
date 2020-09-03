@@ -55,6 +55,18 @@ enum class EOperatorType : uint8
 };
 
 UENUM(BlueprintType)
+enum class EHandType : uint8
+{
+	EHT_None UMETA(DisplayName = "None"),
+	EHT_Left UMETA(DisplayName = "Left"),
+	EHT_Right UMETA(DisplayName = "Right"),
+	EHT_Both UMETA(DisplayName = "Both"),
+
+	EHT_Max
+};
+
+
+UENUM(BlueprintType)
 enum class EShape : uint8
 {
 	ES_None UMETA(DisplayName = "None"),

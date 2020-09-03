@@ -13,7 +13,6 @@
 DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
 DECLARE_MULTICAST_DELEGATE(FOnChargingEndDelegate);
 
-
 UCLASS()
 class SAMPLERPG_API AMonster : public ACharacter
 {
@@ -53,7 +52,13 @@ public:
 	class ACombatManager* CombatManager;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Combat")
-	class UBoxComponent* CombatCollision;
+	class UBoxComponent* CombatRightCollision;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Combat")
+	class UBoxComponent* CombatLeftCollision;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Monster|Combat")
+	EHandType HandType;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	EAttackType AttackType;
@@ -93,6 +98,9 @@ public:
 	void Stun();
 
 	UFUNCTION(BlueprintCallable)
+	void SetHandType(EHandType Type);
+
+	UFUNCTION(BlueprintCallable)
 	void ApplyDamageToTarget(); // 데미지 주는 시점
 
 	UFUNCTION(BlueprintCallable)
@@ -109,10 +117,17 @@ public:
 	void PlayMontage(FName Name, float PlayRate);
 
 	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
-	void OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnCombatRightOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
-	void OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void OnCombatRightOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
-	void SetCombatCollisionEnabled(bool IsActive);
+	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
+	void OnCombatLeftOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
+	void OnCombatLeftOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void SetCombatCollisionEnabled();
+	void SetCapsuleComponent(bool bIsActive);
 };

@@ -2,9 +2,10 @@
 
 #include "Manager/ItemManager.h"
 #include "Manager/GameManager.h"
-#include "Engine/World.h"
 #include "Item/Item.h"
 
+#include "Engine/World.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AItemManager::AItemManager()
@@ -19,17 +20,6 @@ void AItemManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
-}
-
-FItemTable AItemManager::GetItemData(int32 ItemID)
-{
-	AItem* Item = ItemMap[ItemID].GetDefaultObject();
-
-	Item->ItemID = ItemID;
-
-	SetItemData(Item, ItemID);
-
-	return Item->ItemData;
 }
 
 void  AItemManager::SetItemData(AItem* Item, int32 ItemID)
@@ -68,9 +58,20 @@ void  AItemManager::SetItemData(AItem* Item, int32 ItemID)
 	}
 }
 
+FItemTable AItemManager::GetItemData(int32 ItemID)
+{
+	AItem* Item = ItemMap[ItemID].GetDefaultObject();
+
+	Item->ItemID = ItemID;
+	SetItemData(Item, ItemID);
+
+	return Item->ItemData;
+}
+
+
 AItem* AItemManager::CreateItemActor(int32 ItemID, int32 Count)
 {
-	AItem* Item = GetWorld()->SpawnActor<AItem>(ItemMap[ItemID]);
+	auto Item = GetWorld()->SpawnActor<AItem>(ItemMap[ItemID]);
 
 	Item->Count = Count;
 	Item->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
@@ -78,6 +79,14 @@ AItem* AItemManager::CreateItemActor(int32 ItemID, int32 Count)
 	SetItemData(Item, ItemID);
 
 	return Item;
+}
+
+void AItemManager::SpawnItemActor(int32 ITemID, int32 Count, FVector Location)
+{
+	AItem* Item = CreateItemActor(ITemID, Count);
+
+	Item->SetActorLocation(Location);
+	Item->SetActiveText(true);
 }
 
 FRewardTable AItemManager::GetRewardData(int32 RewardID)
@@ -128,6 +137,8 @@ void AItemManager::SetRewardData(int32 RewardID)
 FRewardBox AItemManager::RewardBox(int32 ID, int32 Count, float Percent)
 {
 	FRewardBox RewardBox;
+	
+	RewardBox.BoxID = ID;
 	RewardBox.BoxCount = Count;
 	RewardBox.BoxPercent = Percent;
 
@@ -138,11 +149,11 @@ void AItemManager::GetMonsterItem(int32 ProductID, int32 RewardID, FVector Locat
 {
 	if (GetItemInRewardBox(ProductID, Location))
 	{
-		UE_LOG(LogTemp, Log, TEXT("Product !!"));
+		UE_LOG(LogTemp, Log, TEXT("Product! !!"));
 	}
 
-	Location += FVector(0.f, 20.f, 0.f);
-
+	Location += FVector(20.f, 20.f, 0.f);
+	
 	if (GetItemInRewardBox(RewardID, Location))
 	{
 		UE_LOG(LogTemp, Log, TEXT("Reward! !!"));
@@ -153,16 +164,16 @@ bool AItemManager::GetItemInRewardBox(int32 RewardID, FVector Location)
 {
 	FRewardTable RewardData = GetRewardData(RewardID);
 
-	int32 Percent = FMath::RandRange(0, 10000);
+	int32 Rand = FMath::RandRange(0, 10000);
 	int32 TotalSum = 0;
 
 	for (int32 BoxIndex = 0; BoxIndex < RewardData.Boxes.Num(); BoxIndex++)
 	{
 		TotalSum += RewardData.Boxes[BoxIndex].BoxPercent * 100;
 
-		if (Percent < TotalSum)
+		if (Rand < TotalSum)
 		{
-			SpawnItemActor(RewardData.Boxes[BoxIndex].BoxID, RewardData.Boxes[BoxIndex].BoxCount, Location);
+			SpawnItemActor(RewardData.Boxes[BoxIndex].BoxID, RewardData.Boxes[BoxIndex].BoxCount, GetGroundSurfaceLocation(Location));
 
 			return true;
 		}
@@ -171,10 +182,21 @@ bool AItemManager::GetItemInRewardBox(int32 RewardID, FVector Location)
 	return false;
 }
 
-void AItemManager::SpawnItemActor(int32 ITemID, int32 Count, FVector Location)
+FVector AItemManager::GetGroundSurfaceLocation(FVector Loctaion)
 {
-	AItem* Item = CreateItemActor(ITemID, Count);
+	FHitResult Hit;
 
-	Item->SetActorLocation(Location);
-	Item->SetActiveText(true);
+	FVector Start = Loctaion;
+	FVector End = Start - FVector(0.f, 0.f, 500.f);
+	FCollisionQueryParams CollisionParams;
+
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, CollisionParams))
+	{
+		if (Hit.bBlockingHit)
+		{
+			return Hit.ImpactPoint;
+		}
+	}
+
+	return FVector(0.f);
 }

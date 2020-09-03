@@ -75,6 +75,6 @@ public:
 	FOnPatternEndDelegate OnPatternEnd;
 
 	UFUNCTION(BlueprintCallable)
-	void ApplyPatternDamageToTarget();
+	void ApplyPatternDamageToTarget(APattern* SelectedPattern);
 
 };

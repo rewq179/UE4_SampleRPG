@@ -53,4 +53,5 @@ public:
 	void GetMonsterItem(int32 ProductID, int32 RewardID, FVector Location);
 	bool GetItemInRewardBox(int32 RewardID, FVector Location);
 
+	FVector GetGroundSurfaceLocation(FVector Loctaion);
 };

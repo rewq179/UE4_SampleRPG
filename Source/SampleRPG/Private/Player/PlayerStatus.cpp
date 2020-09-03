@@ -198,6 +198,8 @@ void  APlayerStatus::SetPlayerCrowdControl(EAttackType AttackType)
 		break;
 
 	case EAttackType::EAT_Stun:
+		MainPlayer->bCanMove = false;
+		MainPlayer->PlayerCombat->PlayMontage(FName("KnockDown"), 1.f);
 		break;
 
 	case EAttackType::EAT_Poison:
@@ -223,7 +225,6 @@ void APlayerStatus::SetPoison()
 
 	if (LifeTime > SkillData.DurationTime)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Time out!"));
 		GetWorldTimerManager().ClearTimer(TimeHandle);
 		LifeTime = 0.f;
 

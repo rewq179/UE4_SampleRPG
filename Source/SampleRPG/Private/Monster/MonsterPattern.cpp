@@ -61,7 +61,7 @@ void AMonsterPattern::PatternAnimStart()
 
 void AMonsterPattern::PatternNotifyField()
 {
-	SelectedPatterns.Patterns[0]->PlayNotifyParticle(true);
+		SelectedPatterns.Patterns[0]->PlayNotifyParticle(true);
 
 	for (int32 Index = 1; Index < SelectedPatterns.Patterns.Num(); Index++)
 	{
@@ -87,7 +87,16 @@ void AMonsterPattern::PatternApplyBuff()
 
 void AMonsterPattern::PatternAnimEnd()
 {
-	Monster->SetCombatCollisionEnabled(false);
+	if (SelectedPatterns.Patterns[0]->PatternData.PatternClass == EPatternClass::EPT_Teleport)
+	{
+		FVector CurLocation = Monster->GetActorLocation();
+		CurLocation.Z = SelectedPatterns.Patterns[0]->TargetLocation.Z + 160.f;
+
+		Monster->SetActorLocation(CurLocation);
+		//Monster->SetCapsuleComponent(true);
+	}
+
+	Monster->SetHandType(EHandType::EHT_None);
 	
 	for (int32 Index = 0; Index < SelectedPatterns.Patterns.Num(); Index++)
 	{
@@ -102,10 +111,8 @@ void AMonsterPattern::PatternAnimEnd()
 
 
 
-void AMonsterPattern::ApplyPatternDamageToTarget()
+void AMonsterPattern::ApplyPatternDamageToTarget(APattern* SelectedPattern)
 {
-	auto SelectedPattern = SelectedPatterns.Patterns[0];
-
 	if (CombatTarget && SelectedPattern && bCanApplyPatternDamage)
 	{
 		bCanApplyPatternDamage = false;

@@ -28,8 +28,11 @@ AMonster::AMonster()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	CombatCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("CombatCollision"));
-	CombatCollision->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("RightAttackSocket"));
+	CombatRightCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("CombatRightCollision"));
+	CombatRightCollision->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("RightAttackSocket"));
+
+	CombatLeftCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("CombatLeftCollision"));
+	CombatLeftCollision->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("LeftAttackSocket"));
 		
 	bCanChargingAttack = true;
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -42,8 +45,11 @@ void AMonster::BeginPlay()
 	
 	MonsterAI = Cast<AMonsterAI>(GetController());
 	
-	CombatCollision->OnComponentBeginOverlap.AddDynamic(this, &AMonster::OnCombatOverlapBegin);
-	CombatCollision->OnComponentEndOverlap.AddDynamic(this, &AMonster::OnCombatOverlapEnd);
+	CombatRightCollision->OnComponentBeginOverlap.AddDynamic(this, &AMonster::OnCombatRightOverlapBegin);
+	CombatRightCollision->OnComponentEndOverlap.AddDynamic(this, &AMonster::OnCombatRightOverlapEnd);
+
+	CombatLeftCollision->OnComponentBeginOverlap.AddDynamic(this, &AMonster::OnCombatLeftOverlapBegin);
+	CombatLeftCollision->OnComponentEndOverlap.AddDynamic(this, &AMonster::OnCombatLeftOverlapEnd);
 
 	SetMonsterData();
 }
@@ -125,12 +131,13 @@ void AMonster::AttackTarget(AMainPlayer* Target, EAttackClass AttackClass, int32
 	if (Target)
 	{
 		CombatTarget = Target;
-		MonsterPattern->CombatTarget = Target;
+		if (MonsterPattern)
+		{
+			MonsterPattern->CombatTarget = Target;
+		}
 
 		if (CombatTarget)
 		{
-			SetCombatCollisionEnabled(true);
-
 			FString SectionName = "Attack_";
 			SectionName.Append(FString::FromInt(AttackNumber));
 
@@ -239,6 +246,7 @@ void AMonster::ApplyDamageToTarget()
 		bCanApplyDamage = false;
 
 		CombatManager->ApplyDamageHP(CombatTarget->PlayerStatus, Status.Damage, this, AttackType, true, false);
+		SetHandType(EHandType::EHT_None);
 
 		if (CombatTarget->GetMovementState() == EMovementState::EMS_Dead)
 		{
@@ -249,14 +257,21 @@ void AMonster::ApplyDamageToTarget()
 
 void AMonster::AttackAnimEnd()
 {
-	SetCombatCollisionEnabled(false);
+	SetHandType(EHandType::EHT_None);
 
 	OnAttackEnd.Broadcast();
 }
 
+void AMonster::SetHandType(EHandType Type)
+{
+	HandType = Type;
+
+	SetCombatCollisionEnabled();
+}
+
 void AMonster::ChargingAnimEnd()
 {
-	SetCombatCollisionEnabled(false);
+	SetHandType(EHandType::EHT_None);
 
 	OnChargingEnd.Broadcast();
 }
@@ -278,7 +293,7 @@ void AMonster::PlayMontage(FName Name, float PlayRate)
 	}
 }
 
-void AMonster::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+void AMonster::OnCombatRightOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
 	if (OtherActor)
 	{
@@ -291,7 +306,7 @@ void AMonster::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 	}
 }
 
-void AMonster::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AMonster::OnCombatRightOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor)
 	{
@@ -304,15 +319,73 @@ void AMonster::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AAct
 	}
 }
 
-void AMonster::SetCombatCollisionEnabled(bool IsActive)
+void AMonster::OnCombatLeftOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
-	if (IsActive)
+	if (OtherActor)
 	{
-		CombatCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		auto Player = Cast<AMainPlayer>(OtherActor);
+
+		if (Player && Player == CombatTarget)
+		{
+			bCanApplyDamage = true;
+		}
+	}
+}
+
+void AMonster::OnCombatLeftOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor)
+	{
+		auto Player = Cast<AMainPlayer>(OtherActor);
+
+		if (Player && Player == CombatTarget && Player->GetDistanceTo(this) > Status.AttackRange*1.5f)
+		{
+			bCanApplyDamage = false;
+		}
+	}
+}
+
+void AMonster::SetCombatCollisionEnabled()
+{
+	switch (HandType)
+	{
+	case EHandType::EHT_None:
+		CombatRightCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		CombatLeftCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+
+	case EHandType::EHT_Left:
+		CombatRightCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		CombatLeftCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		break;
+
+	case EHandType::EHT_Right:
+		CombatRightCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		CombatLeftCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+
+	case EHandType::EHT_Both:
+		CombatRightCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		CombatLeftCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		break;
+
+	default:
+		break;
+	}
+
+}
+	
+void AMonster::SetCapsuleComponent(bool bIsActive)
+{
+	if (bIsActive)
+	{
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 	}
 
 	else
 	{
-		CombatCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 	}
 }

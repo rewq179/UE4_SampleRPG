@@ -34,9 +34,12 @@ void ACombatManager::ApplyDamageHP(AActor* DamagedActor, float BaseDamage, AActo
 {
 	if (DamagedActor && (BaseDamage != 0.f))
 	{
+		UE_LOG(LogTemp, Log, TEXT("Damaged!"));
+
 		if (bIsPlayerDamaged)
 		{
 			auto PlayerStatus = Cast<APlayerStatus>(DamagedActor);
+
 
 			if (bIsPercent)
 			{

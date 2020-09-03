@@ -2,6 +2,7 @@
 
 #include "QuestManager.h"
 
+#include "Manager/GameManager.h"
 #include "Player/MainPlayer.h"
 #include "Player/PlayerQuest.h"
 #include "Player/Inventory.h"
@@ -87,12 +88,7 @@ void AQuestManager::AcceptQuest(FQuestTable Quest)
 	if (Quest.QuestID == 2)
 	{
 		FVector Location = GameManager->NpcManager->NpcMap[Quest.NpcID]->GetActorLocation();
-		float x = Location.X;
-		float y = Location.Y;
-			float z = Location.Z;
-
-			UE_LOG(LogTemp, Log, TEXT("%f %f %f"), x, y, z);
-
+	
 		Location += FVector(0.f, 210.f, -78.f);
 
 		GameManager->ItemManager->SpawnItemActor(Quest.TargetID, Quest.MaxCount, Location);

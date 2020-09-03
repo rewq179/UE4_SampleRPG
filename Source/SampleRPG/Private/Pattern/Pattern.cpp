@@ -23,14 +23,9 @@ APattern::APattern()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
-	BoxComponent->SetupAttachment(GetRootComponent());
-
 	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
 	SphereCollision->SetupAttachment(GetRootComponent());
 
-	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
-	BoxCollision->SetupAttachment(GetRootComponent());
 
 	UseParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("UseParticle"));
 	UseParticle->SetupAttachment(GetRootComponent());
@@ -50,12 +45,9 @@ void APattern::BeginPlay()
 {
 	Super::BeginPlay();
 
-	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &APattern::OnBoxOverlapBegin);
-	BoxCollision->OnComponentEndOverlap.AddDynamic(this, &APattern::OnBoxOverlapEnd);
 	SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &APattern::OnSphereOverlapBegin);
 	SphereCollision->OnComponentEndOverlap.AddDynamic(this, &APattern::OnSphereOverlapEnd);
 	
-	BoxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
@@ -68,90 +60,52 @@ void APattern::Tick(float DeltaTime)
 		SetTargetLocationByGroundSurface();
 
 		NotifyFieldParticle->SetRelativeLocation(TargetLocation);
-
-		if (!NotifyFieldParticle->IsActive())
-		{
-			NotifyFieldParticle->ToggleActive();
-		}
 	}
 }
 
 
 void APattern::SetCollisionSize()
 {
-	switch (PatternData.PatternShape.Shape)
-	{
-	case EShape::ES_Circle:
-		BoxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		SphereCollision->SetSphereRadius(PatternData.PatternShape.Size.X);
-		break;
-
-	case EShape::ES_Rectangle:
-		BoxCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		BoxCollision->SetBoxExtent(PatternData.PatternShape.Size);
-		break;
-
-	default:
-		break;
-	}
+	SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	SphereCollision->SetSphereRadius(PatternData.PatternShape.Size.X);
 }
 
 void APattern::SetActiveCollision(bool bIsActive)
 {
-	switch (PatternData.PatternShape.Shape)
+	if (bIsActive)
 	{
-	case EShape::ES_Circle:
-		if (bIsActive)
-		{
-			SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		}
+		SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	}
 
-		else
-		{
-			SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		}
-		break;
-
-	case EShape::ES_Rectangle:
-		if (bIsActive)
-		{
-			BoxCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		}
-
-		else
-		{
-			BoxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		}
-		break;
-
-	default:
-		break;
+	else
+	{
+		SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 
 void APattern::PlayUseParticle()
 {
-	UseParticle->SetRelativeLocation(Monster->GetMesh()->GetSocketLocation("UsePattern"));
 	UseParticle->ToggleActive();
+	UseParticle->SetRelativeLocation(Monster->GetMesh()->GetSocketLocation("UsePattern"));
 }
 
 void APattern::PlayNotifyParticle(bool bIsTargetLocation)
 {
+	NotifyFieldParticle->ToggleActive();
+
 	if (bIsTargetLocation) // 타겟 위치에 발동되는 패턴
 	{
 		if (PatternData.PatternClass == EPatternClass::EPT_Teleport)
 		{
 			bIsNotifyFieldActive = true;
+			Monster->SetCapsuleComponent(false);
 
 			return;
 		}
 
 		SetTargetLocationByGroundSurface();
-
+		
 		NotifyFieldParticle->SetRelativeLocation(TargetLocation);
-		NotifyFieldParticle->ToggleActive();
 	}
 
 	else // 랜덤 위치에 발동되는 패턴
@@ -159,31 +113,29 @@ void APattern::PlayNotifyParticle(bool bIsTargetLocation)
 		SetRandLocationByGroundSurface();
 
 		NotifyFieldParticle->SetRelativeLocation(RandLocation);
-		NotifyFieldParticle->ToggleActive();
 	}
 }
 
 void APattern::PlayDamageParticle(bool bIsTargetLocation)
 {
 	SetActiveCollision(true);
+	DamageFieldParticle->ToggleActive();
 
 	if (bIsTargetLocation)
 	{
-		bIsNotifyFieldActive = false;
-
 		if (PatternData.PatternClass == EPatternClass::EPT_Teleport)
 		{
+			bIsNotifyFieldActive = false;
+
 			Monster->SetActorLocation(TargetLocation);
 		}
 
 		DamageFieldParticle->SetRelativeLocation(TargetLocation);
-		DamageFieldParticle->ToggleActive();
 	}
 
 	else
 	{
 		DamageFieldParticle->SetRelativeLocation(RandLocation);
-		DamageFieldParticle->ToggleActive();
 	}
 }
 
@@ -193,7 +145,7 @@ void APattern::SetTargetLocationByGroundSurface()
 	FHitResult Hit;
 
 	FVector Start = Monster->CombatTarget->GetActorLocation();
-	FVector End = Start - FVector(0.f, 0.f, 500.f);
+	FVector End = Start - FVector(0.f, 0.f, 1000.f);
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(Monster->CombatTarget);
 
@@ -202,49 +154,29 @@ void APattern::SetTargetLocationByGroundSurface()
 		if (Hit.bBlockingHit)
 		{
 			TargetLocation = Hit.ImpactPoint;
+	
+			SetCollisionLocation(TargetLocation);
 		}
 	}
 
-	SetActorLocation(TargetLocation);
 }
 
 void APattern::SetRandLocationByGroundSurface()
 {
 	SetTargetLocationByGroundSurface();
 
-	FVector Extent = BoxComponent->GetScaledBoxExtent();
-	FVector Origin = BoxComponent->GetComponentLocation();
+	FVector BoxMin = TargetLocation - 500.f;
+	FVector BoxMax = TargetLocation + 500.f;
 
-	RandLocation = UKismetMathLibrary::RandomPointInBoundingBox(Origin, Extent);
+	RandLocation = FMath::RandPointInBox(FBox(BoxMin, BoxMax));
 	RandLocation.Z = TargetLocation.Z;
 
-	SetActorLocation(RandLocation);
+	SetCollisionLocation(RandLocation);
 }
 
-
-
-void APattern::OnBoxOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+void APattern::SetCollisionLocation(FVector Location)
 {
-	if (OtherActor)
-	{
-		Target = Cast<AMainPlayer>(OtherActor);
-
-		if (Target)
-		{
-			Monster->MonsterPattern->ApplyPatternDamageToTarget();
-
-			SetActiveCollision(false);
-		}
-	}
-}
-
-
-void APattern::OnBoxOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor)
-	{
-		Target = nullptr;
-	}
+	SphereCollision->SetRelativeLocation(Location);
 }
 
 void APattern::OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
@@ -255,7 +187,7 @@ void APattern::OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 	
 		if (Target)
 		{
-			Monster->MonsterPattern->ApplyPatternDamageToTarget();
+			Monster->MonsterPattern->ApplyPatternDamageToTarget(this);
 
 			SetActiveCollision(false);
 		}
