@@ -17,31 +17,23 @@ public:
 	// Sets default values for this actor's properties
 	ANpcManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NpcManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NpcManager|ManagerClass")
 	class AGameManager* GameManager;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NpcManager|NpcData")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NpcManager|Npc")
 	TMap<int32, FNpcTable> NpcDataMap;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NpcManager|Npc")
 	TMap<int32, class ANpcController*> NpcMap;
-
-	void SetNpcDataAll();
-	void SetNpcData(int32 NpcID);
-
+	
+public:	
 	FNpcTable GetNpcData(int32 NpcID);
+	void SetNpcData(int32 NpcID);
+	void SetNpcDataAll();
 
-	void CheckNpcSymbolAll();
-	void CheckNpcSymbol(int32 NpcID);
 	void SetNpcSymbol(ESymbolType SymbolType, int32 NpcID);
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	void CheckNpcSymbol(int32 NpcID);
+	void CheckNpcSymbolAll();
 
-public:	
-	// Called every frame
-
-	
-	
 };

@@ -17,23 +17,14 @@ class SAMPLERPG_API APattern : public AActor
 public:	
 	// Sets default values for this actor's properties
 	APattern();
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Pattern|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|ManagerClass")
 	class AGameManager* GameManager;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Pattern|Properties")
-	class AMonster* Monster;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Pattern|Properties")
-	class AMainPlayer* Target;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|Components")
+	class AMonster* Monster;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Pattern|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|Properties")
 	class USphereComponent* SphereCollision;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pattern|PatternTable")
-	int32 PatternID;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pattern|PatternTable")
-	FPatternTable PatternData;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|Properties")
 	class UParticleSystemComponent* UseParticle;
@@ -44,8 +35,14 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|Properties")
 	class UParticleSystemComponent* DamageFieldParticle;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|Properties")
-	FString AnimationName;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pattern|DataTable")
+	int32 PatternID;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|DataTable")
+	FPatternTable PatternData;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|Combat")
+	class AMainPlayer* CombatTarget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|Combat")
 	FVector TargetLocation;
@@ -54,7 +51,7 @@ public:
 	FVector RandLocation;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pattern|Combat")
-	bool bIsNotifyFieldActive;
+	bool bIsRealtimeNotifyField;
 
 protected:
 	// Called when the game starts or when spawned
@@ -70,14 +67,13 @@ public:
 	UFUNCTION()
 	void OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	void SetCollisionSize();
+	void InitCollision();
 	void SetActiveCollision(bool bIsActive);
 
 	void PlayUseParticle();
 	void PlayNotifyParticle(bool bIsTargetLocation);
 	void PlayDamageParticle(bool bIsTargetLocation);
 	
-	void SetCollisionLocation(FVector Location);
 	void SetTargetLocationByGroundSurface();
 	void SetRandLocationByGroundSurface();
 };

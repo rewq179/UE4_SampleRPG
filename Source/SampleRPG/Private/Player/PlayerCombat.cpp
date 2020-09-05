@@ -60,7 +60,7 @@ void APlayerCombat::AttackAnimStart()
 {
 	MainPlayer->bIsAttackAnim = true;
 
-	MainPlayer->Inventory->Equipments[0]->SetCombatCollisionEnabled(true);
+	MainPlayer->Inventory->Equipments[0]->SetEnabledCombatCollision(true);
 }
 
 void APlayerCombat::AttackAnimEnd()
@@ -68,7 +68,7 @@ void APlayerCombat::AttackAnimEnd()
 	MainPlayer->bIsAttackAnim = false;
 	bIsInterp = false;
 
-	MainPlayer->Inventory->Equipments[0]->SetCombatCollisionEnabled(false);
+	MainPlayer->Inventory->Equipments[0]->SetEnabledCombatCollision(false);
 	TargetMonsters.Empty();
 
 }

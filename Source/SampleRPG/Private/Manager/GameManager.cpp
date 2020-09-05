@@ -23,7 +23,6 @@ void AGameManager::BeginPlay()
 		MainPlayer->GameManager = this;
 	}
 
-#pragma region Create Manager BP & Set 
 	if (CombatManagerBP)
 	{
 		CombatManager = GetWorld()->SpawnActor<ACombatManager>(CombatManagerBP);
@@ -122,8 +121,9 @@ void AGameManager::BeginPlay()
 		{
 			SkillManager->GameManager = this;
 			SkillManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-
-			SkillManager->SetAllSkillData();
+			SkillManager->SetSkillDataAll();
+			
+			CombatManager->SkillManager = SkillManager;
 		}
 	}
 

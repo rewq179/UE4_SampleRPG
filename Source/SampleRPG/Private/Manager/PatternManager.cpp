@@ -17,13 +17,6 @@ APatternManager::APatternManager()
 
 }
 
-// Called when the game starts or when spawned
-void APatternManager::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
 FPatternTable APatternManager::GetPatternData(int32 PatternID)
 {
 	auto Pattern = PatternMap[PatternID].GetDefaultObject();
@@ -32,6 +25,34 @@ FPatternTable APatternManager::GetPatternData(int32 PatternID)
 	SetPatternData(Pattern, PatternID);
 
 	return Pattern->PatternData;
+}
+
+void APatternManager::SetPatternData(APattern* Pattern, int32 PatternID)
+{
+	FPatternTable* PatternTableRow = GameManager->DataTableManager->GetPatternTableData(PatternID);
+	
+	Pattern->PatternData.PatternID = (*PatternTableRow).PatternID;
+	Pattern->PatternData.PatternClass = (*PatternTableRow).PatternClass;
+	Pattern->PatternData.Name = (*PatternTableRow).Name;
+	Pattern->PatternData.Count = (*PatternTableRow).Count;
+	Pattern->PatternData.AttackType = (*PatternTableRow).AttackType;
+	Pattern->PatternData.StatusType = (*PatternTableRow).StatusType;
+	Pattern->PatternData.SkillID = (*PatternTableRow).SkillID;
+	Pattern->PatternData.CurHP = (*PatternTableRow).CurHP;
+	Pattern->PatternData.PerHP = (*PatternTableRow).PerHP;
+	Pattern->PatternData.CurST = (*PatternTableRow).CurST;
+	Pattern->PatternData.PerST = (*PatternTableRow).PerST;
+
+	Pattern->PatternData.Radius = (*PatternTableRow).Radius;
+
+	Pattern->PatternData.UseParticle = (*PatternTableRow).UseParticle;
+	Pattern->UseParticle->SetTemplate((*PatternTableRow).UseParticle);
+
+	Pattern->PatternData.NotifyFieldParticle = (*PatternTableRow).NotifyFieldParticle;
+	Pattern->NotifyFieldParticle->SetTemplate((*PatternTableRow).NotifyFieldParticle);
+
+	Pattern->PatternData.DamageFieldParticle = (*PatternTableRow).DamageFieldParticle;
+	Pattern->DamageFieldParticle->SetTemplate((*PatternTableRow).DamageFieldParticle);
 }
 
 APattern* APatternManager::CreatePatternActor(int32 PatternID)
@@ -44,43 +65,3 @@ APattern* APatternManager::CreatePatternActor(int32 PatternID)
 	return Pattern;
 }
 
-void APatternManager::SetPatternData(APattern* Pattern, int32 PatternID)
-{
-	FPatternRawTable* PatternRawTableRow = GameManager->DataTableManager->GetPatternRawTableData(PatternID);
-	
-	Pattern->PatternData.PatternID = (*PatternRawTableRow).PatternID;
-	Pattern->PatternData.PatternClass = (*PatternRawTableRow).PatternClass;
-	Pattern->PatternData.Name = (*PatternRawTableRow).Name;
-	Pattern->PatternData.Count = (*PatternRawTableRow).Count;
-	Pattern->PatternData.AttackType = (*PatternRawTableRow).AttackType;
-	Pattern->PatternData.DamagedType = (*PatternRawTableRow).DamagedType;
-	Pattern->PatternData.SkillID = (*PatternRawTableRow).SkillID;
-	Pattern->PatternData.CurHP = (*PatternRawTableRow).CurHP;
-	Pattern->PatternData.PerHP = (*PatternRawTableRow).PerHP;
-	Pattern->PatternData.CurST = (*PatternRawTableRow).CurST;
-	Pattern->PatternData.PerST = (*PatternRawTableRow).PerST;
-
-	Pattern->PatternData.PatternShape = PatternShape((*PatternRawTableRow).Shape, (*PatternRawTableRow).X, (*PatternRawTableRow).Y);
-
-	Pattern->PatternData.UseParticle = (*PatternRawTableRow).UseParticle;
-	Pattern->UseParticle->SetTemplate((*PatternRawTableRow).UseParticle);
-
-	Pattern->PatternData.NotifyFieldParticle = (*PatternRawTableRow).NotifyFieldParticle;
-	Pattern->NotifyFieldParticle->SetTemplate((*PatternRawTableRow).NotifyFieldParticle);
-
-	Pattern->PatternData.DamageFieldParticle = (*PatternRawTableRow).DamageFieldParticle;
-	Pattern->DamageFieldParticle->SetTemplate((*PatternRawTableRow).DamageFieldParticle);
-
-	Pattern->PatternData.AnimationName = (*PatternRawTableRow).AnimationName;
-	Pattern->AnimationName = (*PatternRawTableRow).AnimationName;
-}
-
-FPatternShape APatternManager::PatternShape(EShape Shape, float X, float Y)
-{
-	FPatternShape PatternShape;
-
-	PatternShape.Shape = Shape;
-	PatternShape.Size = FVector(X, Y, 0.f);
-
-	return PatternShape;
-}

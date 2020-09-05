@@ -32,13 +32,6 @@ APlayerStatus::APlayerStatus()
 	StaminaRate = 15.f;
 }
 
-// Called when the game starts or when spawned
-void APlayerStatus::BeginPlay()
-{
-	Super::BeginPlay();
-
-	SetLevelStatus(1);
-}
 
 // Called every frame
 void APlayerStatus::Tick(float DeltaTime)
@@ -104,9 +97,11 @@ void APlayerStatus::SetLevelStatus(int32 CurLevel)
 	}
 }
 
-void APlayerStatus::AdjustHP(float Amount, bool CanDie)
+void APlayerStatus::AdjustHP(float DamageAmount, bool CanDie) 
 {
-	Stat.CurHP += Amount;
+	// 상태이상이나 함정을 밟았을때 방어력 무시로 들어가도록 만들어놓은 함수
+	
+	Stat.CurHP += DamageAmount;
 
 	if (Stat.CurHP > Stat.MaxHP)
 	{
@@ -134,7 +129,7 @@ void APlayerStatus::TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAtta
 		return;
 	}
 
-	SetPlayerCrowdControl(AttackType);
+	SetDebuffToPlayer(AttackType);
 
 	float total = DamageAmount - GetTotalDeffence();
 
@@ -160,24 +155,14 @@ void APlayerStatus::TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAtta
 	}
 }
 
-void APlayerStatus::TakeDamageST(float DamageAmount, AActor* DamageCauser, EAttackType AttackType)
+void APlayerStatus::TakeDamageST(float DamageAmount)
 {
 	if (MainPlayer->bIsRoll)
 	{
 		return;
 	}
 
-	float total = DamageAmount - GetTotalDeffence();
-
-	if (total > 0)
-	{
-		Stat.CurStamina -= total;
-	}
-
-	else
-	{
-		Stat.CurStamina--;
-	}
+	Stat.CurStamina -= DamageAmount;
 
 	if (Stat.CurStamina <= 0)
 	{
@@ -185,71 +170,14 @@ void APlayerStatus::TakeDamageST(float DamageAmount, AActor* DamageCauser, EAtta
 	}
 }
 
-void  APlayerStatus::SetPlayerCrowdControl(EAttackType AttackType)
+void APlayerStatus::SetDebuffToPlayer(EAttackType AttackType)
 {
-	switch (AttackType)
+	if (AttackType == EAttackType::EAT_Poison || AttackType == EAttackType::EAT_Frostbite)
 	{
-	case EAttackType::EAT_Normal:
-		break;
+		MainPlayer->PlayerCombat->CombatManager->SetDebuffToPlayer(AttackType);
 
-	case EAttackType::EAT_KnockBack:
-		MainPlayer->bCanMove = false;
-		MainPlayer->PlayerCombat->PlayMontage(FName("KnockDown"), 1.f);
-		break;
-
-	case EAttackType::EAT_Stun:
-		MainPlayer->bCanMove = false;
-		MainPlayer->PlayerCombat->PlayMontage(FName("KnockDown"), 1.f);
-		break;
-
-	case EAttackType::EAT_Poison:
 		SetSystemText();
-		GetWorldTimerManager().SetTimer(TimeHandle, this, &APlayerStatus::SetPoison, 1.f, true, 0.f);
-		break;
-
-	case EAttackType::EAT_Frostbite:
-		SetSystemText();
-
-
-		break;
-
-	default:
-		break;
 	}
-}
-
-void APlayerStatus::SetPoison()
-{
-	LifeTime += GetWorldTimerManager().GetTimerElapsed(TimeHandle);
-	auto SkillData = SkillManager->GetSkillData(0);
-
-	if (LifeTime > SkillData.DurationTime)
-	{
-		GetWorldTimerManager().ClearTimer(TimeHandle);
-		LifeTime = 0.f;
-
-		return;
-	}
-
-	if (!SkillMaps.Find(SkillData.SkillID))
-	{
-		RecentSkill = SkillData;
-		SkillMaps.Add(RecentSkill.SkillID, RecentSkill);
-	}
-
-	float Damage = Stat.MaxHP * SkillData.PerHP * 0.01f;
-
-	AdjustHP(-Damage, false);
-}
-
-void APlayerStatus::SetFrostbite()
-{
-
-}
-
-void APlayerStatus::ResetStatus()
-{
-
 }
 
 void APlayerStatus::KnockDownAnimEnd()
@@ -259,7 +187,7 @@ void APlayerStatus::KnockDownAnimEnd()
 
 void APlayerStatus::Death()
 {
-	MainPlayer->SetMovementState(EMovementState::EMS_Dead);
+	MainPlayer->bIsDead = true;
 
 	MainPlayer->PlayerCombat->PlayMontage(FName("Death"), 0.7f);
 }

@@ -17,19 +17,16 @@ public:
 	// Sets default values for this character's properties
 	ANpcController();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|ManagerClass")
 	class AGameManager* GameManager;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|Properties")
 	class USphereComponent* InteractCollision; // 영역에 들어왔는지 체크
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Npc|Properties")
-	class UAnimMontage* GestureMontage;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Npc|Symbol")
 	class UStaticMeshComponent* QuestionSymbol;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Npc|Symbol")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Npc|Properties")
 	class UStaticMeshComponent* ExclamationSymbol;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Npc|DataTable")
@@ -50,20 +47,16 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Npc|Interact")
 	class AMainPlayer* MainPlayer;
 
-	void SetNpcData();
-
-	void StringToIntArray(int32 Type, FString Data);
-
-	void SetActiveSymbol(ESymbolType SymbolType);
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
 public:	
-	// Called every frame
+	void SetNpcData();
+	void StringToIntArray(int32 Type, FString Data);
+	void SetActiveSymbol(ESymbolType SymbolType);
 
-	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
+	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()

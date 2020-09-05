@@ -37,12 +37,6 @@ AMainPlayer::AMainPlayer()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-#pragma region Camera
-	/*
-		원리 : 셀카봉을 들고 뒤면 따라오듯이, 카메라를 스프링암에 고정시켜놓은다음 스프링암을 옮긴다.
-	*/
-
-	// 헤더파일 : "GameFramework/SpringArmComponent.h"
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetRootComponent());
 	CameraBoom->bAbsoluteRotation = true; // 스프링 암의 회전이 루트 컴포넌트와 상위 컴포넌트를 따르지 않고 월드 좌표계의 회전을 따르도록 한다.
@@ -50,30 +44,23 @@ AMainPlayer::AMainPlayer()
 	CameraBoom->TargetArmLength = 1000.f; // 셀카봉 길이는 어느정도로?
 	CameraBoom->bDoCollisionTest = false; // 카메라가 벽을 뚫지 못하도록 만든다.
 
-	//CameraBoom->bUsePawnControlRotation = true; // 카메라붐의 로테이션을 허용함
 
-	// 헤더파일 : #include "Camera/CameraComponent.h"
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 
-	// 카메라에따라 캐릭터를 움직이지 않겠다.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
 
-	// 헤더파일 : #include "GameFramework/CharacterMovementComponent.h"
-	GetCharacterMovement()->bOrientRotationToMovement = true; // 캐릭터의 이동방향과 시야방향이 다르면 초당 640도의 회전 속도로 회전시킨다.
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 640.0f, 0.0f);
 	GetCharacterMovement()->JumpZVelocity = 650.f;
 	GetCharacterMovement()->AirControl = 0.2f;
-#pragma endregion
 
 	bCanMove = true;
-	bIsSprint = false;
 	RollCost = 50.f;
 	NormalSpeed = 600.f;
-	SprintSpeed = 1000.f;
 }
 
 // Called when the game starts or when spawned
@@ -81,6 +68,13 @@ void AMainPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	InitComponents();
+
+	LoadGame();
+}
+
+void AMainPlayer::InitComponents()
+{
 	if (InventoryBP)
 	{
 		Inventory = GetWorld()->SpawnActor<AInventory>(InventoryBP);
@@ -88,8 +82,8 @@ void AMainPlayer::BeginPlay()
 		if (Inventory)
 		{
 			Inventory->MainPlayer = this;
-			Inventory->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-			
+			Inventory->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+
 			if (GameManager && GameManager->ItemManager)
 			{
 				Inventory->ItemManager = GameManager->ItemManager;
@@ -105,6 +99,7 @@ void AMainPlayer::BeginPlay()
 		{
 			PlayerCombat->MainPlayer = this;
 			PlayerCombat->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+			PlayerCombat->CombatManager = GameManager->CombatManager;
 		}
 	}
 
@@ -117,6 +112,7 @@ void AMainPlayer::BeginPlay()
 			PlayerStatus->MainPlayer = this;
 			PlayerStatus->SkillManager = GameManager->SkillManager;
 			PlayerStatus->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+			PlayerStatus->SetLevelStatus(1);
 		}
 	}
 
@@ -124,7 +120,7 @@ void AMainPlayer::BeginPlay()
 	{
 		PlayerQuest = GetWorld()->SpawnActor<APlayerQuest>(PlayerQuestBP);
 
-		if (PlayerCombat)
+		if (PlayerQuest)
 		{
 			PlayerQuest->MainPlayer = this;
 			PlayerQuest->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
@@ -135,16 +131,6 @@ void AMainPlayer::BeginPlay()
 			}
 		}
 	}
-
-	PlayerCombat->CombatManager = GameManager->CombatManager;
-
-	LoadGame();
-}
-
-// Called every frame
-void AMainPlayer::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -153,31 +139,19 @@ void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	check(PlayerInputComponent); // PlayerInputComponent 유무 체크
-
-	// 헤더파일 : #include "GameFramework/PlayerController.h"
-
+	
 	PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AMainPlayer::LeftClickDown);
 
 	PlayerInputComponent->BindAction("Roll", IE_Pressed, this, &AMainPlayer::Roll);
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AMainPlayer::InteractObject);
-
-	// PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMainPlayer::Jump);
-	// PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-
-	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AMainPlayer::LeftShiftKeyDown);
-	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AMainPlayer::LeftShiftKeyUp);
-
+	
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMainPlayer::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMainPlayer::MoveRight);
-
-	PlayerInputComponent->BindAxis("RightLeftView", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("UpDownView", this, &APawn::AddControllerPitchInput);
 }
 
-#pragma region Movement/Roll Function
 void AMainPlayer::MoveForward(float Value)
 {
-	if (Value != 0.f && Controller && bCanMove && !bIsAttackAnim && MovementState != EMovementState::EMS_Dead && !bIsMenuVisible)
+	if (Value != 0.f && Controller && bCanMove && !bIsAttackAnim && !bIsDead && !bIsMenuVisible)
 	{
 		FRotator Rotation = Controller->GetControlRotation(); // 현재 캐릭터의 회전 매트릭스를 구한다.
 		FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
@@ -199,9 +173,8 @@ void AMainPlayer::MoveForward(float Value)
 
 void AMainPlayer::MoveRight(float Value)
 {
-	if (Value != 0.f && Controller && bCanMove && !bIsAttackAnim && MovementState != EMovementState::EMS_Dead && !bIsMenuVisible)
+	if (Value != 0.f && Controller && bCanMove && !bIsAttackAnim && !bIsDead && !bIsMenuVisible)
 	{
-
 		FRotator Rotation = Controller->GetControlRotation();
 		FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
 
@@ -211,29 +184,14 @@ void AMainPlayer::MoveRight(float Value)
 	}
 }
 
-
-void AMainPlayer::LeftShiftKeyDown()
-{
-	SetMovementState(EMovementState::EMS_Sprint);
-
-	bIsSprint = true;
-}
-
-void AMainPlayer::LeftShiftKeyUp()
-{
-	SetMovementState(EMovementState::EMS_Idle);
-
-	bIsSprint = false;
-}
-
 void AMainPlayer::Roll()
 {
-	if (!bIsRoll && bCanMove  && MovementState != EMovementState::EMS_Dead && PlayerStatus->Stat.CurStamina >= RollCost && !bIsMenuVisible)
+	if (!bIsRoll && !bIsDead && PlayerStatus->Stat.CurStamina >= RollCost && !bIsMenuVisible)
 	{
-		PlayerStatus->Stat.CurStamina -= RollCost;
 		bIsRoll = true;
-		//bCanMove = false;
+		bCanMove = false;
 
+		PlayerStatus->Stat.CurStamina -= RollCost;
 		PlayerCombat->PlayMontage(FName("Roll"), 1.f);
 	}
 }
@@ -243,25 +201,16 @@ void AMainPlayer::RollAnimEnd()
 	bCanMove = true;
 	bIsRoll = false;
 }
-#pragma endregion
 
-#pragma region Interact/Attack Mouse Button 
 void AMainPlayer::LeftClickDown()
 {
-	bIsLeftClickDown = true;
-
 	if (bIsEquip && !bIsAttackAnim) // 무기를 소유했으며 공격 애니메이션이 종료되었는가?
 	{
 		bIsAttackAnim = true;
 
-		PlayerCombat->SetAttackType(EAttackType::EAT_Normal);
+		PlayerCombat->SetAttackType(EAttackType::EAT_None);
 		PlayerCombat->PlayAttackAnim();
 	}
-}
-
-void AMainPlayer::LeftClickUp()
-{
-	bIsLeftClickDown = false;
 }
 
 void AMainPlayer::InteractObject()
@@ -275,9 +224,8 @@ void AMainPlayer::InteractObject()
 
 	if (InteractItems.Num() > 0)
 	{
-		AddItem();
+		AddInteractedItemAll();
 	}
-	
 
 	else if (InteractNPC)
 	{
@@ -289,7 +237,7 @@ void AMainPlayer::InteractObject()
 	InteractItems.Empty();
 }
 
-void AMainPlayer::AddItem()
+void AMainPlayer::AddInteractedItemAll()
 {
 	for (auto Item : InteractItems)
 	{
@@ -305,7 +253,6 @@ void AMainPlayer::StopCommunication()
 
 	GameManager->DialogueManager->SetActiveDialouge(false, nullptr);
 }
-#pragma endregion
 
 void AMainPlayer::SwitchLevel()
 {
@@ -380,29 +327,4 @@ void AMainPlayer::LoadGame()
 	
 	Inventory->LoadInventoryData(LoadGameInstance);
 	PlayerQuest->LoadQuestData(LoadGameInstance);
-}
-
-void AMainPlayer::LoadGameNoSwitch()
-{
-	USaveGameManager* LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::CreateSaveGameObject(USaveGameManager::StaticClass()));
-	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->PlayerName, LoadGameInstance->UserIndex));
-
-	PlayerStatus->LoadPlayerStatData(LoadGameInstance);
-}
-
-void AMainPlayer::SetMovementState(EMovementState State) // 캐릭터상태에따라 최대속도가 변화됨
-{
-	MovementState = State;
-
-	// 헤더파일 : #include "GameFramework/PlayerController.h"
-
-	if (MovementState == EMovementState::EMS_Sprint)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed; // 최대 속도를 스프린트 속도로
-	}
-
-	else
-	{
-		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed; // 최대 속도를 일반 달리기 속도로
-	}
 }

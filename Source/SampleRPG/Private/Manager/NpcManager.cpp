@@ -12,22 +12,9 @@ ANpcManager::ANpcManager()
 
 }
 
-// Called when the game starts or when spawned
-void ANpcManager::BeginPlay()
+FNpcTable ANpcManager::GetNpcData(int32 NpcID)
 {
-	Super::BeginPlay();
-	
-}
-
-void ANpcManager::SetNpcDataAll()
-{
-	if (NpcDataMap.Num() > 0 && GameManager)
-	{
-		for (int32 Count = 0; Count < NpcDataMap.Num(); Count++)
-		{
-			SetNpcData(Count);
-		}
-	}
+	return NpcDataMap[NpcID];
 }
 
 void ANpcManager::SetNpcData(int32 NpcID)
@@ -43,24 +30,23 @@ void ANpcManager::SetNpcData(int32 NpcID)
 		NpcDataMap[NpcID].DialogueID = (*NpcTableData).DialogueID;
 		NpcDataMap[NpcID].ItemID = (*NpcTableData).ItemID;
 		NpcDataMap[NpcID].QuestID = (*NpcTableData).QuestID;
-
 	}
 }
 
-FNpcTable ANpcManager::GetNpcData(int32 NpcID)
+void ANpcManager::SetNpcDataAll()
 {
-	return NpcDataMap[NpcID];
-}
-
-void ANpcManager::CheckNpcSymbolAll()
-{
-	for (auto& Map : NpcMap) // 받을 수 있는 !마크
+	for (int32 Count = 0; Count < NpcDataMap.Num(); Count++)
 	{
-		CheckNpcSymbol(Map.Key);
+		SetNpcData(Count);
 	}
 }
 
-void ANpcManager::CheckNpcSymbol(int32 NpcID)
+void ANpcManager::SetNpcSymbol(ESymbolType SymbolType, int32 NpcID)
+{
+	NpcMap[NpcID]->SetActiveSymbol(SymbolType);
+}
+
+void ANpcManager::CheckNpcSymbol(int32 NpcID) // 퀘스트 심볼을 확인해본다.
 {
 	if (GameManager->QuestManager->IsExclamationSymbol(NpcMap[NpcID]->QuestID))
 	{
@@ -68,7 +54,10 @@ void ANpcManager::CheckNpcSymbol(int32 NpcID)
 	}
 }
 
-void ANpcManager::SetNpcSymbol(ESymbolType SymbolType, int32 NpcID)
+void ANpcManager::CheckNpcSymbolAll()
 {
-	NpcMap[NpcID]->SetActiveSymbol(SymbolType);
+	for (auto& Map : NpcMap)
+	{
+		CheckNpcSymbol(Map.Key);
+	}
 }

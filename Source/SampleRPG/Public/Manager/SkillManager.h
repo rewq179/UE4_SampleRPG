@@ -25,17 +25,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillManager|SkillTable")
 	TMap<int32, FSkillTable> SkillMap;
-
-
-protected:
-
-
+	
 public:	
-	void SetAllSkillData();
-	void SetSkillData(int32 SkillID);
-
 	FSkillTable GetSkillData(int32 SkillID);
+	void SetSkillData(int32 SkillID);
+	void SetSkillDataAll();
 
-	
-	
+	float GetSkillDamage(int32 SkillID);
 };

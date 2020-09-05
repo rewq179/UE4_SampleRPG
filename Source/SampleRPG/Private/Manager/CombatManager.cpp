@@ -4,6 +4,7 @@
 #include "Manager/GameManager.h"
 #include "Manager/DataTableManager.h"
 #include "Manager/ItemManager.h"
+#include "Manager/SkillManager.h"
 
 #include "Monster/Monster.h"
 
@@ -14,6 +15,7 @@
 
 #include "Kismet/GameplayStatics.h"
 
+#include "TimerManager.h"
 
 // Sets default values
 ACombatManager::ACombatManager()
@@ -21,6 +23,7 @@ ACombatManager::ACombatManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	LifeTime = 0.f;
 }
 
 // Called when the game starts or when spawned
@@ -34,12 +37,9 @@ void ACombatManager::ApplyDamageHP(AActor* DamagedActor, float BaseDamage, AActo
 {
 	if (DamagedActor && (BaseDamage != 0.f))
 	{
-		UE_LOG(LogTemp, Log, TEXT("Damaged!"));
-
 		if (bIsPlayerDamaged)
 		{
 			auto PlayerStatus = Cast<APlayerStatus>(DamagedActor);
-
 
 			if (bIsPercent)
 			{
@@ -69,7 +69,20 @@ void ACombatManager::ApplyDamageHP(AActor* DamagedActor, float BaseDamage, AActo
 	}
 }
 
-void ACombatManager::ApplyDamageST(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EAttackType DamagedType, bool bIsPercent)
+void ACombatManager::AdjustDamageHP(AActor* DamagedActor, float BaseDamage, bool bIsPercent)
+{
+	if (DamagedActor == MainPlayer->PlayerStatus)
+	{
+		if (bIsPercent)
+		{
+			BaseDamage = GetPercentBaseDamage(BaseDamage, PlayerStatus->Stat.MaxHP);
+		}
+
+		MainPlayer->PlayerStatus->AdjustHP(BaseDamage, false);
+	}
+}
+
+void ACombatManager::ApplyDamageST(AActor* DamagedActor, float BaseDamage, bool bIsPercent)
 {
 	if (DamagedActor && (BaseDamage != 0.f))
 	{
@@ -82,14 +95,14 @@ void ACombatManager::ApplyDamageST(AActor* DamagedActor, float BaseDamage, AActo
 
 		if (PlayerStatus)
 		{
-			PlayerStatus->TakeDamageST(BaseDamage, DamageCauser, DamagedType);
+			PlayerStatus->TakeDamageST(BaseDamage);
 		}
 	}
 }
 
-float ACombatManager::GetPercentBaseDamage(float Percent, float MaxHP)
+float ACombatManager::GetPercentBaseDamage(float Percent, float MaxValue)
 {
-	return MaxHP / Percent;
+	return MaxValue * 0.01f * Percent;
 }
 
 
@@ -102,7 +115,68 @@ void ACombatManager::MonsterDeath(AMonster* Monster)
 	GameManager->ItemManager->GetMonsterItem(Monster->Status.ByProductID, Monster->Status.RewardID, Monster->GetActorLocation());
 }
 
+void ACombatManager::SetDebuffToPlayer(EAttackType AttackType)
+{
+	switch (AttackType)
+	{
+	case EAttackType::EAT_Poison:
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ACombatManager::SetPoison, 1.f, true, 0.f);
+		break;
 
+	case EAttackType::EAT_Frostbite:
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ACombatManager::SetFrostbite, 1.f, true, 0.f);
+		break;
+	}
+}
+
+void ACombatManager::SetPoison()
+{
+	auto SkillData = SkillManager->GetSkillData(0);
+
+	if (bIsLifeTimeOver(SkillData.DurationTime))
+	{
+		return;
+	}
+
+	if (!MainPlayer->PlayerStatus->SkillMaps.Find(SkillData.SkillID))
+	{
+		MainPlayer->PlayerStatus->SkillMaps.Add(SkillData.SkillID, SkillData);
+	}
+
+	AdjustDamageHP(MainPlayer->PlayerStatus, SkillManager->GetSkillDamage(SkillData.SkillID), true);
+}
+
+void ACombatManager::SetFrostbite()
+{
+	auto SkillData = SkillManager->GetSkillData(1);
+
+	if (bIsLifeTimeOver(SkillData.DurationTime))
+	{
+		return;
+	}
+
+	if (!MainPlayer->PlayerStatus->SkillMaps.Find(SkillData.SkillID))
+	{
+		MainPlayer->PlayerStatus->SkillMaps.Add(SkillData.SkillID, SkillData);
+	}
+
+	ApplyDamageST(MainPlayer->PlayerStatus, SkillManager->GetSkillDamage(SkillData.SkillID), true);
+}
+
+bool ACombatManager::bIsLifeTimeOver(float DurationTime)
+{
+	LifeTime += GetWorldTimerManager().GetTimerElapsed(TimerHandle);
+	
+	if (LifeTime > DurationTime)
+	{
+		GetWorldTimerManager().ClearTimer(TimerHandle);
+		LifeTime = 0.f;
+
+		return true;
+	}
+
+	return false;
+}
 
 void ACombatManager::AddTargetMonster(class AMonster* Monster)
 {

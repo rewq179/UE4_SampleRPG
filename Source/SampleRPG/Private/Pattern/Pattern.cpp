@@ -55,7 +55,7 @@ void APattern::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bIsNotifyFieldActive && PatternData.PatternClass == EPatternClass::EPT_Teleport)
+	if (bIsRealtimeNotifyField)
 	{
 		SetTargetLocationByGroundSurface();
 
@@ -64,14 +64,18 @@ void APattern::Tick(float DeltaTime)
 }
 
 
-void APattern::SetCollisionSize()
+void APattern::InitCollision()
 {
 	SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	SphereCollision->SetSphereRadius(PatternData.PatternShape.Size.X);
+	SphereCollision->SetSphereRadius(PatternData.Radius);
+
+	SetActiveCollision(false);
 }
 
 void APattern::SetActiveCollision(bool bIsActive)
 {
+	CombatTarget = nullptr;
+
 	if (bIsActive)
 	{
 		SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -97,7 +101,7 @@ void APattern::PlayNotifyParticle(bool bIsTargetLocation)
 	{
 		if (PatternData.PatternClass == EPatternClass::EPT_Teleport)
 		{
-			bIsNotifyFieldActive = true;
+			bIsRealtimeNotifyField = true;
 			Monster->SetCapsuleComponent(false);
 
 			return;
@@ -125,7 +129,7 @@ void APattern::PlayDamageParticle(bool bIsTargetLocation)
 	{
 		if (PatternData.PatternClass == EPatternClass::EPT_Teleport)
 		{
-			bIsNotifyFieldActive = false;
+			bIsRealtimeNotifyField = false;
 
 			Monster->SetActorLocation(TargetLocation);
 		}
@@ -148,6 +152,7 @@ void APattern::SetTargetLocationByGroundSurface()
 	FVector End = Start - FVector(0.f, 0.f, 1000.f);
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(Monster->CombatTarget);
+	CollisionParams.AddIgnoredActor(Monster);
 
 	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECollisionChannel::ECC_Visibility, CollisionParams))
 	{
@@ -155,7 +160,7 @@ void APattern::SetTargetLocationByGroundSurface()
 		{
 			TargetLocation = Hit.ImpactPoint;
 	
-			SetCollisionLocation(TargetLocation);
+			SphereCollision->SetRelativeLocation(TargetLocation);
 		}
 	}
 
@@ -171,21 +176,17 @@ void APattern::SetRandLocationByGroundSurface()
 	RandLocation = FMath::RandPointInBox(FBox(BoxMin, BoxMax));
 	RandLocation.Z = TargetLocation.Z;
 
-	SetCollisionLocation(RandLocation);
+	SphereCollision->SetRelativeLocation(RandLocation);
 }
 
-void APattern::SetCollisionLocation(FVector Location)
-{
-	SphereCollision->SetRelativeLocation(Location);
-}
 
 void APattern::OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
 	if (OtherActor)
 	{
-		Target = Cast<AMainPlayer>(OtherActor);
+		CombatTarget = Cast<AMainPlayer>(OtherActor);
 	
-		if (Target)
+		if (CombatTarget)
 		{
 			Monster->MonsterPattern->ApplyPatternDamageToTarget(this);
 
@@ -197,8 +198,8 @@ void APattern::OnSphereOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 
 void APattern::OnSphereOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor == Target)
+	if (OtherActor == CombatTarget)
 	{
-		Target = nullptr;
+		CombatTarget = nullptr;
 	}
 }

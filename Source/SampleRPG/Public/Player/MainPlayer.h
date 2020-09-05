@@ -7,17 +7,6 @@
 
 #include "MainPlayer.generated.h"
 
-UENUM(BlueprintType) // 해당 Enum을 사용하기 위해선 표시해줘야한다.
-enum class EMovementState : uint8
-{
-	EMS_Idle UMETA(DisplayName = "Idle"), // DisplayName("") : 블루프린터에서 ""의 이름으로 해당 변수를 표시해주겠다.
-	EMS_Sprint UMETA(DisplayName = "Sprint"),
-	EMS_Roll UMETA(DisplayName = "Roll"),
-	EMS_Dead UMETA(DisplayName = "Dead"),
-
-	EMS_MAX
-};
-
 UCLASS()
 class SAMPLERPG_API AMainPlayer : public ACharacter
 {
@@ -27,93 +16,82 @@ public:
 	// Sets default values for this character's properties
 	AMainPlayer();
 
-#pragma region Properties
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	// 매니저 클래스 //
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|ManagerClass")
 	class AGameManager* GameManager;
 
-	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
+	// 컴포넌트 클래스 //
+
+	UPROPERTY(EditDefaultsOnly, Category = "MainPlayer|Components")
 	TSubclassOf<class AInventory> InventoryBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Components")
 	class AInventory* Inventory;
 
-	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "MainPlayer|Components")
 	TSubclassOf<class APlayerCombat> PlayerCombatBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Components")
 	class APlayerCombat* PlayerCombat;
 
-	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "MainPlayer|Components")
 	TSubclassOf<class APlayerStatus> PlayerStatusBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Components")
 	class APlayerStatus* PlayerStatus;
 
-	UPROPERTY(EditDefaultsOnly, Category = "MainCharacter|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "MainPlayer|Components")
 	TSubclassOf<class APlayerQuest> PlayerQuestBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Components")
 	class APlayerQuest* PlayerQuest;
-#pragma endregion
 
-#pragma region State
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
-	EMovementState MovementState;
+	// 무브먼트 //
 
-	void SetMovementState(EMovementState State);
-	FORCEINLINE EMovementState GetMovementState() { return MovementState; }
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
-	float NormalSpeed; // 일반 달리기 Max 속도
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
-	float SprintSpeed; // 스피린트 Max 속도
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|State")
-	bool bIsEquip;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|State")
-	bool bIsAttackAnim; // 어택 애니메이션이 진행중인가?
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
+	float NormalSpeed;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
 	float RollCost;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
-	bool bIsMenuVisible;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainCharacter|State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
 	bool bCanMove;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Input")
-	bool bIsSprint; // Left Shift Key Down/Up
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Input")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
 	bool bIsRoll;
 
-#pragma endregion
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
+	bool bIsEquip;
 
-	/*
-		원리 : 카메라를 고정 해놓은 SpringArm이 나를 따라 움직여서 나를 계속 보도록 만든다.
-		meta = (AllowPrivateAccess = "true") : private 변수도 블루프린트 스크립트에서 활용이 가능해진다.
-	*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
+	bool bIsDead;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
+	bool bIsAttackAnim; // 어택 애니메이션이 진행중인가?
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainPlayer|State")
+	bool bIsMenuVisible;
+	
+	// 카메라 //
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom; // 셀카봉
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera; // 카메라
-
-	FVector2D CameraInputValue; // 마우스 이동에 따른 값
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Interact")
-	TArray<class AItem*> InteractItems;
 	
-	void AddItem();
+	// 상호작용 //
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Interact")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Interact")
+	TArray<class AItem*> InteractItems;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Interact")
 	class ANpcController* InteractNPC;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainCharacter|Interact")
+	// 맵 이름
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Interact")
 	FName NextLevelName;
 
 protected:
@@ -121,18 +99,16 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
+		// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void LeftShiftKeyDown();
-	void LeftShiftKeyUp();
+	void InitComponents();
 
-	bool bIsLeftClickDown;
+	// 인풋 아웃풋 키 //
+	
 	void LeftClickDown(); // 마우스 좌클릭
-	void LeftClickUp();
+
+	// 무브먼트 함수들 // 
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -141,18 +117,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RollAnimEnd();
 
+	// Interact 함수들 //
 
 	void InteractObject();
 	void StopCommunication();
 
+	void AddInteractedItemAll();
 	void SwitchLevel();
 	bool IsLevelChange(FName NextLevelName);
 
+	// 세이브 로드 //
 
 	UFUNCTION(BlueprintCallable)
 	void SaveGame();
 	UFUNCTION(BlueprintCallable)
 	void LoadGame();
-
-	void LoadGameNoSwitch();
 };

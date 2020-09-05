@@ -18,23 +18,18 @@ public:
 	// Sets default values for this actor's properties
 	AItemManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ItemManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ItemManager|ManagerClass")
 	class AGameManager* GameManager;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ItemManager|ItemData")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ItemManager|DataTable")
 	TMap<int32, TSubclassOf<class AItem>> ItemMap;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ItemManager|RewardData")
-		TMap<int32, FRewardTable> RewardMap;
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ItemManager|DataTable")
+	TMap<int32, FRewardTable> RewardDataMap;
 
 public:	
 	UFUNCTION(BlueprintCallable)
 	FItemTable GetItemData(int32 ItemID);
-
 	void SetItemData(class AItem* Item, int32 ItemID);
 
 	UFUNCTION(BlueprintCallable)
@@ -44,9 +39,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FRewardTable GetRewardData(int32 RewardID);
-
-	void SetRewardDataAll();
 	void SetRewardData(int32 RewardID);
+	void SetRewardDataAll();
 
 	FRewardBox RewardBox(int32 ID, int32 Count, float Percent);
 

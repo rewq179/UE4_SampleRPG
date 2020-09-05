@@ -29,6 +29,8 @@ AItem::AItem()
  	// Set this actor to call Tick() every f	rame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Collision //
+
 	InteractCollision = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"));
 	InteractCollision->SetSphereRadius(48.f);
 	RootComponent = InteractCollision;
@@ -40,14 +42,14 @@ AItem::AItem()
 	CombatCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	CombatCollision->SetCollisionResponseToChannels(ECollisionResponse::ECR_Ignore);
 	CombatCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap); // Pawn과 Overlap만 반응하도록 한다.
-	// Collision
+	
+	// Mesh //
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(GetRootComponent());
 	EquipMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("EquipMesh"));
 	EquipMesh->SetupAttachment(GetRootComponent());
 
-	// Mesh
 
 	IdleParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("IdleParticle"));
 	IdleParticle->SetupAttachment(GetRootComponent());
@@ -59,11 +61,10 @@ void AItem::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// 유니티의 TriggerEnter와 Exit 역할 // 꼭 바인딩 해줘야한다.
 	InteractCollision->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnOverlapBegin);
 	InteractCollision->OnComponentEndOverlap.AddDynamic(this, &AItem::OnOverlapEnd);
 	CombatCollision->OnComponentBeginOverlap.AddDynamic(this, &AItem::OnCombatOverlapBegin);
-	//CombatCollision->OnComponentEndOverlap.AddDynamic(this, &AItem::OnCombatOverlapEnd);
+
 
 	SetItemData();
 }
@@ -93,7 +94,15 @@ void AItem::SetItemData()
 	}
 }
 
-void AItem::SetCombatCollisionEnabled(bool IsActive)
+void AItem::SetItemOwner(AMainPlayer* MainPlayer)
+{
+	ItemOwner = MainPlayer;
+
+	SetItemState(EItemState::EIS_Inv);
+	SetActorLocation(FVector(255.f, 255.f, 255.f));
+}
+
+void AItem::SetEnabledCombatCollision(bool IsActive)
 {
 	if (IsActive)
 	{
@@ -104,6 +113,20 @@ void AItem::SetCombatCollisionEnabled(bool IsActive)
 	{
 		CombatCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+}
+
+
+void AItem::IgnoreStaticMesh()
+{
+	SetEnabledCombatCollision(false);
+
+	Mesh->SetStaticMesh(nullptr);
+	
+	EquipMesh->SetVisibility(true);
+
+	EquipMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	EquipMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	EquipMesh->SetSimulatePhysics(false); // 물리충돌 X
 }
 
 void AItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
@@ -119,12 +142,11 @@ void AItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 	}
 }
 
-
 void AItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor && ItemState == EItemState::EIS_Root)
 	{
-		AMainPlayer* Main = Cast<AMainPlayer>(OtherActor);
+		AMainPlayer* Main =  Cast<AMainPlayer>(OtherActor);
 
 		if (Main)
 		{
@@ -146,23 +168,3 @@ void AItem::OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 	}
 }
 
-
-void AItem::OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	
-}
-
-void AItem::IgnoreStaticMesh()
-{
-	if (ItemData.ItemClass == EItemClass::EIC_Equip)
-	{
-		Mesh->SetStaticMesh(nullptr);
-	}
-
-	EquipMesh->SetVisibility(true);
-
-	EquipMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
-	EquipMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-
-	EquipMesh->SetSimulatePhysics(false); // 물리충돌 X
-}

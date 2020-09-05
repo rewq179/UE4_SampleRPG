@@ -12,16 +12,11 @@ ASkillManager::ASkillManager()
 
 }
 
-void ASkillManager::SetAllSkillData()
+FSkillTable ASkillManager::GetSkillData(int32 SkillID)
 {
-	if (SkillMap.Num() > 0 && GameManager)
-	{
-		for (int32 Count = 0; Count < SkillMap.Num(); Count++)
-		{
-			SetSkillData(Count);
-		}
-	}
+	return SkillMap[SkillID];
 }
+
 
 void ASkillManager::SetSkillData(int32 SkillID)
 {
@@ -46,7 +41,39 @@ void ASkillManager::SetSkillData(int32 SkillID)
 	}
 }
 
-FSkillTable ASkillManager::GetSkillData(int32 SkillID)
+void ASkillManager::SetSkillDataAll()
 {
-	return SkillMap[SkillID];
+	if (SkillMap.Num() > 0 && GameManager)
+	{
+		for (int32 Count = 0; Count < SkillMap.Num(); Count++)
+		{
+			SetSkillData(Count);
+		}
+	}
+}
+
+float ASkillManager::GetSkillDamage(int32 SkillID)
+{
+	auto SkillData = GetSkillData(SkillID);
+
+	switch (SkillData.StatusType)
+	{
+	case EStatusType::EST_None:
+		return -1;
+
+	case EStatusType::EST_CurHp:
+		return SkillData.CurHP;
+
+	case EStatusType::EST_PerHP:
+		return SkillData.PerHP;
+
+	case EStatusType::EST_CurST:
+		return SkillData.CurST;
+
+	case EStatusType::EST_PerST:
+		return SkillData.PerST;
+
+	default:
+		return -1;
+	}
 }

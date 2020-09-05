@@ -27,92 +27,91 @@ public:
 	// Sets default values for this actor's properties
 	AItem();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item|ManagerClass")
 	class AGameManager* GameManager;
 
-#pragma region ItemTable
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
-	int32 ItemID; // 해당 ID로 아이템 데이터 테이블의 정보를 가져올 것이다.
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
-	int32 Count; // 현재 개수
+	// DataTable //
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|DataTable")
+	int32 ItemID;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|DataTable")
+	int32 Count; 
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|DataTable")
 	FItemTable ItemData;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
+	// Mesh // 
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Properties")
 	UStaticMeshComponent* Mesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Properties")
 	USkeletalMeshComponent* EquipMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|ItemTable")
+	// Icon //
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|Properties")
 	UTexture2D* Icon;
 
-	virtual void SetItemData();
+	// Collision //
 
-#pragma endregion
-
-	UPROPERTY(VisibleAnywhere, Category = "Item|State")
-	EItemState ItemState;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|State")
-	class AMainPlayer* ItemOwner;
-
-	FORCEINLINE void SetItemState(EItemState State) { ItemState = State; }
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item|Collision")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Item|Properties")
 	class USphereComponent* InteractCollision; // 영역에 들어왔는지 체크
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Particle")
-	class UParticleSystemComponent* IdleParticle; // 평소 파티클
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Particle")
-	class UParticleSystem* InteractParticle; // 반응시 보여줄 파티클
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Sound")
-	class USoundCue* InteractSound; // 반응시 들려줄 사운드
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Sound")
-	class USoundCue* UseSound; // 사용시 들려줄 사운드
-
-	
-		
-#pragma region Weapon
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Collision")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Properties")
 	class UBoxComponent* CombatCollision; // 데미지 영역
 
-	void SetCombatCollisionEnabled(bool IsActive);
+	// Particle //
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Sound")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item|Properties")
+	class UParticleSystemComponent* IdleParticle; // 평소 파티클
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Properties")
+	class UParticleSystem* InteractParticle; // 반응시 보여줄 파티클
+
+	// Sound //
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Properties")
+	class USoundCue* InteractSound; // 반응시 들려줄 사운드
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Properties")
+	class USoundCue* UseSound; // 사용시 들려줄 사운드
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Properties")
 	class USoundCue* AttackSound;
 
 
-#pragma endregion
+	
+	UPROPERTY(VisibleAnywhere, Category = "Item|State")
+	EItemState ItemState;
+	FORCEINLINE void SetItemState(EItemState State) { ItemState = State; }
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item|State")
+	class AMainPlayer* ItemOwner;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:
-	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
+	virtual void SetItemData();
+	void SetItemOwner(class AMainPlayer* MainPlayer);
+
+	void SetEnabledCombatCollision(bool IsActive);
+	void IgnoreStaticMesh();
+
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetActiveText(bool bIsActive);
+
+	UFUNCTION()
 	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
 	virtual void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-#pragma region Weapon Bottom Public
-	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
-	void OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
 	UFUNCTION()
-	void OnCombatOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void SetActiveText(bool bIsActive);
-
-	void IgnoreStaticMesh();
-#pragma endregion
+	void OnCombatOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 };

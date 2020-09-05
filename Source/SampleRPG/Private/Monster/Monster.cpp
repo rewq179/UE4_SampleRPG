@@ -141,32 +141,29 @@ void AMonster::AttackTarget(AMainPlayer* Target, EAttackClass AttackClass, int32
 			FString SectionName = "Attack_";
 			SectionName.Append(FString::FromInt(AttackNumber));
 
-			UE_LOG(LogTemp, Log, TEXT("Section Name : %s"), *SectionName);
-			int32 Index = AttackNumber - Status.AttackCount;
+			int32 PatternIndex = AttackNumber - Status.AttackCount;
 
 			switch (AttackClass)
 			{
-			case EAttackClass::EAC_Normal:
-				SetAttackType(EAttackType::EAT_Normal);
+			case EAttackClass::EAC_Normal: // 일반 공격
+				SetAttackType(EAttackType::EAT_None);
 				PlayMontage(FName(*SectionName), 1.5f);
 				break;
 
-			case EAttackClass::EAC_Charging:
-				SetAttackType(EAttackType::EAT_KnockBack);
-
+			case EAttackClass::EAC_Charging: // 차징 어택(넉백 발생, 20초 쿨탐)
+				SetAttackType(EAttackType::EAT_KnockDown);
 				PlayMontage(FName(*SectionName), 1.f);
 				bCanChargingAttack = false;
-
 				GetWorldTimerManager().SetTimer(TimeHandle, this, &AMonster::SetChargingAttack, 20.0f, false);
 				break;
 
-			case EAttackClass::EAC_Pattern:
+			case EAttackClass::EAC_Pattern: // 패턴공격(패턴에 해당하는 상태이상 발동)
 				if (Status.bHasCharging)
 				{
-					Index--;
+					PatternIndex--;
 				}
 				
-				MonsterPattern->SelectedPatterns = MonsterPattern->Patterns[Index];
+				MonsterPattern->SelectPattern = MonsterPattern->Patterns[PatternIndex];
 				PlayMontage(FName(*SectionName), 1.f);
 				break;
 
@@ -182,6 +179,16 @@ void AMonster::AttackTarget(AMainPlayer* Target, EAttackClass AttackClass, int32
 	}
 }
 
+void AMonster::PlayMontage(FName Name, float PlayRate)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (AnimInstance && CombatMontage)
+	{
+		AnimInstance->Montage_Play(CombatMontage, PlayRate); // 해당 몽타쥬를 n배 빠르게 재상한다.
+		AnimInstance->Montage_JumpToSection(Name, CombatMontage);
+	}
+}
 
 void AMonster::TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAttackType AttackType)
 {
@@ -244,15 +251,22 @@ void AMonster::ApplyDamageToTarget()
 	if (CombatTarget && bCanApplyDamage)
 	{
 		bCanApplyDamage = false;
-
-		CombatManager->ApplyDamageHP(CombatTarget->PlayerStatus, Status.Damage, this, AttackType, true, false);
 		SetHandType(EHandType::EHT_None);
 
-		if (CombatTarget->GetMovementState() == EMovementState::EMS_Dead)
+		CombatManager->ApplyDamageHP(CombatTarget->PlayerStatus, Status.Damage, this, AttackType, true, false);
+
+		if (CombatTarget->bIsDead)
 		{
 			CombatTarget = nullptr;
 		}
 	}
+}
+
+void AMonster::SetHandType(EHandType Type)
+{
+	HandType = Type;
+
+	SetCombatCollisionEnabled();
 }
 
 void AMonster::AttackAnimEnd()
@@ -262,12 +276,6 @@ void AMonster::AttackAnimEnd()
 	OnAttackEnd.Broadcast();
 }
 
-void AMonster::SetHandType(EHandType Type)
-{
-	HandType = Type;
-
-	SetCombatCollisionEnabled();
-}
 
 void AMonster::ChargingAnimEnd()
 {
@@ -280,69 +288,6 @@ void AMonster::DeathAnimEnd()
 {
 	GetMesh()->bPauseAnims = true;
 	GetMesh()->bNoSkeletonUpdate = true;
-}
-
-void AMonster::PlayMontage(FName Name, float PlayRate)
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
-	if (AnimInstance && CombatMontage)
-	{
-		AnimInstance->Montage_Play(CombatMontage, PlayRate); // 해당 몽타쥬를 n배 빠르게 재상한다.
-		AnimInstance->Montage_JumpToSection(Name, CombatMontage);
-	}
-}
-
-void AMonster::OnCombatRightOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
-{
-	if (OtherActor)
-	{
-		auto Player = Cast<AMainPlayer>(OtherActor);
-
-		if (Player && Player == CombatTarget)
-		{
-			bCanApplyDamage = true;
-		}
-	}
-}
-
-void AMonster::OnCombatRightOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor)
-	{
-		auto Player = Cast<AMainPlayer>(OtherActor);
-
-		if (Player && Player == CombatTarget && Player->GetDistanceTo(this) > Status.AttackRange*1.5f)
-		{
-			bCanApplyDamage = false;
-		}
-	}
-}
-
-void AMonster::OnCombatLeftOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
-{
-	if (OtherActor)
-	{
-		auto Player = Cast<AMainPlayer>(OtherActor);
-
-		if (Player && Player == CombatTarget)
-		{
-			bCanApplyDamage = true;
-		}
-	}
-}
-
-void AMonster::OnCombatLeftOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor)
-	{
-		auto Player = Cast<AMainPlayer>(OtherActor);
-
-		if (Player && Player == CombatTarget && Player->GetDistanceTo(this) > Status.AttackRange*1.5f)
-		{
-			bCanApplyDamage = false;
-		}
-	}
 }
 
 void AMonster::SetCombatCollisionEnabled()
@@ -387,5 +332,53 @@ void AMonster::SetCapsuleComponent(bool bIsActive)
 	{
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	}
+}
+
+void AMonster::OnCombatRightOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+{
+	if (OtherActor)
+	{
+		auto Player = Cast<AMainPlayer>(OtherActor);
+
+		if (Player && Player == CombatTarget)
+		{
+			bCanApplyDamage = true;
+		}
+	}
+}
+
+void AMonster::OnCombatRightOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor)
+	{
+		if (OtherActor == CombatTarget && OtherActor->GetDistanceTo(this) > Status.AttackRange * 1.5f)
+		{
+			bCanApplyDamage = false;
+		}
+	}
+}
+
+void AMonster::OnCombatLeftOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+{
+	if (OtherActor)
+	{
+		auto Player = Cast<AMainPlayer>(OtherActor);
+
+		if (Player && Player == CombatTarget)
+		{
+			bCanApplyDamage = true;
+		}
+	}
+}
+
+void AMonster::OnCombatLeftOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor)
+	{
+		if (OtherActor == CombatTarget && OtherActor->GetDistanceTo(this) > Status.AttackRange * 1.5f)
+		{
+			bCanApplyDamage = false;
+		}
 	}
 }

@@ -28,10 +28,10 @@ ADataTableManager::ADataTableManager()
 		MonsterTableData = MonsterTable.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UDataTable> PatternRawTable(TEXT("DataTable'/Game/DataTable/PatternRawTable.PatternRawTable'"));
-	if (PatternRawTable.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UDataTable> PatternTable(TEXT("DataTable'/Game/DataTable/PatternTable.PatternTable'"));
+	if (PatternTable.Succeeded())
 	{
-		PatternRawTableData = PatternRawTable.Object;
+		PatternTableData = PatternTable.Object;
 	}
 
 
@@ -75,9 +75,9 @@ FMonsterTable* ADataTableManager::GetMonsterTableData(int32 MonsterID)
 	return MonsterTableData->FindRow<FMonsterTable>(FName(*(FString::FormatAsNumber(MonsterID))), FString(""));
 }
 
-FPatternRawTable* ADataTableManager::GetPatternRawTableData(int32 PatternID)
+FPatternTable* ADataTableManager::GetPatternTableData(int32 PatternID)
 {
-	return PatternRawTableData->FindRow<FPatternRawTable>(FName(*(FString::FormatAsNumber(PatternID))), FString(""));
+	return PatternTableData->FindRow<FPatternTable>(FName(*(FString::FormatAsNumber(PatternID))), FString(""));
 }
 
 FItemTable* ADataTableManager::GetItemTableData(int32 ItemID)

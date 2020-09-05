@@ -15,11 +15,14 @@ AItemManager::AItemManager()
 
 }
 
-// Called when the game starts or when spawned
-void AItemManager::BeginPlay()
+FItemTable AItemManager::GetItemData(int32 ItemID)
 {
-	Super::BeginPlay();
-	
+	AItem* Item = ItemMap[ItemID].GetDefaultObject();
+
+	Item->ItemID = ItemID;
+	SetItemData(Item, ItemID);
+
+	return Item->ItemData;
 }
 
 void  AItemManager::SetItemData(AItem* Item, int32 ItemID)
@@ -58,17 +61,6 @@ void  AItemManager::SetItemData(AItem* Item, int32 ItemID)
 	}
 }
 
-FItemTable AItemManager::GetItemData(int32 ItemID)
-{
-	AItem* Item = ItemMap[ItemID].GetDefaultObject();
-
-	Item->ItemID = ItemID;
-	SetItemData(Item, ItemID);
-
-	return Item->ItemData;
-}
-
-
 AItem* AItemManager::CreateItemActor(int32 ItemID, int32 Count)
 {
 	auto Item = GetWorld()->SpawnActor<AItem>(ItemMap[ItemID]);
@@ -91,15 +83,7 @@ void AItemManager::SpawnItemActor(int32 ITemID, int32 Count, FVector Location)
 
 FRewardTable AItemManager::GetRewardData(int32 RewardID)
 {
-	return RewardMap[RewardID];
-}
-
-void AItemManager::SetRewardDataAll()
-{
-	for (int32 RewardID = 0; RewardID < RewardMap.Num(); RewardID++)
-	{
-		SetRewardData(RewardID);
-	}
+	return RewardDataMap[RewardID];
 }
 
 void AItemManager::SetRewardData(int32 RewardID)
@@ -108,31 +92,40 @@ void AItemManager::SetRewardData(int32 RewardID)
 
 	if (RewardRawTableData)
 	{
-		RewardMap[RewardID].RewardID = (*RewardRawTableData).RewardID;
+		RewardDataMap[RewardID].RewardID = (*RewardRawTableData).RewardID;
 
-		RewardMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_0, (*RewardRawTableData).Count_0, (*RewardRawTableData).Percent_0));
+		RewardDataMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_0, (*RewardRawTableData).Count_0, (*RewardRawTableData).Percent_0));
 
 		if ((*RewardRawTableData).ID_1 != -1)
 		{
-			RewardMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_0, (*RewardRawTableData).Count_1, (*RewardRawTableData).Percent_1));
+			RewardDataMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_0, (*RewardRawTableData).Count_1, (*RewardRawTableData).Percent_1));
 		}
 
 		if ((*RewardRawTableData).ID_2 != -1)
 		{
-			RewardMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_2, (*RewardRawTableData).Count_2, (*RewardRawTableData).Percent_2));
+			RewardDataMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_2, (*RewardRawTableData).Count_2, (*RewardRawTableData).Percent_2));
 		}
 
 		if ((*RewardRawTableData).ID_3 != -1)
 		{
-			RewardMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_3, (*RewardRawTableData).Count_3, (*RewardRawTableData).Percent_3));
+			RewardDataMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_3, (*RewardRawTableData).Count_3, (*RewardRawTableData).Percent_3));
 		}
 
 		if ((*RewardRawTableData).ID_4 != -1)
 		{
-			RewardMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_4, (*RewardRawTableData).Count_4, (*RewardRawTableData).Percent_4));
+			RewardDataMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_4, (*RewardRawTableData).Count_4, (*RewardRawTableData).Percent_4));
 		}
 	}
 }
+
+void AItemManager::SetRewardDataAll()
+{
+	for (int32 RewardID = 0; RewardID < RewardDataMap.Num(); RewardID++)
+	{
+		SetRewardData(RewardID);
+	}
+}
+
 
 FRewardBox AItemManager::RewardBox(int32 ID, int32 Count, float Percent)
 {

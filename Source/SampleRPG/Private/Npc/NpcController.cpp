@@ -43,8 +43,6 @@ void ANpcController::BeginPlay()
 	SetNpcData();
 }
 
-#pragma region Data Setting
-
 void ANpcController::SetNpcData()
 {
 	MainPlayer = Cast<AMainPlayer>(UGameplayStatics::GetPlayerPawn(this, 0));
@@ -96,11 +94,6 @@ void ANpcController::SetActiveSymbol(ESymbolType SymbolType)
 {
 	switch (SymbolType)
 	{
-	case ESymbolType::EST_None:
-		QuestionSymbol->SetVisibility(false);
-		ExclamationSymbol->SetVisibility(false);
-		break;
-
 	case ESymbolType::EST_Question:
 		QuestionSymbol->SetVisibility(true);
 		ExclamationSymbol->SetVisibility(false);
@@ -111,14 +104,15 @@ void ANpcController::SetActiveSymbol(ESymbolType SymbolType)
 		ExclamationSymbol->SetVisibility(true);
 		break;
 
+	case ESymbolType::EST_None:
+		QuestionSymbol->SetVisibility(false);
+		ExclamationSymbol->SetVisibility(false);
+		break;
+
 	default:
 		break;
 	}
 }
-
-#pragma endregion
-
-#pragma region Overlap
 
 void ANpcController::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
@@ -141,13 +135,10 @@ void ANpcController::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AAct
 
 		if (MainPlayer)
 		{
-			
 			MainPlayer->StopCommunication();
 
 			MainPlayer = nullptr;
 		}
 	}
 }
-
-#pragma endregion
 

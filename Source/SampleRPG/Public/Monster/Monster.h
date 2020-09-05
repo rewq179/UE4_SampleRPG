@@ -22,8 +22,24 @@ public:
 	// Sets default values for this character's properties
 	AMonster();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|ManagerClass")
 	class AGameManager* GameManager;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|ManagerClass")
+	class ACombatManager* CombatManager;
+
+	// Components //
+
+	UPROPERTY(EditDefaultsOnly, Category = "Monster|Components")
+	TSubclassOf<class AMonsterPattern> MonsterPatternBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Components")
+	class AMonsterPattern* MonsterPattern;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Components")
+	class AMonsterAI* MonsterAI;
+
+	// Properties //
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
 	class UParticleSystem* DamagedParticle;
@@ -33,52 +49,41 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
 	class UAnimMontage* CombatMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Monster|Properties")
-	TSubclassOf<class AMonsterPattern> MonsterPatternBP;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Properties")
-	class AMonsterPattern* MonsterPattern;
 	
-	FTimerHandle TimeHandle;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|MonsterTable")
-	int32 MonsterID;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|MonsterTable")
-	FMonsterTable Status;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	class ACombatManager* CombatManager;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Combat")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
 	class UBoxComponent* CombatRightCollision;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Combat")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Monster|Properties")
 	class UBoxComponent* CombatLeftCollision;
-	
+
+	FTimerHandle TimeHandle;
+
+	// DataTable //
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Monster|DataTable")
+	int32 MonsterID;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|DataTable")
+	FMonsterTable Status;
+
+	// Combat //
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
+	class AMainPlayer* CombatTarget;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Monster|Combat")
 	EHandType HandType;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	EAttackType AttackType;
 	FORCEINLINE void SetAttackType(EAttackType Type) { AttackType = Type; }
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	class AMonsterAI* MonsterAI;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	class AMainPlayer* CombatTarget;
+	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	bool bCanApplyDamage;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
-	bool bCanApplySkillDamage;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Monster|Combat")
 	bool bCanChargingAttack;
-
 	FORCEINLINE void SetChargingAttack() { bCanChargingAttack = true; }
 
 protected:
@@ -91,11 +96,15 @@ public:
 
 	void AttackTarget(class AMainPlayer* Target, EAttackClass AttackClass, int32 AttackNumber);
 
+	// Monster Status //
+
 	void TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAttackType DamageType);
 	void Death();
 	
 	void TakeGroggy(float DamageAMount, AActor* DamageCauser);
 	void Stun();
+
+	// Animation Blue print //
 
 	UFUNCTION(BlueprintCallable)
 	void SetHandType(EHandType Type);
@@ -116,18 +125,23 @@ public:
 
 	void PlayMontage(FName Name, float PlayRate);
 
-	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
-	void OnCombatRightOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	
-	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
-	void OnCombatRightOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-	
-	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
-	void OnCombatLeftOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
-	void OnCombatLeftOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	// Set Collision or Compoennt //
 
 	void SetCombatCollisionEnabled();
 	void SetCapsuleComponent(bool bIsActive);
+
+	// Overlap //
+
+	UFUNCTION()
+	void OnCombatRightOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	UFUNCTION()
+	void OnCombatRightOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
+	UFUNCTION() 
+	void OnCombatLeftOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION() 
+	void OnCombatLeftOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 };

@@ -53,7 +53,7 @@ void UBTService_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8 * Node
 		{
 			auto MainPlayer = Cast<AMainPlayer>(OverlapResult.GetActor());
 
-			if (MainPlayer && MainPlayer->GetController()->IsPlayerController() && MainPlayer->MovementState != EMovementState::EMS_Dead)
+			if (MainPlayer && MainPlayer->GetController()->IsPlayerController() && !MainPlayer->bIsDead)
 			{
 				OwnerComp.GetBlackboardComponent()->SetValueAsObject(AMonsterAI::Target, MainPlayer); // ≈∏∞Ÿ ¿˙¿Â
 				

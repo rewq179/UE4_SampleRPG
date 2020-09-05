@@ -11,7 +11,7 @@
 DECLARE_MULTICAST_DELEGATE(FOnPatternEndDelegate);
 
 USTRUCT(BlueprintType)
-struct FGatherPatterns
+struct FGatherPattern
 {
 	GENERATED_BODY()
 
@@ -29,34 +29,30 @@ public:
 	// Sets default values for this actor's properties
 	AMonsterPattern();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MonsterPattern|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|ManagerClass")
 	class AGameManager* GameManager;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MonsterPattern|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|ManagerClass")
 	class ACombatManager* CombatManager;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|Components")
 	class AMonster* Monster;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|PatternTable")
-	TArray<FGatherPatterns> Patterns;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|Pattern")
+	TArray<FGatherPattern> Patterns;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|Combat")
-	FGatherPatterns SelectedPatterns;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|Pattern")
+	FGatherPattern SelectPattern;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|Combat")
 	class AMainPlayer* CombatTarget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MonsterPattern|Combat")
 	bool bCanApplyPatternDamage;
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
+	
 public:
-	void AddPattern(int32 PatternID);
-	FGatherPatterns SetPatternStruct(int32 PatternID, int32 Count);
+	void AddPattern(int32 PatternID); 
+	FGatherPattern GetGatherPattern(int32 PatternID, int32 Count); // 한번에 여러발 쏠 수 있기 때문
 
 	UFUNCTION(BlueprintCallable)
 	void PatternAnimStart();
@@ -75,6 +71,6 @@ public:
 	FOnPatternEndDelegate OnPatternEnd;
 
 	UFUNCTION(BlueprintCallable)
-	void ApplyPatternDamageToTarget(APattern* SelectedPattern);
+	void ApplyPatternDamageToTarget(APattern* Pattern);
 
 };

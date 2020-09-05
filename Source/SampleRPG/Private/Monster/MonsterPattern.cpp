@@ -19,89 +19,78 @@ AMonsterPattern::AMonsterPattern()
 	bCanApplyPatternDamage = true;
 }
 
-// Called when the game starts or when spawned
-void AMonsterPattern::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
 void AMonsterPattern::AddPattern(int32 PatternID)
 {
 	auto PatternData = GameManager->PatternManager->GetPatternData(PatternID);
 	
-	Patterns.Add(SetPatternStruct(PatternID, PatternData.Count));
+	Patterns.Add(GetGatherPattern(PatternID, PatternData.Count));
 }
 
-FGatherPatterns AMonsterPattern::SetPatternStruct(int32 PatternID, int32 Count)
+FGatherPattern AMonsterPattern::GetGatherPattern(int32 PatternID, int32 Count)
 {
-	FGatherPatterns PatternStruct;
+	FGatherPattern GatherPattern;
 	TArray<APattern*> Patterns;
 
 	for (int32 Index = 0; Index < Count; Index++)
 	{
 		auto Pattern = GameManager->PatternManager->CreatePatternActor(PatternID);
 		Pattern->Monster = Monster;
-
-		Pattern->SetCollisionSize();
-		Pattern->SetActiveCollision(false);
+		Pattern->InitCollision();
 
 		Patterns.Add(Pattern);
 	}
 
-	PatternStruct.Patterns = Patterns;
+	GatherPattern.Patterns = Patterns;
 
-	return PatternStruct;
+	return GatherPattern;
 }
 
 void AMonsterPattern::PatternAnimStart()
 {
-	SelectedPatterns.Patterns[0]->PlayUseParticle();
+	SelectPattern.Patterns[0]->PlayUseParticle();
 }
 
-void AMonsterPattern::PatternNotifyField()
+void AMonsterPattern::PatternNotifyField() // 0번은 타게팅, 1번 이상부턴 랜덤 Location
 {
-		SelectedPatterns.Patterns[0]->PlayNotifyParticle(true);
+	SelectPattern.Patterns[0]->PlayNotifyParticle(true);
 
-	for (int32 Index = 1; Index < SelectedPatterns.Patterns.Num(); Index++)
+	for (int32 Index = 1; Index < SelectPattern.Patterns.Num(); Index++)
 	{
-		SelectedPatterns.Patterns[Index]->PlayNotifyParticle(false);
+		SelectPattern.Patterns[Index]->PlayNotifyParticle(false);
 	}
 }
 
-void AMonsterPattern::PatternDamageField()
+void AMonsterPattern::PatternDamageField() // 0번은 타게팅, 1번 이상부턴 랜덤 Location
 {
-	SelectedPatterns.Patterns[0]->PlayDamageParticle(true);
+	SelectPattern.Patterns[0]->PlayDamageParticle(true);
 
-	for (int32 Index = 1; Index < SelectedPatterns.Patterns.Num(); Index++)
+	for (int32 Index = 1; Index < SelectPattern.Patterns.Num(); Index++)
 	{
-		SelectedPatterns.Patterns[Index]->PlayDamageParticle(false);
+		SelectPattern.Patterns[Index]->PlayDamageParticle(false);
 	}
 
 }
 
 void AMonsterPattern::PatternApplyBuff()
 {
-
+	
 }
 
 void AMonsterPattern::PatternAnimEnd()
 {
-	if (SelectedPatterns.Patterns[0]->PatternData.PatternClass == EPatternClass::EPT_Teleport)
+	if (SelectPattern.Patterns[0]->PatternData.PatternClass == EPatternClass::EPT_Teleport) // 땅속에 들어가는 경우가 있어서 일단 땜방
 	{
 		FVector CurLocation = Monster->GetActorLocation();
-		CurLocation.Z = SelectedPatterns.Patterns[0]->TargetLocation.Z + 160.f;
+		CurLocation.Z = SelectPattern.Patterns[0]->TargetLocation.Z + 160.f;
 
 		Monster->SetActorLocation(CurLocation);
-		//Monster->SetCapsuleComponent(true);
 	}
 
 	Monster->SetHandType(EHandType::EHT_None);
 	
-	for (int32 Index = 0; Index < SelectedPatterns.Patterns.Num(); Index++)
+	for (int32 Index = 0; Index < SelectPattern.Patterns.Num(); Index++)
 	{
-		SelectedPatterns.Patterns[Index]->Target = nullptr;
-		SelectedPatterns.Patterns[Index]->SetActiveCollision(false);
+		SelectPattern.Patterns[Index]->SetActiveCollision(false);
 	}
 
 	OnPatternEnd.Broadcast();
@@ -111,29 +100,29 @@ void AMonsterPattern::PatternAnimEnd()
 
 
 
-void AMonsterPattern::ApplyPatternDamageToTarget(APattern* SelectedPattern)
+void AMonsterPattern::ApplyPatternDamageToTarget(APattern* Pattern)
 {
-	if (CombatTarget && SelectedPattern && bCanApplyPatternDamage)
+	if (CombatTarget && Pattern && bCanApplyPatternDamage)
 	{
 		bCanApplyPatternDamage = false;
 
-		switch (SelectedPattern->PatternData.DamagedType)
+		switch (Pattern->PatternData.StatusType)
 		{
-		case EDamagedType::EDT_CurHp:
-			CombatManager->ApplyDamageHP(CombatTarget->PlayerStatus, SelectedPattern->PatternData.CurHP, Monster, SelectedPattern->PatternData.AttackType, true, false);
+		case EStatusType::EST_CurHp:
+			CombatManager->ApplyDamageHP(CombatTarget->PlayerStatus,Pattern->PatternData.CurHP, Monster, Pattern->PatternData.AttackType, true, false);
 			break;
 
-		case EDamagedType::EDT_PerHP:
-			CombatManager->ApplyDamageHP(CombatTarget->PlayerStatus, SelectedPattern->PatternData.PerHP, Monster, SelectedPattern->PatternData.AttackType, true, true);
+		case EStatusType::EST_PerHP:
+			CombatManager->ApplyDamageHP(CombatTarget->PlayerStatus, Pattern->PatternData.PerHP, Monster, Pattern->PatternData.AttackType, true, true);
 			break;
 
-		case EDamagedType::EDT_CurST:
-			CombatManager->ApplyDamageST(CombatTarget->PlayerStatus, SelectedPattern->PatternData.CurHP, Monster, SelectedPattern->PatternData.AttackType, false);
+		case EStatusType::EST_CurST:
+			CombatManager->ApplyDamageST(CombatTarget->PlayerStatus, Pattern->PatternData.CurHP, Monster);
 
 			break;
 
-		case EDamagedType::EDT_PerST:
-			CombatManager->ApplyDamageST(CombatTarget->PlayerStatus, SelectedPattern->PatternData.PerHP, Monster, SelectedPattern->PatternData.AttackType, true);
+		case EStatusType::EST_PerST:
+			CombatManager->ApplyDamageST(CombatTarget->PlayerStatus, Pattern->PatternData.PerHP, Monster);
 			break;
 
 		default:
