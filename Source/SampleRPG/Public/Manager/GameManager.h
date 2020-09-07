@@ -18,6 +18,10 @@
 
 #include "GameManager.generated.h"
 
+/**
+ * Manager BP와 Class들을 모아놓음.
+*/
+
 UCLASS()
 class SAMPLERPG_API AGameManager : public AActor
 {
@@ -30,76 +34,80 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameManager|Properties")
 	class AMainPlayer* MainPlayer;
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+#pragma region Components
+	
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
 	TSubclassOf<class ACombatManager> CombatManagerBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
 	class ACombatManager* CombatManager;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|PComponents")
 	TSubclassOf<class ADataTableManager> DataTableManagerBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
 	class ADataTableManager* DataTableManager;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
 	TSubclassOf<class ADialogueManager> DialogueManagerBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
 	class ADialogueManager* DialogueManager;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
 	TSubclassOf<class AItemManager> ItemManagerBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
 	class AItemManager* ItemManager;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
 	TSubclassOf<class ANpcManager> NpcManagerBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
 	class ANpcManager* NpcManager;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
 	TSubclassOf<class AQuestManager> QuestManagerBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
 	class AQuestManager* QuestManager;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
 	TSubclassOf<class APatternManager> PatternManagerBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
 	class APatternManager* PatternManager;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
 		TSubclassOf<class ASkillManager> SkillManagerBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
 		class ASkillManager* SkillManager;
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
 	TSubclassOf<class ALevelManager> LevelManagerBP;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
 	class ALevelManager* LevelManager;
 
-	void DelayFunction();
+#pragma endregion
+
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
+	void InitComponents();
 
+	void DelayFunction();
 	
 	
 };

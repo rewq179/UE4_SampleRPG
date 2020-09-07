@@ -8,6 +8,10 @@
 #include "Manager/DataTableManager.h"
 #include "DialogueManager.generated.h"
 
+/**
+ * Dailogue Hud와 대화하기 위한 Mamanger Class이다.
+*/
+
 UCLASS()
 class SAMPLERPG_API ADialogueManager : public AActor
 {
@@ -17,38 +21,30 @@ public:
 	// Sets default values for this actor's properties
 	ADialogueManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|ManagerClass")
 	class AGameManager* GameManager;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|Properties")
-	class AMainPlayer* MainPlayer;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|Properties")
-	class ANpcController* InteractNPC;
+	// Data Table //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|DataTable")
 	FDialogueTable Dialogue;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|DataTable")
-	int32 DialogueID;
+	// Interact //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|Interact")
-	int32 InteractType;
-	
-	void SetActiveDialouge(bool IsActive, class ANpcController* Npc);
-	void SetDialogueText();
+	class AMainPlayer* MainPlayer;
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DialogueManager|Interact")
+	class ANpcController* InteractNPC;
+		
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	void SetNPC(class ANpcController* Npc);
+
+	FDialogueTable GetDialogue(int32 DialogueID);
+	void SetConversationalDialogue();
+	
+	// HUD //
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void SetActiveDialogue(bool IsActive);
-
-	void UpdateInteractTypeBox();
+	void SetActiveDialogue();
 };

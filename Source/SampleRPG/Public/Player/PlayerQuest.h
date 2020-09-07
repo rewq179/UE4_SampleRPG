@@ -7,6 +7,10 @@
 #include "Manager/QuestManager.h"
 #include "PlayerQuest.generated.h"
 
+/**
+ * 플레이어가 보유한 퀘스트에 관한 함수와 변수들을 모아놓음.
+*/
+
 UCLASS()
 class SAMPLERPG_API APlayerQuest : public AActor
 {
@@ -16,10 +20,12 @@ public:
 	// Sets default values for this actor's properties
 	APlayerQuest();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|ManagerClass")
 	class AQuestManager* QuestManager;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Properties")
+	// Components //
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Components")
 	class AMainPlayer* MainPlayer;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Properties")
@@ -36,37 +42,37 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerQuest|Quest")
 	FQuestTable RecentQuest;
+	
+public:	
+
+	// Add & Remove Quest //
 
 	void AddQuest();
 	void RemoveQuest();
+	void SetQuestKey();
+
+
 	void ClearQuest(int32 QuestID);
 
-	void SetQuestKey();
 	
 	UFUNCTION(BlueprintCallable)
 	void SetQuestTepList(bool bIsClearTep);
 
 	UFUNCTION(BlueprintCallable)
-	bool GetClearQuest();
+	bool IsClearQuestExist();
 
 	UFUNCTION(BlueprintCallable)
-	bool GetQuest();
+	bool CanGetQuest();
 
 	UFUNCTION(BlueprintCallable)
 	FQuestTable GetQuestData(int32 QuestID);
 
 	void IncreaseCount(EQuestType QuestType, int32 TargetID, int32 Count);
 
+	// Save & Load GameData //
+
 	void SaveQuestData(class USaveGameManager* SaveGameInstance);
 	void LoadQuestData(class USaveGameManager* LoadGameInstance);
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	
 	

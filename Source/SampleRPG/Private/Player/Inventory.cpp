@@ -23,22 +23,7 @@ AInventory::AInventory()
 	Equipments.Init(nullptr, 10);
 }
 
-
-void AInventory::BuyItem(AItem* Item)
-{
-	AddGold(-Item->ItemData.BuyPrice * Item->Count);
-
-	AddItem(Item);
-}
-
-
-void AInventory::SellItem(AItem* Item, int32 InputCount)
-{
-	AddGold(Item->ItemData.SellPrice * InputCount);
-
-	RemoveItem(Item, InputCount);
-}
-
+// Add & Remove Item //
 
 void AInventory::AddItem(AItem* Item)
 {
@@ -158,6 +143,79 @@ void AInventory::RemoveItem(AItem* Item, int32 Count)
 	
 	UpdateInventorySlot();
 }
+
+// Hud : Buy & Sell Item //
+
+void AInventory::BuyItem(AItem* Item)
+{
+	AddGold(-Item->ItemData.BuyPrice * Item->Count);
+
+	AddItem(Item);
+}
+
+
+void AInventory::SellItem(AItem* Item, int32 InputCount)
+{
+	AddGold(Item->ItemData.SellPrice * InputCount);
+
+	RemoveItem(Item, InputCount);
+}
+
+bool AInventory::IsEnoughGold(int32 Price, int32 Count)
+{
+	if (Price * Count <= Gold && Count > 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+int32 AInventory::GetItemMaxCount(FItemTable ItemData, int32 ItemCount, int32 InputCount, bool IsBuyTep)
+{
+	if (IsBuyTep) // 구매 탭
+	{
+		if (InputCount > ItemData.MaxCount) // 구입 개수가 최대 개수를 넘을 경우
+		{
+			InputCount = ItemData.MaxCount;
+		}
+	}
+
+	else
+	{
+		int32 SlotIndex = -1;
+
+		for (int32 Index = 0; Index < Spaces.Num(); Index++)
+		{
+			if (Spaces[Index]->ItemID == ItemData.ItemID && Spaces[Index]->Count == ItemCount)
+			{
+				SlotIndex = Index;
+			}
+		}
+
+		if (InputCount > Spaces[SlotIndex]->Count && SlotIndex != -1) // 구입 개수가 최대 개수를 넘을 경우
+		{
+			InputCount = Spaces[SlotIndex]->Count;
+		}
+	}
+
+	return InputCount;
+}
+
+int32 AInventory::GetItemPrice(FItemTable ItemData, int32 Count, bool IsBuyTep)
+{
+	if (IsBuyTep) // 구매 탭
+	{
+		return ItemData.BuyPrice * Count;
+	}
+
+	else // 판매 탭
+	{
+		return ItemData.SellPrice * Count;
+	}
+}
+
+// Hud : Click Item //
 
 void AInventory::UseItem(AItem* Item, int32 SlotIndex)
 {
@@ -279,59 +337,7 @@ void AInventory::WasStatusChangedByEquip(AItem* Item, bool IsEquip)
 	}
 }
 
-int32 AInventory::GetItemMaxCount(FItemTable ItemData, int32 ItemCount, int32 InputCount, bool IsBuyTep)
-{
-	if (IsBuyTep) // 구매 탭
-	{
-		if (InputCount > ItemData.MaxCount) // 구입 개수가 최대 개수를 넘을 경우
-		{
-			InputCount = ItemData.MaxCount;
-		}
-	}
-
-	else
-	{
-		int32 SlotIndex = -1;
-
-		for (int32 Index = 0; Index < Spaces.Num(); Index++)
-		{
-			if (Spaces[Index]->ItemID == ItemData.ItemID && Spaces[Index]->Count == ItemCount)
-			{
-				SlotIndex = Index;
-			}
-		}
-
-		if (InputCount > Spaces[SlotIndex]->Count && SlotIndex != -1) // 구입 개수가 최대 개수를 넘을 경우
-		{
-			InputCount = Spaces[SlotIndex]->Count;
-		}
-	}
-
-	return InputCount;
-}
-
-bool AInventory::IsEnoughGold(int32 Price, int32 Count)
-{
-	if (Price * Count <= Gold && Count > 0)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-int32 AInventory::GetItemPrice(FItemTable ItemData, int32 Count, bool IsBuyTep)
-{
-	if (IsBuyTep) // 구매 탭
-	{
-		return ItemData.BuyPrice * Count;
-	}
-
-	else // 판매 탭
-	{
-		return ItemData.SellPrice * Count;
-	}
-}
+// Save & Load GameData //
 
 void AInventory::SaveInventoryData(USaveGameManager* SaveGameInstance)
 {

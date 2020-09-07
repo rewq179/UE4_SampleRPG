@@ -7,7 +7,8 @@
 #include "MonsterAI.generated.h"
 
 /**
- * 
+ * Behavior Tree에서 사용될 Blackboard와 BehaviorTree를 모아놓았다. 
+ * 즉 각 몬스터들은 각각의 BB와 BT를 보유한다.
  */
 
 UCLASS()

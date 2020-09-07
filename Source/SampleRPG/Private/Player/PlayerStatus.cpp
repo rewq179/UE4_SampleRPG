@@ -40,6 +40,7 @@ void APlayerStatus::Tick(float DeltaTime)
 
 	IncreaseStamina(DeltaTime);
 }
+// Player Stat //
 
 void APlayerStatus::IncreaseStamina(float DeltaTime)
 {
@@ -51,25 +52,6 @@ void APlayerStatus::IncreaseStamina(float DeltaTime)
 	else
 	{
 		Stat.CurStamina = Stat.MaxStamina;
-	}
-}
-
-void APlayerStatus::AddExp(int32 Exp)
-{
-	Stat.CurExp += Exp;
-
-	CheckLevelUP();
-}
-
-void APlayerStatus::CheckLevelUP()
-{
-	while (Stat.CurExp >= Stat.MaxExp)
-	{
-		int32 Exp = Stat.CurExp - Stat.MaxExp;
-
-		SetLevelStatus(Stat.Level + 1);
-
-		Stat.CurExp = Exp;
 	}
 }
 
@@ -96,6 +78,27 @@ void APlayerStatus::SetLevelStatus(int32 CurLevel)
 		}
 	}
 }
+
+void APlayerStatus::AddExp(int32 Exp)
+{
+	Stat.CurExp += Exp;
+
+	CheckLevelUP();
+}
+
+void APlayerStatus::CheckLevelUP()
+{
+	while (Stat.CurExp >= Stat.MaxExp)
+	{
+		int32 Exp = Stat.CurExp - Stat.MaxExp;
+
+		SetLevelStatus(Stat.Level + 1);
+
+		Stat.CurExp = Exp;
+	}
+}
+
+// Combat //
 
 void APlayerStatus::AdjustHP(float DamageAmount, bool CanDie) 
 {
@@ -170,6 +173,22 @@ void APlayerStatus::TakeDamageST(float DamageAmount)
 	}
 }
 
+void APlayerStatus::Death()
+{
+	MainPlayer->bIsDead = true;
+
+	MainPlayer->PlayerCombat->PlayMontage(FName("Death"), 0.7f);
+}
+void APlayerStatus::Revive()
+{
+	Stat.CurHP = Stat.MaxHP;
+
+	MainPlayer->GetMesh()->bPauseAnims = false;
+	MainPlayer->GetMesh()->bNoSkeletonUpdate = false;
+}
+
+// Buff & Debuff Skill //
+
 void APlayerStatus::SetDebuffToPlayer(EAttackType AttackType)
 {
 	if (AttackType == EAttackType::EAT_Poison || AttackType == EAttackType::EAT_Frostbite)
@@ -180,16 +199,11 @@ void APlayerStatus::SetDebuffToPlayer(EAttackType AttackType)
 	}
 }
 
+// Anim Blueprint & Montage //
+
 void APlayerStatus::KnockDownAnimEnd()
 {
 	MainPlayer->bCanMove = true;
-}
-
-void APlayerStatus::Death()
-{
-	MainPlayer->bIsDead = true;
-
-	MainPlayer->PlayerCombat->PlayMontage(FName("Death"), 0.7f);
 }
 
 void APlayerStatus::DeathAnimEnd()
@@ -198,13 +212,7 @@ void APlayerStatus::DeathAnimEnd()
 	MainPlayer->GetMesh()->bNoSkeletonUpdate = true;
 }
 
-void APlayerStatus::Revive()
-{
-	Stat.CurHP = Stat.MaxHP;
-
-	MainPlayer->GetMesh()->bPauseAnims = false;
-	MainPlayer->GetMesh()->bNoSkeletonUpdate = false;
-}
+// Save & Load GameData //
 
 void  APlayerStatus::SavePlayerStatData(USaveGameManager* SaveGameInstance)
 {

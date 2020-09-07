@@ -11,6 +11,10 @@
 
 #include "PlayerStatus.generated.h"
 
+/**
+ * 플레이어의 스테이터스에 관한 함수와 변수들을 모아놓음.
+*/
+
 USTRUCT(BlueprintType)
 struct FPlayerStatTable : public FTableRowBase
 {
@@ -66,18 +70,24 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|ManagerClass")
 	class ASkillManager* SkillManager;
 
+	// Components //
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Conponents")
 	class AMainPlayer* MainPlayer;
+
+	// Properties //
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerStatus|Properties")
 	class USoundCue* DamagedSound;
 
 	FTimerHandle TimeHandle;
 
+	// DataTable //
+
 	class UDataTable* PlayerStatTable;
 	FPlayerStatTable* PlayerStatTableRow;
 
-	// 스탯 //
+	// Player Stat //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Stat")
 	float StaminaRate; // 스테미나 증가량
@@ -103,7 +113,7 @@ public:
 	FORCEINLINE float GetTotalDamage() { return IncDamage + Stat.Damage; }
 	FORCEINLINE float GetTotalDeffence() { return IncDeffence + Stat.Deffence; }
 
-	// 스킬 //
+	// Buff & Debuff Skill //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Skill")
 	TMap<int32, FSkillTable> SkillMaps; // 버프와 디버프 모음집
@@ -111,49 +121,48 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Skill")
 	FSkillTable RecentSkill;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Skill")
-	float LifeTime; // 스킬의 지속시간
-	
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaTime) override; // 스태미나 초당 회복에 사용중
 
-	// 스탯 //
+	// Player Stat //
 
 	void IncreaseStamina(float DeltaTime);
 
+	void SetLevelStatus(int32 CurLevel);
+
 	void AddExp(int32 Exp);
 	void CheckLevelUP();
-	void SetLevelStatus(int32 CurLevel);
+
+	// Combat //
 
 	void AdjustHP(float DamageAmount, bool CanDie);
 
 	void TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAttackType AttackType);
 	void TakeDamageST(float DamageAmount);
 	
-	// 애니메이션 //
+	void Death();
+	void Revive();
+
+	// Buff & Debuff Skill //
+
+	void SetDebuffToPlayer(EAttackType AttackType);
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetSystemText();
+
+	// Anim Blueprint & Montage //
 
 	UFUNCTION(BlueprintCallable)
 	void KnockDownAnimEnd();
 
-	void Death();
-
 	UFUNCTION(BlueprintCallable)
 	void DeathAnimEnd();
 
-	void Revive();
 
-	// 세이브 로드 //
+	// Save & Load GameData //
 
 	void SavePlayerStatData(class USaveGameManager* SaveGameInstance);
 	void LoadPlayerStatData(class USaveGameManager* LoadGameInstance);
 	
-	// 상태이상 //
-
-	void SetDebuffToPlayer(EAttackType AttackType);
-	
-	// HUD  //
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void SetSystemText();
 };

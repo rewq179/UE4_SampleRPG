@@ -9,6 +9,10 @@
 
 #include "ItemManager.generated.h"
 
+/**
+ * 
+*/
+
 UCLASS()
 class SAMPLERPG_API AItemManager : public AActor
 {
@@ -21,6 +25,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ItemManager|ManagerClass")
 	class AGameManager* GameManager;
 
+	// DataTable //
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ItemManager|DataTable")
 	TMap<int32, TSubclassOf<class AItem>> ItemMap;
 
@@ -28,14 +34,20 @@ public:
 	TMap<int32, FRewardTable> RewardDataMap;
 
 public:	
+
+	// Item Table Function //
 	UFUNCTION(BlueprintCallable)
 	FItemTable GetItemData(int32 ItemID);
 	void SetItemData(class AItem* Item, int32 ItemID);
+
+	// Hud and Spawn Item //
 
 	UFUNCTION(BlueprintCallable)
 	class AItem* CreateItemActor(int32 ItemID, int32 Count);
 
 	void SpawnItemActor(int32 ITemID, int32 Count, FVector Location);
+
+	// Reward Table Funtion //
 
 	UFUNCTION(BlueprintCallable)
 	FRewardTable GetRewardData(int32 RewardID);
@@ -43,6 +55,8 @@ public:
 	void SetRewardDataAll();
 
 	FRewardBox RewardBox(int32 ID, int32 Count, float Percent);
+
+	// Kill Monster And Spawn Monster's Drop Items //
 
 	void GetMonsterItem(int32 ProductID, int32 RewardID, FVector Location);
 	bool GetItemInRewardBox(int32 RewardID, FVector Location);

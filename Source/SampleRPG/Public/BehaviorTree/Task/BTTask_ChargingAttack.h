@@ -7,8 +7,9 @@
 #include "BTTask_ChargingAttack.generated.h"
 
 /**
- * 
+ * Pawn의 ChargingAttack 애니메이션을 재생/데미지 적용/상태이상 적용을 통합적으로 처리한다.
  */
+
 UCLASS()
 class SAMPLERPG_API UBTTask_ChargingAttack : public UBTTaskNode
 {
@@ -23,6 +24,7 @@ protected:
 
 private:
 	UPROPERTY(Category = "Value", EditAnywhere)
-	int32 AttackNumber;
-	bool IsCharging;
+	int32 AttackNumber; // Montage에 저장되어있는 Attack_?에서 ?에 들어갈 숫자를 의미한다.
+
+	bool IsCharging; // 공격 처리가 진행중이면 True, 끝나면 False
 };

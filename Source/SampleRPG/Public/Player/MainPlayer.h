@@ -16,12 +16,12 @@ public:
 	// Sets default values for this character's properties
 	AMainPlayer();
 
-	// 매니저 클래스 //
+	// Manager //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|ManagerClass")
 	class AGameManager* GameManager;
 
-	// 컴포넌트 클래스 //
+	// Components //
 
 	UPROPERTY(EditDefaultsOnly, Category = "MainPlayer|Components")
 	TSubclassOf<class AInventory> InventoryBP;
@@ -47,13 +47,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Components")
 	class APlayerQuest* PlayerQuest;
 
-	// 무브먼트 //
+	// Movement //
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Movement")
 	float NormalSpeed;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Movement")
 	float RollCost;
+
+	// State //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
 	bool bCanMove;
@@ -71,17 +73,17 @@ public:
 	bool bIsAttackAnim; // 어택 애니메이션이 진행중인가?
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MainPlayer|State")
-	bool bIsMenuVisible;
+	bool bIsMenuVisible; // UI가 On되어있을땐 못움직인다.
 	
-	// 카메라 //
+	// Camera //
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainPlayer|Camera", meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom; // 셀카봉
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MainPlayer|Camera", meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera; // 카메라
 	
-	// 상호작용 //
+	// Interact Object //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Interact")
 	TArray<class AItem*> InteractItems;
@@ -89,7 +91,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Interact")
 	class ANpcController* InteractNPC;
 
-	// 맵 이름
+	// Level //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Interact")
 	FName NextLevelName;
@@ -99,16 +101,15 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-		// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	void InitComponents();
 
-	// 인풋 아웃풋 키 //
+	// Input Key //
+
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	void LeftClickDown(); // 마우스 좌클릭
 
-	// 무브먼트 함수들 // 
+	// Movement // 
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -116,17 +117,16 @@ public:
 	void Roll();
 	UFUNCTION(BlueprintCallable)
 	void RollAnimEnd();
-
-	// Interact 함수들 //
+	
+	// Interact //
 
 	void InteractObject();
-	void StopCommunication();
 
 	void AddInteractedItemAll();
 	void SwitchLevel();
 	bool IsLevelChange(FName NextLevelName);
 
-	// 세이브 로드 //
+	// Save & Load GameData //
 
 	UFUNCTION(BlueprintCallable)
 	void SaveGame();

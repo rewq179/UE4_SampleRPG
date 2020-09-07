@@ -2,7 +2,9 @@
 
 #include "PlayerQuest.h"
 #include "Player/MainPlayer.h"
-#include "Manager//SaveGameManager.h"
+
+#include "Manager/SaveGameManager.h"
+#include "Manager/GameManager.h"
 
 #include "Npc/NpcController.h"
 #include "Engine/World.h"
@@ -14,18 +16,6 @@ APlayerQuest::APlayerQuest()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
-void APlayerQuest::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-// Called every frame
-void APlayerQuest::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
 
 void APlayerQuest::AddQuest()
 {
@@ -39,15 +29,6 @@ void APlayerQuest::AddQuest()
 	SetQuestKey();
 }
 
-void APlayerQuest::ClearQuest(int32 QuestID)
-{
-	if (Quests.Contains(QuestID))
-	{
-		Quests[QuestID].bCanClear = false;
-		Quests[QuestID].bIsClear = true;
-	}
-}
-
 void APlayerQuest::SetQuestKey()
 {
 	QuestKey.Empty();
@@ -55,6 +36,15 @@ void APlayerQuest::SetQuestKey()
 	for (auto& Quest : Quests)
 	{
 		QuestKey.Add(Quest.Key);
+	}
+}
+
+void APlayerQuest::ClearQuest(int32 QuestID)
+{
+	if (Quests.Contains(QuestID))
+	{
+		Quests[QuestID].bCanClear = false;
+		Quests[QuestID].bIsClear = true;
 	}
 }
 
@@ -73,7 +63,7 @@ void APlayerQuest::SetQuestTepList(bool bIsClearTep)
 	}
 }
 
-bool APlayerQuest::GetClearQuest()
+bool APlayerQuest::IsClearQuestExist()
 {
 	for (int32 Index = 0; Index < InteractNPC->QuestID.Num(); Index++)
 	{
@@ -90,7 +80,7 @@ bool APlayerQuest::GetClearQuest()
 	return false;
 }
 
-bool APlayerQuest::GetQuest()
+bool APlayerQuest::CanGetQuest()
 {
 	// 퀘스트 상자박스 클릭 -> 해당 NPC의 0번째 퀘스트 부터 검사함
 	// 퀘스트를 소유했는가? -> Yes : 완료했는가? 다음 퀘스트 검사
@@ -127,11 +117,13 @@ void APlayerQuest::IncreaseCount(EQuestType QuestType, int32 TargetID, int32 Cou
 			{
 				Quests[QuestKey[Index]].bCanClear = true;
 				
-				QuestManager->SetSymbol(ESymbolType::EST_Question, QuestKey[Index]);
+				QuestManager->NpcManager->SetQuestSymbol(Quests[QuestKey[Index]].NpcID, ESymbolType::EST_Question);
 			}
 		}
 	}
 }
+
+// Save & Load GameData //
 
 void APlayerQuest::SaveQuestData(class USaveGameManager* SaveGameInstance)
 {

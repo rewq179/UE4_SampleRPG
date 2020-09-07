@@ -12,21 +12,7 @@ ADialogueManager::ADialogueManager()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
-void ADialogueManager::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void ADialogueManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-void ADialogueManager::SetActiveDialouge(bool IsActive, ANpcController* Npc)
+void ADialogueManager::SetNPC(ANpcController* Npc)
 {
 	if (InteractNPC != Npc)
 	{
@@ -35,46 +21,30 @@ void ADialogueManager::SetActiveDialouge(bool IsActive, ANpcController* Npc)
 
 	if (Npc)
 	{
-		SetDialogueText();
-		UpdateInteractTypeBox();
+		SetConversationalDialogue();
 	}
 
-	SetActiveDialogue(IsActive);
+	SetActiveDialogue();
 }
 
-void ADialogueManager::SetDialogueText()
+void ADialogueManager::SetConversationalDialogue()
 {
-	DialogueID = FMath::RandRange(InteractNPC->DialogueID[0], InteractNPC->DialogueID[InteractNPC->DialogueID.Num()-1]);
+	int32 DialogueID = FMath::RandRange(InteractNPC->DialogueID[0], InteractNPC->DialogueID[InteractNPC->DialogueID.Num()-1]);
 
+	Dialogue = GetDialogue(DialogueID);
+}
+
+FDialogueTable ADialogueManager::GetDialogue(int32 DialogueID)
+{
 	FDialogueTable* DialogueTableData = GameManager->DataTableManager->GetDialogueTableData(DialogueID);
+
+	FDialogueTable Dialogue;
 
 	if (DialogueTableData)
 	{
 		Dialogue.DialogueID = (*DialogueTableData).DialogueID;
 		Dialogue.DialogueText = (*DialogueTableData).DialogueText;
 	}
-}
 
-void ADialogueManager::UpdateInteractTypeBox()
-{
-	if (InteractNPC->NpcData.bHasQuest && InteractNPC->NpcData.bHasItem)
-	{
-		InteractType = 3;
-	}
-
-	else if (InteractNPC->NpcData.bHasQuest)
-	{
-		InteractType = 2;
-	}
-
-	else if (InteractNPC->NpcData.bHasItem)
-	{
-		InteractType = 1;
-	}
-
-	else
-	{
-		InteractType = 0;
-	}
-	
+	return Dialogue;
 }

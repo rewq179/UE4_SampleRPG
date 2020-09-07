@@ -22,20 +22,20 @@ APlayerCombat::APlayerCombat()
 	InterpSpeed = 15.f;
 }
 
-// Called when the game starts or when spawned
-void APlayerCombat::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
+// Anim Blueprint & Montage //
 
 void APlayerCombat::PlayAttackAnim()
 {
-	// 헤더파일 : #include "Engine/SkeletalMeshSocket.h"
-
-	PlayMontage(FName("Attack_1"), 2.f);
+	PlayMontage(FName("Attack_1"), 2.0f);
 
 	bIsInterp = true;
+}
+
+void APlayerCombat::AttackAnimStart()
+{
+	MainPlayer->bIsAttackAnim = true;
+
+	MainPlayer->Inventory->Equipments[0]->SetEnabledCombatCollision(true);
 }
 
 void APlayerCombat::ApplyDamageToTarget()
@@ -56,13 +56,6 @@ void APlayerCombat::ApplyDamageToTarget()
 	}
 }
 
-void APlayerCombat::AttackAnimStart()
-{
-	MainPlayer->bIsAttackAnim = true;
-
-	MainPlayer->Inventory->Equipments[0]->SetEnabledCombatCollision(true);
-}
-
 void APlayerCombat::AttackAnimEnd()
 {
 	MainPlayer->bIsAttackAnim = false;
@@ -73,24 +66,18 @@ void APlayerCombat::AttackAnimEnd()
 
 }
 
-void APlayerCombat::InterpToMonster(float DeltaTime)
+void  APlayerCombat::PlayMontage(FName AnimName, float PlayRate)
 {
-	if (bIsInterp && TargetMonsters.Num() > 0)
-	{
-		FRotator DirectionYaw = GetTargetDirection(TargetMonsters[0]->GetActorLocation());
-		FRotator InterpRotaion = FMath::RInterpTo(GetActorRotation(), DirectionYaw, DeltaTime, InterpSpeed);
+	UAnimInstance* AnimInstance = MainPlayer->GetMesh()->GetAnimInstance();
 
-		SetActorRotation(InterpRotaion);
+	if (AnimInstance && CombatMontage)
+	{
+		AnimInstance->Montage_Play(CombatMontage, PlayRate); // 해당 몽타쥬를 n배 빠르게 재상한다.
+		AnimInstance->Montage_JumpToSection(AnimName, CombatMontage);
 	}
 }
 
-FRotator APlayerCombat::GetTargetDirection(FVector Target)
-{
-	FRotator Direction = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Target);
-	FRotator DirectionYaw(0.f, Direction.Yaw, 0.f);
-
-	return DirectionYaw;
-}
+// HUD : Monster Info(Boss > Elite > Normal) //
 
 void APlayerCombat::UpdateWidgetMonster()
 {
@@ -107,6 +94,8 @@ void APlayerCombat::UpdateWidgetMonster()
 
 		for (int32 j = i + 1; j < WidgetMonsters.Num(); j++)
 		{
+			UE_LOG(LogTemp, Log, TEXT("Pri : %d"), (int32)WidgetMonsters[MinIndex]->Status.MonsterClass);
+
 			if (GetPriorityByClass(WidgetMonsters[MinIndex]->Status.MonsterClass) < GetPriorityByClass(WidgetMonsters[j]->Status.MonsterClass))
 			{
 				MinIndex = j;
@@ -137,13 +126,24 @@ int32 APlayerCombat::GetPriorityByClass(EMonsterClass Class)
 	}
 }
 
-void APlayerCombat::PlayMontage(FName Name, float PlayRate)
-{
-	UAnimInstance* AnimInstance = MainPlayer->GetMesh()->GetAnimInstance();
+// Player Interp //
 
-	if (AnimInstance && CombatMontage)
+void APlayerCombat::InterpToMonster(float DeltaTime)
+{
+	if (bIsInterp && TargetMonsters.Num() > 0)
 	{
-		AnimInstance->Montage_Play(CombatMontage, PlayRate); // 해당 몽타쥬를 n배 빠르게 재상한다.
-		AnimInstance->Montage_JumpToSection(Name, CombatMontage);
+		FRotator DirectionYaw = GetTargetDirection(TargetMonsters[0]->GetActorLocation());
+		FRotator InterpRotaion = FMath::RInterpTo(GetActorRotation(), DirectionYaw, DeltaTime, InterpSpeed);
+
+		SetActorRotation(InterpRotaion);
 	}
 }
+
+FRotator APlayerCombat::GetTargetDirection(FVector Target)
+{
+	FRotator Direction = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Target);
+	FRotator DirectionYaw(0.f, Direction.Yaw, 0.f);
+
+	return DirectionYaw;
+}
+

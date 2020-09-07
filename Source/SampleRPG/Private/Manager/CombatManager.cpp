@@ -71,15 +71,12 @@ void ACombatManager::ApplyDamageHP(AActor* DamagedActor, float BaseDamage, AActo
 
 void ACombatManager::AdjustDamageHP(AActor* DamagedActor, float BaseDamage, bool bIsPercent)
 {
-	if (DamagedActor == MainPlayer->PlayerStatus)
+	if (bIsPercent)
 	{
-		if (bIsPercent)
-		{
-			BaseDamage = GetPercentBaseDamage(BaseDamage, PlayerStatus->Stat.MaxHP);
-		}
-
-		MainPlayer->PlayerStatus->AdjustHP(BaseDamage, false);
+		BaseDamage = GetPercentBaseDamage(BaseDamage, MainPlayer->PlayerStatus->Stat.MaxHP);
 	}
+
+	MainPlayer->PlayerStatus->AdjustHP(BaseDamage, false);
 }
 
 void ACombatManager::ApplyDamageST(AActor* DamagedActor, float BaseDamage, bool bIsPercent)

@@ -1,8 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "NpcManager.h"
-#include "Npc/NpcController.h"
+#include "Manager/NpcManager.h"
 #include "Manager/GameManager.h"
+#include "Manager/QuestManager.h"
+
+#include "Npc/NpcController.h"
+
 
 // Sets default values
 ANpcManager::ANpcManager()
@@ -24,9 +27,8 @@ void ANpcManager::SetNpcData(int32 NpcID)
 	if (NpcTableData)
 	{
 		NpcDataMap[NpcID].NpcID = (*NpcTableData).NpcID;
+		NpcDataMap[NpcID].NpcClass = (*NpcTableData).NpcClass;
 		NpcDataMap[NpcID].Name = (*NpcTableData).Name;
-		NpcDataMap[NpcID].bHasItem = (*NpcTableData).bHasItem;
-		NpcDataMap[NpcID].bHasQuest = (*NpcTableData).bHasQuest;
 		NpcDataMap[NpcID].DialogueID = (*NpcTableData).DialogueID;
 		NpcDataMap[NpcID].ItemID = (*NpcTableData).ItemID;
 		NpcDataMap[NpcID].QuestID = (*NpcTableData).QuestID;
@@ -41,23 +43,24 @@ void ANpcManager::SetNpcDataAll()
 	}
 }
 
-void ANpcManager::SetNpcSymbol(ESymbolType SymbolType, int32 NpcID)
+
+void ANpcManager::CheckQuestSymbol(int32 NpcID) // 퀘스트 심볼을 확인해본다.
+{
+	if (GameManager->QuestManager->IsExclamationSymbol(NpcMap[NpcID]->QuestID)) // Npc가 보유한 퀘스트 ID를 모두 체크함.
+	{
+		SetQuestSymbol(NpcID, ESymbolType::EST_Exclamation);
+	}
+}
+
+void ANpcManager::SetQuestSymbol(int32 NpcID, ESymbolType SymbolType)
 {
 	NpcMap[NpcID]->SetActiveSymbol(SymbolType);
 }
 
-void ANpcManager::CheckNpcSymbol(int32 NpcID) // 퀘스트 심볼을 확인해본다.
-{
-	if (GameManager->QuestManager->IsExclamationSymbol(NpcMap[NpcID]->QuestID))
-	{
-		SetNpcSymbol(ESymbolType::EST_Exclamation, NpcID);
-	}
-}
-
-void ANpcManager::CheckNpcSymbolAll()
+void ANpcManager::CheckQuestSymbolAllNPC()
 {
 	for (auto& Map : NpcMap)
 	{
-		CheckNpcSymbol(Map.Key);
+		CheckQuestSymbol(Map.Key);
 	}
 }

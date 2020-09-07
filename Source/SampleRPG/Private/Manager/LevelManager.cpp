@@ -32,11 +32,11 @@ void ALevelManager::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AAc
 {
 	if (OtherActor)
 	{
-		auto Main = Cast<AMainPlayer>(OtherActor);
+		MainPlayer = Cast<AMainPlayer>(OtherActor);
 
-		if (Main)
+		if (MainPlayer)
 		{
-			Main->NextLevelName = LevelName;
+			MainPlayer->NextLevelName = LevelName;
 		}
 	}
 }
@@ -44,13 +44,9 @@ void ALevelManager::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AAc
 
 void ALevelManager::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor)
+	if (OtherActor == MainPlayer)
 	{
-		auto Main = Cast<AMainPlayer>(OtherActor);
-
-		if (Main)
-		{
-			Main->NextLevelName = FName("None");
-		}
+		MainPlayer->NextLevelName = FName("None");
+		MainPlayer = nullptr;
 	}
 }

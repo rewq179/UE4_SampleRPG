@@ -7,8 +7,9 @@
 #include "BTTask_TurnToTarget.generated.h"
 
 /**
- * 
+ * Pawn을 Target을 바라보도록 회전시켜준다. 공격 모션과 함께 재생되는 TaskNode다.
  */
+
 UCLASS()
 class SAMPLERPG_API UBTTask_TurnToTarget : public UBTTaskNode
 {

@@ -16,33 +16,33 @@ class SAMPLERPG_API USaveGameManager : public USaveGame
 public:
 	USaveGameManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGameManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SaveGameManager|ManagerClass")
 	class AGameManager* GameManager;
 
-	UPROPERTY(VisibleAnywhere, Category = Basic)
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameManager|GameData")
 	FString PlayerName;
 	
-	UPROPERTY(VisibleAnywhere, Category = Basic)
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameManager|GameData")
 	uint32 UserIndex;
 
-	UPROPERTY(VisibleAnywhere, Category = Basic)
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameManager|GameData")
 	FPlayerStatTable PlayerStat;
 
-	UPROPERTY(VisibleAnywhere, Category = Basic)
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameManager|GameData")
 	FVector Location;
 
-	UPROPERTY(VisibleAnywhere, Category = Basic)
+	UPROPERTY(VisibleAnywhere, Category = "SaveGameManager|GameData")
 	FRotator Rotation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SaveGameManager|Level")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SaveGameManager|GameData")
 	FString LevelName;
 
-	UPROPERTY(EditDefaultsOnly, Category = "SaveGameManager|SaveData")
+	UPROPERTY(EditDefaultsOnly, Category = "SaveGameManager|GameData")
 	TMap<int32, int32> InventoryItemMap;
 
-	UPROPERTY(EditDefaultsOnly, Category = "SaveGameManager|SaveData")
+	UPROPERTY(EditDefaultsOnly, Category = "SaveGameManager|GameData")
 	TArray<int32> EquipmentItem;
 
-	UPROPERTY(EditDefaultsOnly, Category = "SaveGameManager|SaveData")
+	UPROPERTY(EditDefaultsOnly, Category = "SaveGameManager|GameData")
 	TMap<int32, bool> PlayerQuestMap;
 };

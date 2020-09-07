@@ -11,6 +11,10 @@
 
 #include "UObject/ConstructorHelpers.h"
 
+/**
+ * Player의 Quest, Npc가 보유한 Quest, Hud의 Quest 화면등을 연결하는 클래스다.
+ * 물론 모든 QuestData의 정보를 가지고 있다.
+*/
 
 // Sets default values
 AQuestManager::AQuestManager()
@@ -20,15 +24,9 @@ AQuestManager::AQuestManager()
 
 }
 
-void AQuestManager::SetAllQuestData()
+FQuestTable AQuestManager::GetQuestData(int32 QuestID)
 {
-	if (QuestMap.Num() > 0 && GameManager)
-	{
-		for (int32 Count = 0; Count < QuestMap.Num(); Count++)
-		{
-			SetQuestData(Count);
-		}
-	}
+	return QuestMap[QuestID];
 }
 
 void AQuestManager::SetQuestData(int32 QuestID)
@@ -63,9 +61,15 @@ void AQuestManager::SetQuestData(int32 QuestID)
 	}
 }
 
-FQuestTable AQuestManager::GetQuestData(int32 QuestID)
+void AQuestManager::SetQuestDataAll()
 {
-	return QuestMap[QuestID];
+	if (QuestMap.Num() > 0 && GameManager)
+	{
+		for (int32 Count = 0; Count < QuestMap.Num(); Count++)
+		{
+			SetQuestData(Count);
+		}
+	}
 }
 
 
@@ -87,20 +91,19 @@ void AQuestManager::AcceptQuest(FQuestTable Quest)
 
 	if (Quest.QuestID == 2)
 	{
-		FVector Location = GameManager->NpcManager->NpcMap[Quest.NpcID]->GetActorLocation();
+		FVector Location = NpcManager->NpcMap[Quest.NpcID]->GetActorLocation();
 	
 		Location += FVector(0.f, 210.f, -78.f);
 
 		GameManager->ItemManager->SpawnItemActor(Quest.TargetID, Quest.MaxCount, Location);
 	}
 
-	GameManager->NpcManager->SetNpcSymbol(ESymbolType::EST_None, Quest.NpcID);
+	NpcManager->SetQuestSymbol(Quest.NpcID, ESymbolType::EST_None);
 }
 
 void AQuestManager::ClearQuest(FQuestTable Quest)
 {
 	MainPlayer->PlayerQuest->ClearQuest(Quest.QuestID);
-
 	MainPlayer->PlayerStatus->AddExp(Quest.Exp);
 	MainPlayer->Inventory->AddGold(Quest.Gold);
 
@@ -111,20 +114,8 @@ void AQuestManager::ClearQuest(FQuestTable Quest)
 		MainPlayer->Inventory->AddItem(RewardItem);
 	}
 
-	SetSymbol(ESymbolType::EST_None, Quest.NpcID);
-	GameManager->NpcManager->CheckNpcSymbol(Quest.NpcID);
-
-	if (Quest.QuestID == 3) // 듀토리얼 종료
-	{
-
-	}
-}
-
-void AQuestManager::SetSymbol(ESymbolType SymbolType, int32 QuestID)
-{
-	int32 NpcID = QuestMap[QuestID].NpcID;
-
-	GameManager->NpcManager->SetNpcSymbol(SymbolType, NpcID);
+	NpcManager->SetQuestSymbol(Quest.NpcID, ESymbolType::EST_None);
+	NpcManager->CheckQuestSymbol(Quest.NpcID);
 }
 
 bool AQuestManager::IsExclamationSymbol(TArray<int32> QuestID)
@@ -146,7 +137,7 @@ bool AQuestManager::IsPrerequisiteMeet(int32 QuestID) // 선행 조건을 만족했는지?
 
 	if (!Quests.Contains(QuestID)) // 퀘스트를 보유하지 않았고
 	{
-		int32 PreQuestID = GetPreQuestID(QuestID);
+		int32 PreQuestID = QuestMap[QuestID].PreQuest;
 
 		if (PreQuestID == -1) // 선행 퀘스트가 없다? 그럼 퀘스트를 띄어준다.
 		{

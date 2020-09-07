@@ -9,6 +9,10 @@
 
 #include "PatternManager.generated.h"
 
+/**
+ * Monster가 사용하는 패턴 공격들을 모아놓은 클래스다.
+*/
+
 UCLASS()
 class SAMPLERPG_API APatternManager : public AActor
 {
@@ -21,7 +25,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PatternManager|ManagerClass")
 	class AGameManager* GameManager;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PatternManager|Properties")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "PatternManager|Patterns")
 	TMap<int32, TSubclassOf<class APattern>> PatternMap;
 
 public:	

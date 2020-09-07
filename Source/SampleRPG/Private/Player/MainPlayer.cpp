@@ -133,7 +133,8 @@ void AMainPlayer::InitComponents()
 	}
 }
 
-// Called to bind functionality to input
+// Input Key //
+
 void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -147,6 +148,17 @@ void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMainPlayer::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMainPlayer::MoveRight);
+}
+
+void AMainPlayer::LeftClickDown()
+{
+	if (bIsEquip && !bIsAttackAnim) // 무기를 소유했으며 공격 애니메이션이 종료되었는가?
+	{
+		bIsAttackAnim = true;
+
+		PlayerCombat->SetAttackType(EAttackType::EAT_None);
+		PlayerCombat->PlayAttackAnim();
+	}
 }
 
 void AMainPlayer::MoveForward(float Value)
@@ -202,16 +214,7 @@ void AMainPlayer::RollAnimEnd()
 	bIsRoll = false;
 }
 
-void AMainPlayer::LeftClickDown()
-{
-	if (bIsEquip && !bIsAttackAnim) // 무기를 소유했으며 공격 애니메이션이 종료되었는가?
-	{
-		bIsAttackAnim = true;
-
-		PlayerCombat->SetAttackType(EAttackType::EAT_None);
-		PlayerCombat->PlayAttackAnim();
-	}
-}
+// Interact //
 
 void AMainPlayer::InteractObject()
 {
@@ -229,7 +232,7 @@ void AMainPlayer::InteractObject()
 
 	else if (InteractNPC)
 	{
-		GameManager->DialogueManager->SetActiveDialouge(true, InteractNPC);
+		GameManager->DialogueManager->SetNPC(InteractNPC);
 		
 		PlayerQuest->InteractNPC = InteractNPC;
 	}
@@ -247,12 +250,6 @@ void AMainPlayer::AddInteractedItemAll()
 	}
 }
 
-void AMainPlayer::StopCommunication()
-{
-	InteractNPC = nullptr;
-
-	GameManager->DialogueManager->SetActiveDialouge(false, nullptr);
-}
 
 void AMainPlayer::SwitchLevel()
 {
@@ -288,6 +285,8 @@ bool AMainPlayer::IsLevelChange(FName NextLevelName)
 
 	return false;
 }
+
+// Save & Load GameData //
 
 void AMainPlayer::SaveGame()
 {

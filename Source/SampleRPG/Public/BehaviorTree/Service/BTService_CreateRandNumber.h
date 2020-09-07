@@ -7,8 +7,10 @@
 #include "BTService_CreateRandNumber.generated.h"
 
 /**
- * 
+ * 몬스터가 사용할 Pattern의 Number를 생성한다. 
+ * Percents의 총합은 100이여야한다.
  */
+
 UCLASS()
 class SAMPLERPG_API UBTService_CreateRandNumber : public UBTService
 {

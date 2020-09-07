@@ -129,16 +129,9 @@ void ANpcController::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 
 void ANpcController::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor)
+	if (OtherActor == MainPlayer)
 	{
-		MainPlayer = Cast<AMainPlayer>(OtherActor);
-
-		if (MainPlayer)
-		{
-			MainPlayer->StopCommunication();
-
-			MainPlayer = nullptr;
-		}
+		MainPlayer = nullptr;
 	}
 }
 

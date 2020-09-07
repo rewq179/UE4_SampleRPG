@@ -7,8 +7,9 @@
 #include "BTDecorator_IsInAttackRange.generated.h"
 
 /**
- * 
+ * 몬스터의 Attack Range안에 Target이 들어왔는가? 
  */
+
 UCLASS()
 class SAMPLERPG_API UBTDecorator_IsInAttackRange : public UBTDecorator
 {

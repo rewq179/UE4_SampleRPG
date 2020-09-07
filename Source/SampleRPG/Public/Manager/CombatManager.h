@@ -6,8 +6,12 @@
 #include "GameFramework/Actor.h"
 #include "CombatManager.generated.h"
 
+/**
+ * Monster와 MainPlayer의 데미지 처리, 보상을 처리해주는 클래스다.
+*/
+
 UENUM(BlueprintType)
-enum class EAttackType : uint8
+enum class EAttackType : uint8 // 공격 타입
 {
 	EAT_None UMETA(DisplayName = "None"),
 	EAT_KnockDown UMETA(DisplayName = "KnockDown"),
@@ -17,7 +21,7 @@ enum class EAttackType : uint8
 };
 
 UENUM(BlueprintType)
-enum class EStatusType : uint8
+enum class EStatusType : uint8 // 피해 STatus 타입
 {
 	EST_None UMETA(DisplayName = "None"),
 	EST_CurHp UMETA(DisplayName = "Cur Health"),
@@ -41,23 +45,24 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|ManagerClass")
 	class ASkillManager* SkillManager;
 
+	// Combat //
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Combat")
 	class AMainPlayer* MainPlayer;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Combat")
 	class AMonster* CombatMonster;
 
-	FTimerHandle TimerHandle;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Combat")
 	float LifeTime;
+
+	FTimerHandle TimerHandle;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	
 	// 데미지 적용 //
 
 	void ApplyDamageHP(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EAttackType AttackType, bool bIsPlayerDamaged, bool bIsPercent);
@@ -66,6 +71,8 @@ public:
 	void ApplyDamageST(AActor* DamagedActor, float BaseDamage, bool bIsPercent);
 	float GetPercentBaseDamage(float Percent, float MaxValue);
 	
+	// 몬스터 보상 //
+
 	void MonsterDeath(class AMonster* Monster);
 
 	// 상태이상 적용 //

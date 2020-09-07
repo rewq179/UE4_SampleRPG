@@ -3,6 +3,6 @@
 	"Modules": 
 	{
 		"Player": "UE4Editor-Player-7501.dll",
-		"SampleRPG": "UE4Editor-SampleRPG-1125.dll"
+		"SampleRPG": "UE4Editor-SampleRPG.dll"
 	}
 }

@@ -7,8 +7,9 @@
 #include "BTTask_FindPatrolLocation.generated.h"
 
 /**
- * 
+ * Pawn의 Patrol 지점을 지정한다.
  */
+
 UCLASS()
 class SAMPLERPG_API UBTTask_FindPatrolLocation : public UBTTaskNode
 {

@@ -8,6 +8,10 @@
 
 #include "NpcController.generated.h"
 
+/**
+ * NPC의 DataTable, 퀘스트 Symbol 등을 저장하는 Npc 클래스
+*/
+
 UCLASS()
 class SAMPLERPG_API ANpcController : public ACharacter
 {
@@ -17,8 +21,12 @@ public:
 	// Sets default values for this character's properties
 	ANpcController();
 
+	// Manager //
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|ManagerClass")
 	class AGameManager* GameManager;
+
+	// Properties //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|Properties")
 	class USphereComponent* InteractCollision; // 영역에 들어왔는지 체크
@@ -28,6 +36,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Npc|Properties")
 	class UStaticMeshComponent* ExclamationSymbol;
+
+	// DataTable //
 
 	UPROPERTY(EditDefaultsOnly, Category = "Npc|DataTable")
 	int32 NpcID;
@@ -44,6 +54,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|DataTable")
 	TArray<int32> QuestID;
 
+	// Interact //
+
 	UPROPERTY(VisibleAnywhere, Category = "Npc|Interact")
 	class AMainPlayer* MainPlayer;
 
@@ -52,9 +64,13 @@ protected:
 	virtual void BeginPlay() override;
 	
 public:	
+	// Setter //
+	
 	void SetNpcData();
 	void StringToIntArray(int32 Type, FString Data);
 	void SetActiveSymbol(ESymbolType SymbolType);
+
+	// Overlap //
 
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

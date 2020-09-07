@@ -13,7 +13,6 @@ UCLASS()
 class SAMPLERPG_API UMonsterAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
-	
 
 public:
 	virtual void NativeInitializeAnimation() override;

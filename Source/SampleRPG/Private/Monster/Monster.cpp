@@ -126,69 +126,7 @@ void AMonster::ParseStringToInt(FString Data)
 	}
 }
 
-void AMonster::AttackTarget(AMainPlayer* Target, EAttackClass AttackClass, int32 AttackNumber)
-{
-	if (Target)
-	{
-		CombatTarget = Target;
-		if (MonsterPattern)
-		{
-			MonsterPattern->CombatTarget = Target;
-		}
-
-		if (CombatTarget)
-		{
-			FString SectionName = "Attack_";
-			SectionName.Append(FString::FromInt(AttackNumber));
-
-			int32 PatternIndex = AttackNumber - Status.AttackCount;
-
-			switch (AttackClass)
-			{
-			case EAttackClass::EAC_Normal: // 일반 공격
-				SetAttackType(EAttackType::EAT_None);
-				PlayMontage(FName(*SectionName), 1.5f);
-				break;
-
-			case EAttackClass::EAC_Charging: // 차징 어택(넉백 발생, 20초 쿨탐)
-				SetAttackType(EAttackType::EAT_KnockDown);
-				PlayMontage(FName(*SectionName), 1.f);
-				bCanChargingAttack = false;
-				GetWorldTimerManager().SetTimer(TimeHandle, this, &AMonster::SetChargingAttack, 20.0f, false);
-				break;
-
-			case EAttackClass::EAC_Pattern: // 패턴공격(패턴에 해당하는 상태이상 발동)
-				if (Status.bHasCharging)
-				{
-					PatternIndex--;
-				}
-				
-				MonsterPattern->SelectPattern = MonsterPattern->Patterns[PatternIndex];
-				PlayMontage(FName(*SectionName), 1.f);
-				break;
-
-			default:
-				break;
-			}
-		}
-	}
-
-	else
-	{
-		CombatTarget = nullptr;
-	}
-}
-
-void AMonster::PlayMontage(FName Name, float PlayRate)
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-
-	if (AnimInstance && CombatMontage)
-	{
-		AnimInstance->Montage_Play(CombatMontage, PlayRate); // 해당 몽타쥬를 n배 빠르게 재상한다.
-		AnimInstance->Montage_JumpToSection(Name, CombatMontage);
-	}
-}
+// Monster Status //
 
 void AMonster::TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAttackType AttackType)
 {
@@ -246,6 +184,81 @@ void AMonster::Stun()
 
 }
 
+// BT and Animation Blue print //
+
+void AMonster::AttackTarget(AMainPlayer* Target, EAttackClass AttackClass, int32 AttackNumber)
+{
+	if (Target)
+	{
+		CombatTarget = Target;
+		if (MonsterPattern)
+		{
+			MonsterPattern->CombatTarget = Target;
+		}
+
+		if (CombatTarget)
+		{
+			FString SectionName = "Attack_";
+			SectionName.Append(FString::FromInt(AttackNumber));
+
+			int32 PatternIndex = AttackNumber - Status.AttackCount;
+
+			switch (AttackClass)
+			{
+			case EAttackClass::EAC_Normal: // 일반 공격
+				SetAttackType(EAttackType::EAT_None);
+				PlayMontage(FName(*SectionName), 1.5f);
+				break;
+
+			case EAttackClass::EAC_Charging: // 차징 어택(넉백 발생, 20초 쿨탐)
+				SetAttackType(EAttackType::EAT_KnockDown);
+				PlayMontage(FName(*SectionName), 1.f);
+				bCanChargingAttack = false;
+				GetWorldTimerManager().SetTimer(TimeHandle, this, &AMonster::SetChargingAttack, 20.0f, false);
+				break;
+
+			case EAttackClass::EAC_Pattern: // 패턴공격(패턴에 해당하는 상태이상 발동)
+				if (Status.bHasCharging)
+				{
+					PatternIndex--;
+				}
+				
+				MonsterPattern->SelectPattern = MonsterPattern->Patterns[PatternIndex];
+				PlayMontage(FName(*SectionName), 1.f);
+				break;
+
+			default:
+				break;
+			}
+		}
+	}
+
+	else
+	{
+		CombatTarget = nullptr;
+	}
+}
+
+void AMonster::SetHandType(EHandType Type)
+{
+	HandType = Type;
+
+	SetCombatCollisionEnabled();
+}
+
+void AMonster::PlayMontage(FName Name, float PlayRate)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (AnimInstance && CombatMontage)
+	{
+		AnimInstance->Montage_Play(CombatMontage, PlayRate); // 해당 몽타쥬를 n배 빠르게 재상한다.
+		AnimInstance->Montage_JumpToSection(Name, CombatMontage);
+	}
+}
+
+// Animation Montage //
+
 void AMonster::ApplyDamageToTarget()
 {
 	if (CombatTarget && bCanApplyDamage)
@@ -262,12 +275,6 @@ void AMonster::ApplyDamageToTarget()
 	}
 }
 
-void AMonster::SetHandType(EHandType Type)
-{
-	HandType = Type;
-
-	SetCombatCollisionEnabled();
-}
 
 void AMonster::AttackAnimEnd()
 {
@@ -289,6 +296,8 @@ void AMonster::DeathAnimEnd()
 	GetMesh()->bPauseAnims = true;
 	GetMesh()->bNoSkeletonUpdate = true;
 }
+
+// Set Collision or Compoennt //
 
 void AMonster::SetCombatCollisionEnabled()
 {

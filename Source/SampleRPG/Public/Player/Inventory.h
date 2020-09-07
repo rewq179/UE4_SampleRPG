@@ -7,6 +7,10 @@
 #include "Item/Item.h"
 #include "Inventory.generated.h"
 
+/**
+ * 플레이어의 인벤토리에서 사용될 정보와 함수들을 모아놓음.
+*/
+
 UCLASS()
 class SAMPLERPG_API AInventory : public AActor
 {
@@ -19,27 +23,28 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|ManagerClass")
 	class AItemManager* ItemManager;
 
+	// Components //
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Components")
 	class AMainPlayer* MainPlayer;
 	
+	// Inventory //
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Inventory")
 	int32 Gold;
 	FORCEINLINE void AddGold(int32 Value) { Gold += Value; }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Inventory")
-	TArray<class AItem*> Spaces;
+	TArray<class AItem*> Spaces; 
+
+	// Equipment //
 	   
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory|Equipment")
 	TArray<class AItem*> Equipments;
 
 public:	
-	// 인벤토리에 아이템 추가 및 제거 //
 
-	UFUNCTION(BlueprintCallable)
-	void BuyItem(class AItem* Item);
-
-	UFUNCTION(BlueprintCallable)
-	void SellItem(class AItem* Item, int32 InputCount);
+	// Add & Remove //
 
 	void AddItem(class AItem* Item);
 	UFUNCTION(BlueprintCallable)
@@ -48,7 +53,30 @@ public:
 	int32 GetInventoryIndex(class AItem* Item);
 	void DevideItemCount(class AItem* Item, int32 TotalCount);
 
-	// 아이템 사용 및 장착 //
+	// HUD : Buy And Sell //
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateInventorySlot();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateEquipmentSlot();
+
+	UFUNCTION(BlueprintCallable)
+	void BuyItem(class AItem* Item);
+
+	UFUNCTION(BlueprintCallable)
+	void SellItem(class AItem* Item, int32 InputCount);
+
+	UFUNCTION(BlueprintCallable)
+	bool IsEnoughGold(int32 Price, int32 Count);
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetItemMaxCount(FItemTable ItemTableValue, int32 ItemCount, int32 InputCount, bool IsBuyTep);
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetItemPrice(FItemTable ItemTableValue, int32 Count, bool IsBuyTep);
+
+	// HUD : Click Item //
 
 	UFUNCTION(BlueprintCallable)
 	void UseItem(class AItem* Item, int32 SlotIndex);
@@ -60,28 +88,12 @@ public:
 	void UnEquipItem(int32 SlotIndex);
 
 	void WasStatusChangedByEquip(class AItem* Item, bool IsEquip);
-
-	// HUD 갱신 //
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void UpdateInventorySlot();
-	UFUNCTION(BlueprintImplementableEvent)
-	void UpdateEquipmentSlot();
-
-	// 상점창 기능 //
-
-	UFUNCTION(BlueprintCallable)
-	bool IsEnoughGold(int32 Price, int32 Count);
-
-	UFUNCTION(BlueprintCallable)
-	int32 GetItemMaxCount(FItemTable ItemTableValue, int32 ItemCount, int32 InputCount, bool IsBuyTep);
-	UFUNCTION(BlueprintCallable)
-	int32 GetItemPrice(FItemTable ItemTableValue, int32 Count, bool IsBuyTep);
-
-	// 세이브 로드 //
+		
+	// Save & Load GameData //
 
 	void SaveInventoryData(class USaveGameManager* SaveGameInstance);
 	int32 GetItemKey(TMap<int32, int32> Map, int32 ID);
+	
 	void LoadInventoryData(class USaveGameManager* LoadGameInstance);
 
 };

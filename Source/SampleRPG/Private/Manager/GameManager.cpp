@@ -3,6 +3,7 @@
 #include "GameManager.h"
 
 #include "Player/MainPlayer.h"
+
 #include "Engine/World.h"
 #include "TimerManager.h"
 
@@ -18,11 +19,21 @@ AGameManager::AGameManager()
 void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
+
 	if (MainPlayer)
 	{
 		MainPlayer->GameManager = this;
 	}
 
+	InitComponents();
+
+	FTimerHandle Timer;
+		
+	GetWorldTimerManager().SetTimer(Timer, this, &AGameManager::DelayFunction, 2.f, false);
+}
+
+void AGameManager::InitComponents()
+{
 	if (CombatManagerBP)
 	{
 		CombatManager = GetWorld()->SpawnActor<ACombatManager>(CombatManagerBP);
@@ -95,10 +106,10 @@ void AGameManager::BeginPlay()
 		{
 			QuestManager->GameManager = this;
 			QuestManager->MainPlayer = MainPlayer;
-			QuestManager->PlayerQuest = MainPlayer->PlayerQuest;
+			QuestManager->NpcManager = NpcManager;
 			QuestManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 
-			QuestManager->SetAllQuestData();
+			QuestManager->SetQuestDataAll();
 		}
 	}
 
@@ -122,7 +133,7 @@ void AGameManager::BeginPlay()
 			SkillManager->GameManager = this;
 			SkillManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 			SkillManager->SetSkillDataAll();
-			
+
 			CombatManager->SkillManager = SkillManager;
 		}
 	}
@@ -137,14 +148,10 @@ void AGameManager::BeginPlay()
 			LevelManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		}
 	}
-
-	FTimerHandle Timer;
-		
-	GetWorldTimerManager().SetTimer(Timer, this, &AGameManager::DelayFunction, 2.f, false);
 }
 
 void AGameManager::DelayFunction()
 {
-	NpcManager->CheckNpcSymbolAll();
+	NpcManager->CheckQuestSymbolAllNPC();
 }
 

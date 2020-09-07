@@ -36,8 +36,6 @@ int32 UBTService_CreateRandNumber::GetPatternNumber(int InputNumber)
 
 		if (Low <= InputNumber && InputNumber <= High)
 		{
-			UE_LOG(LogTemp, Log, TEXT("%d <= %d < %d // Index : %d"), Low, InputNumber, High, Index);
-
 			return Index;
 		}
 

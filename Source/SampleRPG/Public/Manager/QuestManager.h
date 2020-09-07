@@ -18,33 +18,32 @@ public:
 	// Sets default values for this actor's properties
 	AQuestManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "QuestManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "QuestManager|ManagerClass")
 	class AGameManager* GameManager;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "QuestManager|ManagerClass")
+	class ANpcManager* NpcManager;
 	
+	// Properties //
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "QuestManager|Properties")
 	class AMainPlayer* MainPlayer;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "QuestManager|Properties")
-	class APlayerQuest* PlayerQuest;
+	// DataTable //
 
-	class UDataTable* QuestTable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestManager|QuestTable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "QuestManager|Quests")
 	TMap<int32, FQuestTable> QuestMap;
 
 protected:
 
 public:	
-	void SetAllQuestData();
-	void SetQuestData(int32 QuestID);
-
-	bool IsPrerequisiteMeet(int32 QuestID);
-
 	UFUNCTION(BlueprintCallable)
 	FQuestTable GetQuestData(int32 QuestID);
 
-	FORCEINLINE int32 GetPreQuestID(int32 QuestID) { return QuestMap[QuestID].PreQuest; }
+	void SetQuestData(int32 QuestID);
+	void SetQuestDataAll();
 
+	// Hud //
 
 	UFUNCTION(BlueprintCallable)
 	UTexture2D* GetRewardIcon(int32 ItemID);
@@ -55,6 +54,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ClearQuest(FQuestTable Quest);
 
-	void SetSymbol(ESymbolType SymbolType, int32 QuestID);
-	bool IsExclamationSymbol(TArray<int32> QuestID);
+	// Quest Symbol(!, ?) Check //
+
+	bool IsExclamationSymbol(TArray<int32> QuestID); 
+	bool IsPrerequisiteMeet(int32 QuestID); // 선행 조건을 만족했는지?
 };

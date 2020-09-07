@@ -91,10 +91,11 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+
+	// Data Table //
+
 	void SetMonsterData();
 	void ParseStringToInt(FString Data);
-
-	void AttackTarget(class AMainPlayer* Target, EAttackClass AttackClass, int32 AttackNumber);
 
 	// Monster Status //
 
@@ -104,10 +105,16 @@ public:
 	void TakeGroggy(float DamageAMount, AActor* DamageCauser);
 	void Stun();
 
-	// Animation Blue print //
+	// BT and Animation Blue print //
+
+	void AttackTarget(class AMainPlayer* Target, EAttackClass AttackClass, int32 AttackNumber);
+	
+	void PlayMontage(FName Name, float PlayRate);
 
 	UFUNCTION(BlueprintCallable)
 	void SetHandType(EHandType Type);
+
+	// Animation Montage //
 
 	UFUNCTION(BlueprintCallable)
 	void ApplyDamageToTarget(); // 데미지 주는 시점
@@ -122,8 +129,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DeathAnimEnd();
-
-	void PlayMontage(FName Name, float PlayRate);
 
 	// Set Collision or Compoennt //
 

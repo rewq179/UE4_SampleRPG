@@ -9,6 +9,10 @@
 
 #include "SkillManager.generated.h"
 
+/**
+ * 스킬(버프, 디버프)의 정보를 모아놓은 클래스다.
+*/
+
 UCLASS()
 class SAMPLERPG_API ASkillManager : public AActor
 {
@@ -18,12 +22,10 @@ public:
 	// Sets default values for this actor's properties
 	ASkillManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SkillManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SkillManager|Managerclass")
 	class AGameManager* GameManager;
-
-	class UDataTable* SkillTable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillManager|SkillTable")
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillManager|Skills")
 	TMap<int32, FSkillTable> SkillMap;
 	
 public:	

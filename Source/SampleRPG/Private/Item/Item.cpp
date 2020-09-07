@@ -11,6 +11,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/BoxComponent.h"
+
 #include "Kismet/GameplayStatics.h"
 
 #include "Sound/SoundCue.h"
@@ -20,8 +21,6 @@
 #include "Engine/SkeletalMeshSocket.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
-
-#include "TimerManager.h"
 
 // Sets default values
 AItem::AItem()
@@ -126,7 +125,7 @@ void AItem::IgnoreStaticMesh()
 
 	EquipMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
 	EquipMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-	EquipMesh->SetSimulatePhysics(false); // 물리충돌 X
+	EquipMesh->SetSimulatePhysics(false);
 }
 
 void AItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)

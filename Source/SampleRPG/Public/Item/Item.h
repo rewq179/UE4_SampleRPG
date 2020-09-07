@@ -81,7 +81,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item|Properties")
 	class USoundCue* AttackSound;
 
-
+	// Item State //
 	
 	UPROPERTY(VisibleAnywhere, Category = "Item|State")
 	EItemState ItemState;
@@ -103,7 +103,7 @@ public:
 
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void SetActiveText(bool bIsActive);
+	void SetActiveText(bool bIsActive); // 아이템 이름을 게임 화면에 띄어줌.
 
 	UFUNCTION()
 	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

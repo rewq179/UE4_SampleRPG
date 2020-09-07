@@ -9,6 +9,10 @@
 
 #include "DataTableManager.generated.h"
 
+/**
+* DataTable의 칼럼들과 Enum들을 모아놓은 클래스다. Get???DataTable을 통해 DataTable 값을 받을 수 있다.
+*/
+
 #pragma region Enum Etc...
 UENUM(BlueprintType)
 enum class EObjectType : uint8
@@ -57,8 +61,17 @@ enum class EHandType : uint8
 
 #pragma endregion
 
-
 #pragma region NPC Table
+
+UENUM(BlueprintType)
+enum class ENpcClass : uint8
+{
+	ENC_None UMETA(DisplayName = "None"),
+	ENC_Quest UMETA(DisplayName = "Quest"),
+	ENC_Store UMETA(DisplayName = "Store"),
+	ENC_Both UMETA(DisplayName = "Both")
+};
+
 USTRUCT(BlueprintType)
 struct FNpcTable : public FTableRowBase
 {
@@ -67,16 +80,13 @@ struct FNpcTable : public FTableRowBase
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
 		int32 NpcID;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
+		ENpcClass NpcClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
 		FText Name;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
-		bool bHasItem = true;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
-		bool bHasQuest = true;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
 		FString DialogueID;
 
@@ -86,6 +96,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NpcTable")
 		FString QuestID;
 };
+
 #pragma endregion
 
 #pragma region Monster Table & Enum Class
@@ -304,7 +315,6 @@ public:
 		float PerSpeed;
 };
 #pragma endregion
-
 
 #pragma region Item Table & Enum Class
 
@@ -595,6 +605,8 @@ public:
 };
 #pragma endregion
 
+#pragma region Dialogue Table
+
 USTRUCT(BlueprintType)
 struct FDialogueTable : public FTableRowBase
 {
@@ -608,48 +620,67 @@ public:
 		FText DialogueText;
 };
 
+#pragma endregion
+
 UCLASS()
 class SAMPLERPG_API ADataTableManager : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ADataTableManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DataTableManager|Properties")
-	class AGameManager* GameManager;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DataTableManager|ManagerClass")
+		class AGameManager* GameManager;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "DataTableManager|DataTable")
-	class AMainPlayer* MainPlayer;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "DataTableManager|Properties")
+		class AMainPlayer* MainPlayer;
 
+	// 데이터 테이블 //
 	class UDataTable* DialogueTableData;
-	FDialogueTable* GetDialogueTableData(int32 DialogueID);
-
-	class UDataTable* NpcTableData;
-	FNpcTable* GetNpcTableData(int32 NpcID);
-
-	class UDataTable* MonsterTableData;
-	FMonsterTable* GetMonsterTableData(int32 MonsterID);
-	
-	class UDataTable* PatternTableData;
-	FPatternTable* GetPatternTableData(int32 PatternID);
-
 	class UDataTable* ItemTableData;
-	FItemTable* GetItemTableData(int32 ItemID);
-	
-	class UDataTable* RewardRawTableData;
-	FRewardRawTable* GetRewardRawTableData(int32 RewardID);
-
+	class UDataTable* MonsterTableData;
+	class UDataTable* NpcTableData;
+	class UDataTable* PatternTableData;
 	class UDataTable* QuestTableData;
-	FQuestTable* GetQuestTableData(int32 QuestID);
-
+	class UDataTable* RewardRawTableData; // RewardTable의 가공전 칼럼 => 가공후(ID_0, Count_0, Percent_0 => Box 구조체(BoxID, BoxCount, BoxPercent)
 	class UDataTable* SkillTableData;
-	FSkillTable* GetSkillTableData(int32 SkillID);
+
+public:
+
+	// 데이터 테이블 Get() //
+
+	FORCEINLINE FDialogueTable* GetDialogueTableData(int32 DialogueID) {
+		return DialogueTableData->FindRow<FDialogueTable>(FName(*(FString::FormatAsNumber(DialogueID))), FString(""));
+	}
+	FORCEINLINE FItemTable* GetItemTableData(int32 ItemID) {
+		return ItemTableData->FindRow<FItemTable>(FName(*(FString::FormatAsNumber(ItemID))), FString(""));
+	}
+	FORCEINLINE FMonsterTable* GetMonsterTableData(int32 MonsterID) {
+		return MonsterTableData->FindRow<FMonsterTable>(FName(*(FString::FormatAsNumber(MonsterID))), FString(""));
+	}
+	FORCEINLINE FNpcTable* GetNpcTableData(int32 NpcID) {
+		return NpcTableData->FindRow<FNpcTable>(FName(*(FString::FormatAsNumber(NpcID))), FString(""));
+	}
+	FORCEINLINE FPatternTable* GetPatternTableData(int32 PatternID) {
+		return PatternTableData->FindRow<FPatternTable>(FName(*(FString::FormatAsNumber(PatternID))), FString(""));
+	}
+	FORCEINLINE FQuestTable* GetQuestTableData(int32 QuestID) {
+		return QuestTableData->FindRow<FQuestTable>(FName(*(FString::FormatAsNumber(QuestID))), FString(""));
+	}
+	FORCEINLINE FRewardRawTable* GetRewardRawTableData(int32 RewardID) {
+		return RewardRawTableData->FindRow<FRewardRawTable>(FName(*(FString::FormatAsNumber(RewardID))), FString(""));
+	}
+	FORCEINLINE FSkillTable* GetSkillTableData(int32 SkillID) {
+		return SkillTableData->FindRow<FSkillTable>(FName(*(FString::FormatAsNumber(SkillID))), FString(""));
+	}
+
+	// Hud //
 
 	UFUNCTION(BlueprintCallable)
-	FText GetDialogueText(int32 DialogueID);
-	
+		FText GetDialogueText(int32 DialogueID);
+
 	UFUNCTION(BlueprintCallable)
-	FText GetObjectName(EObjectType ObjectType, int32 ID);
+		FText GetObjectName(EObjectType ObjectType, int32 ID);
 };

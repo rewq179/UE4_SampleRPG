@@ -8,6 +8,10 @@
 #include "Npc/NpcController.h"
 #include "NpcManager.generated.h"
 
+/**
+ * NPC에 대한 정보, 월드상 존재하는 NPC, 플레이어의 퀘스트 진행도에 따른 Symbol 변화를 체크하기 위한 클래스다.
+*/
+
 UCLASS()
 class SAMPLERPG_API ANpcManager : public AActor
 {
@@ -20,7 +24,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NpcManager|ManagerClass")
 	class AGameManager* GameManager;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NpcManager|Npc")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NpcManager|Npcs")
 	TMap<int32, FNpcTable> NpcDataMap;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NpcManager|Npc")
@@ -31,9 +35,9 @@ public:
 	void SetNpcData(int32 NpcID);
 	void SetNpcDataAll();
 
-	void SetNpcSymbol(ESymbolType SymbolType, int32 NpcID);
+	void CheckQuestSymbol(int32 NpcID);
+	void SetQuestSymbol(int32 NpcID, ESymbolType SymbolType);
 
-	void CheckNpcSymbol(int32 NpcID);
-	void CheckNpcSymbolAll();
+	void CheckQuestSymbolAllNPC();
 
 };

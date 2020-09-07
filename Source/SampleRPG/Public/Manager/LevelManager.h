@@ -15,8 +15,15 @@ public:
 	// Sets default values for this actor's properties
 	ALevelManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LevelManager|Properties")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LevelManager|ManagerClass")
 	class AGameManager* GameManager;
+
+	// Properties //
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LevelManager|Properties")
+	class AMainPlayer* MainPlayer;
+
+	// Transition //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LevelManager|Transition")
 	class UBoxComponent* Transition;
