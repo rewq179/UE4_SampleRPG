@@ -95,15 +95,21 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+
+	/* Setter */
+
 	virtual void SetItemData();
 	void SetItemOwner(class AMainPlayer* MainPlayer);
 
 	void SetEnabledCombatCollision(bool IsActive);
 	void IgnoreStaticMesh();
 
+	/* HUD */
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void SetActiveText(bool bIsActive); // 아이템 이름을 게임 화면에 띄어줌.
+
+	/* Overlap */
 
 	UFUNCTION()
 	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

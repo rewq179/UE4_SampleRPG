@@ -80,7 +80,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "PlayerStatus|Properties")
 	class USoundCue* DamagedSound;
 
-	FTimerHandle TimeHandle;
+	FTimerHandle TimerHandle;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Timer")
+	FItemTable HoldPotionData;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Timer")
+	float LifeTime;
 
 	// DataTable //
 
@@ -91,6 +97,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Stat")
 	float StaminaRate; // 스테미나 증가량
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Stat")
+	float IncStaminaRate; // 스태미나 추가 회복량
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Stat")
 	FPlayerStatTable Stat;
@@ -125,9 +134,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override; // 스태미나 초당 회복에 사용중
 
-	// Player Stat //
+	// Tick Player Stat //
 
 	void IncreaseStamina(float DeltaTime);
+
+	void SetRecoveryStat(FItemTable ItemData);
+	void RecoveryHP();
+	void RecoveryST();
+
+	bool IsLifeTimeOver(float DurationTime);
+
+	// Player Stat //
 
 	void SetLevelStatus(int32 CurLevel);
 
@@ -137,6 +154,7 @@ public:
 	// Combat //
 
 	void AdjustHP(float DamageAmount, bool CanDie);
+	void AdjustST(float DamageAmount);
 
 	void TakeDamageHP(float DamageAmount, AActor* DamageCauser, EAttackType AttackType);
 	void TakeDamageST(float DamageAmount);

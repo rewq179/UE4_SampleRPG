@@ -239,9 +239,17 @@ void AInventory::UseItem(AItem* Item, int32 SlotIndex)
 
 void AInventory::ConsumeItem(AItem* Item, int32 SlotIndex)
 {
-	Spaces[SlotIndex]->Count--;
+	RemoveItem(Item, 1);
 
-	MainPlayer->PlayerStatus->AdjustHP(Item->ItemData.Damage, false);
+	if (Item->ItemData.ItemType == EItemType::EIT_Potion)
+	{
+		MainPlayer->PlayerStatus->AdjustHP(Item->ItemData.Damage, false);
+	}
+
+	else if (Item->ItemData.ItemType == EItemType::EIT_HoldPotion)
+	{
+		MainPlayer->PlayerStatus->SetRecoveryStat(Item->ItemData);
+	}
 
 	if (Item->UseSound)
 	{

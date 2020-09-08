@@ -102,6 +102,7 @@ float ACombatManager::GetPercentBaseDamage(float Percent, float MaxValue)
 	return MaxValue * 0.01f * Percent;
 }
 
+// 몬스터 보상 //
 
 void ACombatManager::MonsterDeath(AMonster* Monster)
 {
@@ -111,6 +112,26 @@ void ACombatManager::MonsterDeath(AMonster* Monster)
 
 	GameManager->ItemManager->GetMonsterItem(Monster->Status.ByProductID, Monster->Status.RewardID, Monster->GetActorLocation());
 }
+
+// 버프 적용 //
+
+void ACombatManager::SetBuffToTarget(AActor* Target, int32 SkillID, bool bIsPlayer)
+{
+	if (bIsPlayer)
+	{
+		auto MainPlayer = Cast<AMainPlayer>(Target);
+
+
+	}
+
+	else
+	{
+
+	}
+}
+
+
+// 상태이상 적용 //
 
 void ACombatManager::SetDebuffToPlayer(EAttackType AttackType)
 {
@@ -130,7 +151,7 @@ void ACombatManager::SetPoison()
 {
 	auto SkillData = SkillManager->GetSkillData(0);
 
-	if (bIsLifeTimeOver(SkillData.DurationTime))
+	if (IsLifeTimeOver(SkillData.DurationTime))
 	{
 		return;
 	}
@@ -147,7 +168,7 @@ void ACombatManager::SetFrostbite()
 {
 	auto SkillData = SkillManager->GetSkillData(1);
 
-	if (bIsLifeTimeOver(SkillData.DurationTime))
+	if (IsLifeTimeOver(SkillData.DurationTime))
 	{
 		return;
 	}
@@ -160,7 +181,7 @@ void ACombatManager::SetFrostbite()
 	ApplyDamageST(MainPlayer->PlayerStatus, SkillManager->GetSkillDamage(SkillData.SkillID), true);
 }
 
-bool ACombatManager::bIsLifeTimeOver(float DurationTime)
+bool ACombatManager::IsLifeTimeOver(float DurationTime)
 {
 	LifeTime += GetWorldTimerManager().GetTimerElapsed(TimerHandle);
 	
@@ -174,6 +195,8 @@ bool ACombatManager::bIsLifeTimeOver(float DurationTime)
 
 	return false;
 }
+
+// HUD //
 
 void ACombatManager::AddTargetMonster(class AMonster* Monster)
 {

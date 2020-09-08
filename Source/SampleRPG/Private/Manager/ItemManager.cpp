@@ -48,6 +48,7 @@ void  AItemManager::SetItemData(AItem* Item, int32 ItemID)
 		Item->ItemData.Strength = (*ItemTableData).Strength;
 		Item->ItemData.Dexterity = (*ItemTableData).Dexterity;
 		Item->ItemData.Intelligence = (*ItemTableData).Intelligence;
+		Item->ItemData.DurationTime = (*ItemTableData).DurationTime;
 		Item->ItemData.Mesh = (*ItemTableData).Mesh;
 
 		Item->ItemData.Mesh = (*ItemTableData).Mesh;

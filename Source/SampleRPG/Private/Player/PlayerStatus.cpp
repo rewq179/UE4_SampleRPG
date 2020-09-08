@@ -30,6 +30,8 @@ APlayerStatus::APlayerStatus()
 	}
 
 	StaminaRate = 15.f;
+	IncStaminaRate = 1.f;
+	LifeTime = 0.f;
 }
 
 
@@ -40,13 +42,14 @@ void APlayerStatus::Tick(float DeltaTime)
 
 	IncreaseStamina(DeltaTime);
 }
-// Player Stat //
+
+// Tick Player Stat //
 
 void APlayerStatus::IncreaseStamina(float DeltaTime)
 {
 	if (Stat.CurStamina < Stat.MaxStamina)
 	{
-		Stat.CurStamina += DeltaTime * StaminaRate;
+		Stat.CurStamina += DeltaTime * StaminaRate * IncStaminaRate;
 	}
 
 	else
@@ -54,6 +57,52 @@ void APlayerStatus::IncreaseStamina(float DeltaTime)
 		Stat.CurStamina = Stat.MaxStamina;
 	}
 }
+
+void APlayerStatus::SetRecoveryStat(FItemTable ItemData)
+{
+	HoldPotionData = ItemData;
+
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &APlayerStatus::RecoveryST, 1.f, true, 0.f);
+}
+
+void APlayerStatus::RecoveryHP()
+{
+	if (IsLifeTimeOver(HoldPotionData.DurationTime))
+	{
+		return;
+	}
+
+	AdjustHP(Stat.MaxHP * HoldPotionData.Damage * 0.01f, false);
+}
+
+void APlayerStatus::RecoveryST()
+{
+	if (IsLifeTimeOver(HoldPotionData.DurationTime))
+	{
+		IncStaminaRate = 1.f;
+
+		return;
+	}
+
+	IncStaminaRate = (HoldPotionData.Damage + 100.f) * 0.01f;
+}
+
+bool APlayerStatus::IsLifeTimeOver(float DurationTime)
+{
+	LifeTime += GetWorldTimerManager().GetTimerElapsed(TimerHandle);
+
+	if (LifeTime > DurationTime)
+	{
+		GetWorldTimerManager().ClearTimer(TimerHandle);
+		LifeTime = 0.f;
+
+		return true;
+	}
+
+	return false;
+}
+
+// Player Stat //
 
 void APlayerStatus::SetLevelStatus(int32 CurLevel)
 {
@@ -105,6 +154,7 @@ void APlayerStatus::AdjustHP(float DamageAmount, bool CanDie)
 	// 상태이상이나 함정을 밟았을때 방어력 무시로 들어가도록 만들어놓은 함수
 	
 	Stat.CurHP += DamageAmount;
+	UE_LOG(LogTemp, Log, TEXT("HP Amount : %f"), DamageAmount);
 
 	if (Stat.CurHP > Stat.MaxHP)
 	{
@@ -122,6 +172,22 @@ void APlayerStatus::AdjustHP(float DamageAmount, bool CanDie)
 		{
 			Stat.CurHP = 1.f;
 		}
+	}
+}
+
+void APlayerStatus::AdjustST(float DamageAmount)
+{
+	Stat.CurStamina += DamageAmount;
+	UE_LOG(LogTemp, Log, TEXT("ST Amount : %f"), DamageAmount);
+
+	if (Stat.CurStamina > Stat.MaxStamina)
+	{
+		Stat.CurStamina = Stat.MaxStamina;
+	}
+
+	if (Stat.CurStamina <= 0)
+	{
+		Stat.CurStamina = 1.f;
 	}
 }
 

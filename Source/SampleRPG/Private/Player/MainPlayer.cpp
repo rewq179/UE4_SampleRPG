@@ -70,7 +70,9 @@ void AMainPlayer::BeginPlay()
 
 	InitComponents();
 
-	LoadGame();
+	Inventory->AddGold(10000);
+
+	//LoadGame();
 }
 
 void AMainPlayer::InitComponents()

@@ -75,10 +75,14 @@ public:
 
 	void MonsterDeath(class AMonster* Monster);
 
+	// 버프 적용 //
+
+	void SetBuffToTarget(AActor* Target, int32 SkillID, bool bIsPlayer);
+
 	// 상태이상 적용 //
 
 	void SetDebuffToPlayer(EAttackType AttackType);
-	bool bIsLifeTimeOver(float DurationTime);
+	bool IsLifeTimeOver(float DurationTime);
 
 	void SetPoison();
 	void SetFrostbite();
