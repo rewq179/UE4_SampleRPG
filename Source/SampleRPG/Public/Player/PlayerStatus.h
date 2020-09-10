@@ -99,7 +99,7 @@ public:
 	float StaminaRate; // 스테미나 증가량
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Stat")
-	float IncStaminaRate; // 스태미나 추가 회복량
+	float StaminaConst; // 스태미나 추가 회복량
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "PlayerStatus|Stat")
 	FPlayerStatTable Stat;

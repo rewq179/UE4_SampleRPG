@@ -71,6 +71,21 @@ void AGameManager::InitComponents()
 		}
 	}
 
+	if (DungeonManagerBP)
+	{
+		DungeonManager = GetWorld()->SpawnActor<ADungeonManager>(DungeonManagerBP);
+
+		if (DungeonManager)
+		{
+			DungeonManager->GameManager = this;
+			DungeonManager->MainPlayer = MainPlayer;
+			DungeonManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+			DungeonManager->SetDungeonDataAll();
+		}
+	}
+
+
 	if (ItemManagerBP)
 	{
 		ItemManager = GetWorld()->SpawnActor<AItemManager>(ItemManagerBP);

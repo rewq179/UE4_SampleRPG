@@ -30,7 +30,7 @@ APlayerStatus::APlayerStatus()
 	}
 
 	StaminaRate = 15.f;
-	IncStaminaRate = 1.f;
+	StaminaConst = 1.f;
 	LifeTime = 0.f;
 }
 
@@ -49,7 +49,7 @@ void APlayerStatus::IncreaseStamina(float DeltaTime)
 {
 	if (Stat.CurStamina < Stat.MaxStamina)
 	{
-		Stat.CurStamina += DeltaTime * StaminaRate * IncStaminaRate;
+		Stat.CurStamina += DeltaTime * StaminaRate * StaminaConst;
 	}
 
 	else
@@ -79,12 +79,12 @@ void APlayerStatus::RecoveryST()
 {
 	if (IsLifeTimeOver(HoldPotionData.DurationTime))
 	{
-		IncStaminaRate = 1.f;
+		StaminaConst = 1.f;
 
 		return;
 	}
 
-	IncStaminaRate = (HoldPotionData.Damage + 100.f) * 0.01f;
+	StaminaConst = (HoldPotionData.Damage + 100.f) * 0.01f;
 }
 
 bool APlayerStatus::IsLifeTimeOver(float DurationTime)

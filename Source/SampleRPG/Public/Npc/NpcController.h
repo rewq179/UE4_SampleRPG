@@ -39,7 +39,7 @@ public:
 
 	// DataTable //
 
-	UPROPERTY(EditDefaultsOnly, Category = "Npc|DataTable")
+	UPROPERTY(EditAnywhere, Category = "Npc|DataTable")
 	int32 NpcID;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Npc|DataTable")

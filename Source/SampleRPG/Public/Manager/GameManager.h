@@ -7,9 +7,10 @@
 
 #include "Manager/CombatManager.h"
 #include "Manager/DataTableManager.h"
+#include "Manager/DialogueManager.h"
+#include "Manager/DungeonManager.h"
 #include "Manager/SaveGameManager.h"
 #include "Manager/LevelManager.h"
-#include "Manager/DialogueManager.h"
 #include "Manager/ItemManager.h"
 #include "Manager/NpcManager.h"
 #include "Manager/QuestManager.h"
@@ -43,7 +44,7 @@ public:
 	class ACombatManager* CombatManager;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameManager|PComponents")
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
 	TSubclassOf<class ADataTableManager> DataTableManagerBP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
@@ -55,6 +56,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
 	class ADialogueManager* DialogueManager;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
+	TSubclassOf<class ADungeonManager> DungeonManagerBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
+	class ADungeonManager* DungeonManager;
 
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
@@ -86,10 +93,10 @@ public:
 
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
-		TSubclassOf<class ASkillManager> SkillManagerBP;
+	TSubclassOf<class ASkillManager> SkillManagerBP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
-		class ASkillManager* SkillManager;
+	class ASkillManager* SkillManager;
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
 	TSubclassOf<class ALevelManager> LevelManagerBP;

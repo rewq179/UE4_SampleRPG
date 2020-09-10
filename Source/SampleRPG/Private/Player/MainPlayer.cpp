@@ -27,9 +27,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Animation/AnimInstance.h"
 
-
-//#include "Player/Public/MyActor.h"
-
+#include "TimerManager.h"
 
 // Sets default values
 AMainPlayer::AMainPlayer()
@@ -72,7 +70,10 @@ void AMainPlayer::BeginPlay()
 
 	Inventory->AddGold(10000);
 
-	//LoadGame();
+	if (!bIsAlreadyLoad)
+	{
+		LoadGame();
+	}
 }
 
 void AMainPlayer::InitComponents()
@@ -100,6 +101,7 @@ void AMainPlayer::InitComponents()
 		if (PlayerCombat)
 		{
 			PlayerCombat->MainPlayer = this;
+			PlayerCombat->Inventory = Inventory;
 			PlayerCombat->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 			PlayerCombat->CombatManager = GameManager->CombatManager;
 		}
@@ -115,6 +117,8 @@ void AMainPlayer::InitComponents()
 			PlayerStatus->SkillManager = GameManager->SkillManager;
 			PlayerStatus->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 			PlayerStatus->SetLevelStatus(1);
+
+			PlayerCombat->PlayerStatus = PlayerStatus;
 		}
 	}
 
@@ -154,12 +158,31 @@ void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 void AMainPlayer::LeftClickDown()
 {
-	if (bIsEquip && !bIsAttackAnim) // 무기를 소유했으며 공격 애니메이션이 종료되었는가?
+	if (bIsEquip && !bIsAttackAnim && !bIsRoll) // 무기를 소유했으며 공격 애니메이션이 종료되었는가?
 	{
 		bIsAttackAnim = true;
 
 		PlayerCombat->SetAttackType(EAttackType::EAT_None);
-		PlayerCombat->PlayAttackAnim();
+
+		if (bCanRollAttack)
+		{
+			bCanRollAttack = false;
+
+			PlayerCombat->PlayAttackAnim(0, 2.f);
+		}
+
+		else
+		{
+			if (PlayerCombat->bCanComboAttack)
+			{
+				PlayerCombat->PlayAttackAnim(PlayerCombat->ComboCount, 1.25f);
+			}
+
+			else
+			{
+				PlayerCombat->PlayAttackAnim(1, 1.25f);
+			}
+		}
 	}
 }
 
@@ -206,14 +229,17 @@ void AMainPlayer::Roll()
 		bCanMove = false;
 
 		PlayerStatus->Stat.CurStamina -= RollCost;
-		PlayerCombat->PlayMontage(FName("Roll"), 1.f);
+		PlayerCombat->PlayMontage(FName("Roll"), 1.5f);
 	}
 }
 
 void AMainPlayer::RollAnimEnd()
 {
 	bCanMove = true;
+	bCanRollAttack = true;
 	bIsRoll = false;
+
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AMainPlayer::SetRollAttack, 1.f);
 }
 
 // Interact //
@@ -312,6 +338,8 @@ void AMainPlayer::SaveGame()
 
 void AMainPlayer::LoadGame()
 {
+	bIsAlreadyLoad = true;
+
 	USaveGameManager* LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::CreateSaveGameObject(USaveGameManager::StaticClass()));
 	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->PlayerName, LoadGameInstance->UserIndex));
 

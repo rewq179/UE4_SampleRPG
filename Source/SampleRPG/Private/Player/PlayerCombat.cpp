@@ -12,6 +12,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Sound/SoundCue.h"
 
+#include "TimerManager.h"
 
 // Sets default values
 APlayerCombat::APlayerCombat()
@@ -19,23 +20,77 @@ APlayerCombat::APlayerCombat()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	ComboCount = 0;
+	DamageConst = 1.f;
 	InterpSpeed = 15.f;
 }
 
 // Anim Blueprint & Montage //
 
-void APlayerCombat::PlayAttackAnim()
+void APlayerCombat::PlayAttackAnim(int32 AttackNumber, float PlayRate)
 {
-	PlayMontage(FName("Attack_1"), 2.0f);
+	FString SectionName = "Attack_";
+	SectionName.Append(FString::FromInt(AttackNumber));
+
+	PlayMontage(FName(*SectionName), PlayRate);
+	GetWorldTimerManager().ClearTimer(TimerHandle);
 
 	bIsInterp = true;
+
+}
+
+
+void APlayerCombat::SetComboValue(int32 DamageIndex)
+{
+	ComboLifeTime = 0.f;
+	ComboCount = DamageIndex + 1;
+
+	switch (DamageIndex)
+	{
+	case 0: // 구르기후 공격
+		ComboCount = 1;
+		DamageConst = 1.8f;
+		break;
+
+	case 1: // 1번 공격
+		DamageConst = 1.0f;
+		break;
+
+	case 2: // 2번째 콤보
+		DamageConst = 2.1f;
+		break;
+
+	case 3: // 마지막 
+		ComboCount = 1;
+		DamageConst = 3.5f;
+		break;
+	}
+
+}
+
+void APlayerCombat::CheckComboTimer()
+{
+	ComboLifeTime += GetWorldTimerManager().GetTimerElapsed(TimerHandle);
+
+	if (ComboLifeTime > 1.f)
+	{
+		bCanComboAttack = false;
+		ComboCount = 1;
+		ComboLifeTime = 0.f;
+
+		GetWorldTimerManager().ClearTimer(TimerHandle);
+
+		return;
+	}
+
+	bCanComboAttack = true;
 }
 
 void APlayerCombat::AttackAnimStart()
 {
 	MainPlayer->bIsAttackAnim = true;
 
-	MainPlayer->Inventory->Equipments[0]->SetEnabledCombatCollision(true);
+	Inventory->Equipments[0]->SetEnabledCombatCollision(true);
 }
 
 void APlayerCombat::ApplyDamageToTarget()
@@ -46,12 +101,12 @@ void APlayerCombat::ApplyDamageToTarget()
 
 		for (auto Monster : TargetMonsters)
 		{
-			CombatManager->ApplyDamageHP(Monster, MainPlayer->PlayerStatus->Stat.Damage, this, AttackType, false, false);
+			CombatManager->ApplyDamageHP(Monster, PlayerStatus->GetTotalDamage() * DamageConst, this, AttackType, false, false);
 		}
 
-		if (MainPlayer->Inventory->Equipments[0]->AttackSound)
+		if (Inventory->Equipments[0]->AttackSound)
 		{
-			UGameplayStatics::PlaySound2D(this, MainPlayer->Inventory->Equipments[0]->AttackSound);
+			UGameplayStatics::PlaySound2D(this, Inventory->Equipments[0]->AttackSound);
 		}
 	}
 }
@@ -61,9 +116,13 @@ void APlayerCombat::AttackAnimEnd()
 	MainPlayer->bIsAttackAnim = false;
 	bIsInterp = false;
 
-	MainPlayer->Inventory->Equipments[0]->SetEnabledCombatCollision(false);
+	Inventory->Equipments[0]->SetEnabledCombatCollision(false);
 	TargetMonsters.Empty();
 
+	if (!MainPlayer->bIsRoll)
+	{
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &APlayerCombat::CheckComboTimer, 0.1f, true, 0.f);
+	}
 }
 
 void  APlayerCombat::PlayMontage(FName AnimName, float PlayRate)
@@ -96,7 +155,7 @@ void APlayerCombat::UpdateWidgetMonster()
 		{
 			UE_LOG(LogTemp, Log, TEXT("Pri : %d"), (int32)WidgetMonsters[MinIndex]->Status.MonsterClass);
 
-			if (GetPriorityByClass(WidgetMonsters[MinIndex]->Status.MonsterClass) < GetPriorityByClass(WidgetMonsters[j]->Status.MonsterClass))
+			if ((int32)WidgetMonsters[MinIndex]->Status.MonsterClass < (int32)WidgetMonsters[j]->Status.MonsterClass)
 			{
 				MinIndex = j;
 			}

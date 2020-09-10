@@ -3,6 +3,7 @@
 #include "Manager/CombatManager.h"
 #include "Manager/GameManager.h"
 #include "Manager/DataTableManager.h"
+#include "Manager/DungeonManager.h"
 #include "Manager/ItemManager.h"
 #include "Manager/SkillManager.h"
 

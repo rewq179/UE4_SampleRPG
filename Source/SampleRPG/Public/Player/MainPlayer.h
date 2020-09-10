@@ -57,11 +57,18 @@ public:
 
 	// State //
 
+	FTimerHandle TimerHandle;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
 	bool bCanMove;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
 	bool bIsRoll;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
+	bool bCanRollAttack;
+
+	FORCEINLINE void SetRollAttack() { bCanRollAttack = false; }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|State")
 	bool bIsEquip;
@@ -93,7 +100,10 @@ public:
 
 	// Level //
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Interact")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Level")
+	bool bIsAlreadyLoad;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Level")
 	FName NextLevelName;
 
 protected:

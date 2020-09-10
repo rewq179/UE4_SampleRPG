@@ -4,6 +4,7 @@
 #include "UObject/ConstructorHelpers.h"
 
 
+
 // Sets default values
 ADataTableManager::ADataTableManager()
 {
@@ -14,6 +15,12 @@ ADataTableManager::ADataTableManager()
 	if (DialogueTable.Succeeded())
 	{
 		DialogueTableData = DialogueTable.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DungeonRawTable(TEXT("DataTable'/Game/DataTable/DungeonRawTable.DungeonRawTable'"));
+	if (DungeonRawTable.Succeeded())
+	{
+		DungeonRawTableData = DungeonRawTable.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UDataTable> ItemTable(TEXT("DataTable'/Game/DataTable/ItemTable.ItemTable'"));
@@ -57,6 +64,12 @@ ADataTableManager::ADataTableManager()
 	if (SkillTable.Succeeded())
 	{
 		SkillTableData = SkillTable.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> TriggerTable(TEXT("DataTable'/Game/DataTable/TriggerTable.TriggerTable'"));
+	if (TriggerTable.Succeeded())
+	{
+		TriggerTableData = TriggerTable.Object;
 	}
 }
 

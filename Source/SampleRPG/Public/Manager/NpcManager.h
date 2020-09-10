@@ -24,8 +24,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NpcManager|ManagerClass")
 	class AGameManager* GameManager;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NpcManager|Npcs")
+	// DataTable //
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "NpcManager|DataTable")
 	TMap<int32, FNpcTable> NpcDataMap;
+
+	// //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "NpcManager|Npc")
 	TMap<int32, class ANpcController*> NpcMap;

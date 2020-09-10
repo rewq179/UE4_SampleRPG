@@ -622,6 +622,107 @@ public:
 
 #pragma endregion
 
+#pragma region Trigger Table & Enum Class
+
+// 조건을 만족하면 발동하는 시스템
+
+UENUM(BlueprintType)
+enum class ETriggerClass : uint8
+{
+	ETC_Instant UMETA(DisplayName = "Instant"),
+	ETC_Check UMETA(DisplayName = "Check")
+};
+
+UENUM(BlueprintType)
+enum class ETriggerType : uint8
+{
+	ETT_Block UMETA(DisplayName = "Block"),
+	ETT_Spawn UMETA(DisplayName = "Spawn"),
+	ETT_Clear UMETA(DisplayName = "Clear")
+};
+
+
+USTRUCT(BlueprintType)
+struct FTriggerTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 TriggerID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		ETriggerClass TriggerClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		ETriggerType TriggerType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 BlockID = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 MonsterID = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 PointID = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 ID_0 = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 Count_0 = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 ID_1 = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 Count_1 = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 ID_2 = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 Count_2 = -1;
+};
+#pragma endregion
+
+#pragma region DungeonRaw Table
+
+USTRUCT(BlueprintType)
+struct FDungeonRawTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		int32 DungeonID;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		FText Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		FString TriggerID;
+
+};
+
+USTRUCT(BlueprintType)
+struct FDungeonTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		int32 DungeonID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		FText Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		TArray<int32> TriggerIDs;
+};
+
+#pragma endregion
+
 UCLASS()
 class SAMPLERPG_API ADataTableManager : public AActor
 {
@@ -639,6 +740,7 @@ public:
 
 	// 데이터 테이블 //
 	class UDataTable* DialogueTableData;
+	class UDataTable* DungeonRawTableData;
 	class UDataTable* ItemTableData;
 	class UDataTable* MonsterTableData;
 	class UDataTable* NpcTableData;
@@ -646,6 +748,7 @@ public:
 	class UDataTable* QuestTableData;
 	class UDataTable* RewardRawTableData; // RewardTable의 가공전 칼럼 => 가공후(ID_0, Count_0, Percent_0 => Box 구조체(BoxID, BoxCount, BoxPercent)
 	class UDataTable* SkillTableData;
+	class UDataTable* TriggerTableData;
 
 public:
 
@@ -653,6 +756,9 @@ public:
 
 	FORCEINLINE FDialogueTable* GetDialogueTableData(int32 DialogueID) {
 		return DialogueTableData->FindRow<FDialogueTable>(FName(*(FString::FormatAsNumber(DialogueID))), FString(""));
+	}
+	FORCEINLINE FDungeonRawTable* GetDungeonRawTableData(int32 DungeonRawID) {
+		return DungeonRawTableData->FindRow<FDungeonRawTable>(FName(*(FString::FormatAsNumber(DungeonRawID))), FString(""));
 	}
 	FORCEINLINE FItemTable* GetItemTableData(int32 ItemID) {
 		return ItemTableData->FindRow<FItemTable>(FName(*(FString::FormatAsNumber(ItemID))), FString(""));
@@ -674,6 +780,9 @@ public:
 	}
 	FORCEINLINE FSkillTable* GetSkillTableData(int32 SkillID) {
 		return SkillTableData->FindRow<FSkillTable>(FName(*(FString::FormatAsNumber(SkillID))), FString(""));
+	}
+	FORCEINLINE FTriggerTable* GetTriggerTableData(int32 TriggerID) {
+		return TriggerTableData->FindRow<FTriggerTable>(FName(*(FString::FormatAsNumber(TriggerID))), FString(""));
 	}
 
 	// Hud //
