@@ -20,10 +20,10 @@ public:
 	class AGameManager* GameManager;
 
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameManager|GameData")
-	FString PlayerName;
+	FString SlotName;
 	
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameManager|GameData")
-	uint32 UserIndex;
+	uint32 SlotIndex;
 
 	UPROPERTY(VisibleAnywhere, Category = "SaveGameManager|GameData")
 	FPlayerStatTable PlayerStat;

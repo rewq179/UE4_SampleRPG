@@ -69,11 +69,6 @@ void AMainPlayer::BeginPlay()
 	InitComponents();
 
 	Inventory->AddGold(10000);
-
-	if (!bIsAlreadyLoad)
-	{
-		LoadGame();
-	}
 }
 
 void AMainPlayer::InitComponents()
@@ -137,7 +132,7 @@ void AMainPlayer::InitComponents()
 			}
 		}
 	}
-}
+	}
 
 // Input Key //
 
@@ -246,13 +241,6 @@ void AMainPlayer::RollAnimEnd()
 
 void AMainPlayer::InteractObject()
 {
-	if (IsLevelChange(NextLevelName))
-	{
-		SwitchLevel();
-
-		return;
-	}
-
 	if (InteractItems.Num() > 0)
 	{
 		AddInteractedItemAll();
@@ -278,45 +266,9 @@ void AMainPlayer::AddInteractedItemAll()
 	}
 }
 
-
-void AMainPlayer::SwitchLevel()
-{
-	UWorld* World = GetWorld();
-
-	if (World)
-	{
-		UGameplayStatics::OpenLevel(World, NextLevelName);
-
-		NextLevelName = FName("None");
-	}
-}
-
-bool AMainPlayer::IsLevelChange(FName NextLevelName)
-{
-	if (NextLevelName.IsEqual(FName("None")))
-	{
-		return false;
-	}
-
-	UWorld* World = GetWorld();
-
-	if (World)
-	{
-		FString CurLevelName(*World->GetMapName());
-		CurLevelName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
-
-		if (FName(*CurLevelName) != NextLevelName)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 // Save & Load GameData //
 
-void AMainPlayer::SaveGame()
+void AMainPlayer::SaveGame(FString SlotName)
 {
 	USaveGameManager* SaveGameInstance =  Cast<USaveGameManager>(UGameplayStatics::CreateSaveGameObject(USaveGameManager::StaticClass()));
 
@@ -333,27 +285,49 @@ void AMainPlayer::SaveGame()
 	Inventory->SaveInventoryData(SaveGameInstance);
 	PlayerQuest->SaveQuestData(SaveGameInstance);
 
-	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->PlayerName, SaveGameInstance->UserIndex);
+	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SlotName, 0);
 }
 
-void AMainPlayer::LoadGame()
+
+void AMainPlayer::LoadGame(FString SlotName)
 {
-	bIsAlreadyLoad = true;
+	CurSlotName = SlotName;
 
 	USaveGameManager* LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::CreateSaveGameObject(USaveGameManager::StaticClass()));
-	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->PlayerName, LoadGameInstance->UserIndex));
+	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
 
 	PlayerStatus->LoadPlayerStatData(LoadGameInstance);
-
-	NextLevelName = FName(*LoadGameInstance->LevelName);
-	if (IsLevelChange(NextLevelName))
-	{
-		SwitchLevel();
-
-		SetActorLocation(LoadGameInstance->Location);
-		SetActorRotation(LoadGameInstance->Rotation);
-	}
-	
 	Inventory->LoadInventoryData(LoadGameInstance);
 	PlayerQuest->LoadQuestData(LoadGameInstance);
+
+	LoadLevel(true);
+}
+
+FPlayerStatTable AMainPlayer::LoadData(FString SlotName)
+{
+	USaveGameManager* LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::CreateSaveGameObject(USaveGameManager::StaticClass()));
+	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
+
+	return LoadGameInstance->PlayerStat;
+}
+
+void AMainPlayer::LoadLevel(bool bIsLobby)
+{
+	USaveGameManager* LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::CreateSaveGameObject(USaveGameManager::StaticClass()));
+	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(CurSlotName, 0));
+
+	SwitchLevel(*LoadGameInstance->LevelName);
+
+	//SetActorLocation(LoadGameInstance->Location);
+	//SetActorRotation(LoadGameInstance->Rotation);
+}
+
+void AMainPlayer::SwitchLevel(FString LevelName)
+{
+	UWorld* World = GetWorld();
+
+	if (World)
+	{
+		UGameplayStatics::OpenLevel(World, FName(*LevelName));
+	}
 }

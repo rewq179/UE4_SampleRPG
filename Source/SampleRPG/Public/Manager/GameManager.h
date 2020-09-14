@@ -106,6 +106,8 @@ public:
 
 #pragma endregion
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameManager|HUD")
+	bool bIsLobbyLevel;
 
 protected:
 	// Called when the game starts or when spawned

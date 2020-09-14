@@ -36,7 +36,7 @@ void ALevelManager::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AAc
 
 		if (MainPlayer)
 		{
-			MainPlayer->NextLevelName = LevelName;
+
 		}
 	}
 }
@@ -46,7 +46,6 @@ void ALevelManager::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActo
 {
 	if (OtherActor == MainPlayer)
 	{
-		MainPlayer->NextLevelName = FName("None");
 		MainPlayer = nullptr;
 	}
 }

@@ -5,10 +5,7 @@
 
 USaveGameManager::USaveGameManager()
 {
-	PlayerName = TEXT("Default");
 	LevelName = TEXT("Default");
-
-	UserIndex = 0;
 
 	EquipmentItem.Init(-1, 10);
 }

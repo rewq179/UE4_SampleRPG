@@ -296,18 +296,27 @@ void  APlayerStatus::SavePlayerStatData(USaveGameManager* SaveGameInstance)
 	SaveGameInstance->PlayerStat.Intelligence = Stat.Intelligence;
 }
 
-void  APlayerStatus::LoadPlayerStatData(USaveGameManager* LoadGameInstance)
+void APlayerStatus::LoadPlayerStatData(USaveGameManager* LoadGameInstance)
 {
-	Stat.Level = LoadGameInstance->PlayerStat.Level;
-	Stat.CurExp = LoadGameInstance->PlayerStat.CurExp;
-	Stat.MaxExp = LoadGameInstance->PlayerStat.MaxExp;
-	Stat.CurHP = LoadGameInstance->PlayerStat.CurHP;
-	Stat.MaxHP = LoadGameInstance->PlayerStat.MaxHP;
-	Stat.CurStamina = LoadGameInstance->PlayerStat.CurStamina;
-	Stat.MaxStamina = LoadGameInstance->PlayerStat.MaxStamina;
-	Stat.Damage = LoadGameInstance->PlayerStat.Damage;
-	Stat.Deffence = LoadGameInstance->PlayerStat.Deffence;
-	Stat.Strength = LoadGameInstance->PlayerStat.Strength;
-	Stat.Dexterity = LoadGameInstance->PlayerStat.Dexterity;
-	Stat.Intelligence = LoadGameInstance->PlayerStat.Intelligence;
+	Stat = GetPlayerStatData(LoadGameInstance->PlayerStat);
+}
+
+FPlayerStatTable APlayerStatus::GetPlayerStatData(FPlayerStatTable Stat)
+{
+	FPlayerStatTable PlayerStat;
+
+	PlayerStat.Level = Stat.Level;
+	PlayerStat.CurExp = Stat.CurExp;
+	PlayerStat.MaxExp = Stat.MaxExp;
+	PlayerStat.CurHP = Stat.CurHP;
+	PlayerStat.MaxHP = Stat.MaxHP;
+	PlayerStat.CurStamina = Stat.CurStamina;
+	PlayerStat.MaxStamina = Stat.MaxStamina;
+	PlayerStat.Damage = Stat.Damage;
+	PlayerStat.Deffence = Stat.Deffence;
+	PlayerStat.Strength = Stat.Strength;
+	PlayerStat.Dexterity = Stat.Dexterity;
+	PlayerStat.Intelligence = Stat.Intelligence;
+
+	return PlayerStat;
 }

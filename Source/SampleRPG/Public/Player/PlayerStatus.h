@@ -183,4 +183,5 @@ public:
 	void SavePlayerStatData(class USaveGameManager* SaveGameInstance);
 	void LoadPlayerStatData(class USaveGameManager* LoadGameInstance);
 	
+	FPlayerStatTable GetPlayerStatData(FPlayerStatTable Stat);
 };

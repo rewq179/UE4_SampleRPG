@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 
+#include "Player/PlayerStatus.h"
+
 #include "MainPlayer.generated.h"
 
 UCLASS()
@@ -98,13 +100,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Interact")
 	class ANpcController* InteractNPC;
 
-	// Level //
+	// Save & Load //
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Level")
-	bool bIsAlreadyLoad;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|SaveLoad")
+	TMap<int32, FPlayerStatTable> PlayerStatMap;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Level")
-	FName NextLevelName;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|SaveLoad")
+	FString CurSlotName;
 
 protected:
 	// Called when the game starts or when spawned
@@ -133,13 +135,19 @@ public:
 	void InteractObject();
 
 	void AddInteractedItemAll();
-	void SwitchLevel();
-	bool IsLevelChange(FName NextLevelName);
 
 	// Save & Load GameData //
 
 	UFUNCTION(BlueprintCallable)
-	void SaveGame();
+	void SaveGame(FString SlotName);
 	UFUNCTION(BlueprintCallable)
-	void LoadGame();
+	void LoadGame(FString SlotName);
+
+
+	UFUNCTION(BlueprintCallable)
+	FPlayerStatTable LoadData(FString SlotName);
+
+	void LoadLevel(bool bIsLobby);
+
+	void SwitchLevel(FString LevelName);
 };
