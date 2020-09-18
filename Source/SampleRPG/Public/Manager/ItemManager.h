@@ -40,17 +40,21 @@ public:
 	FItemTable GetItemData(int32 ItemID);
 	void SetItemData(class AItem* Item, int32 ItemID);
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE UTexture2D* GetItemIcon(int32 ItemID) { return GetItemData(ItemID).Icon; }
+
 	// Hud and Spawn Item //
 
 	UFUNCTION(BlueprintCallable)
 	class AItem* CreateItemActor(int32 ItemID, int32 Count);
 
-	void SpawnItemActor(int32 ITemID, int32 Count, FVector Location);
+	void SpawnItemActor(int32 ItemID, int32 Count, FVector Location);
 
 	// Reward Table Funtion //
 
 	UFUNCTION(BlueprintCallable)
 	FRewardTable GetRewardData(int32 RewardID);
+
 	void SetRewardData(int32 RewardID);
 	void SetRewardDataAll();
 

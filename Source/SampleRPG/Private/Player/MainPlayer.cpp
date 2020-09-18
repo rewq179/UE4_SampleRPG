@@ -7,9 +7,12 @@
 #include "Player/PlayerQuest.h"
 #include "Npc/NpcController.h"
 
+#include "Manager/RGameInstance.h"
 #include "Manager/SaveGameManager.h"
 #include "Manager/GameManager.h"
 #include "Manager/CombatManager.h"
+
+#include "Dungeon/DungeonEnter.h"
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -67,6 +70,7 @@ void AMainPlayer::BeginPlay()
 	Super::BeginPlay();
 
 	InitComponents();
+	InitData();
 
 	Inventory->AddGold(10000);
 }
@@ -132,8 +136,22 @@ void AMainPlayer::InitComponents()
 			}
 		}
 	}
-	}
+}
 
+void AMainPlayer::InitData()
+{
+	FString MapName = GetWorld()->GetMapName();
+	MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+
+	if (!MapName.Equals("Lobby"))
+	{
+		auto GameInstance = Cast<URGameInstance>(GetGameInstance());
+
+		CurSlotName = GameInstance->SlotName;
+
+		LoadGame();
+	}
+}
 // Input Key //
 
 void AMainPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -222,6 +240,7 @@ void AMainPlayer::Roll()
 	{
 		bIsRoll = true;
 		bCanMove = false;
+		bIsAttackAnim = false;
 
 		PlayerStatus->Stat.CurStamina -= RollCost;
 		PlayerCombat->PlayMontage(FName("Roll"), 1.5f);
@@ -241,9 +260,16 @@ void AMainPlayer::RollAnimEnd()
 
 void AMainPlayer::InteractObject()
 {
-	if (InteractItems.Num() > 0)
+	if (InteractDungeon)
+	{
+		GameManager->DungeonManager->SetActiveDungeonHUD(InteractDungeon->DungeonData);
+	}
+
+	else if (InteractItems.Num() > 0)
 	{
 		AddInteractedItemAll();
+
+		InteractItems.Empty();
 	}
 
 	else if (InteractNPC)
@@ -252,8 +278,6 @@ void AMainPlayer::InteractObject()
 		
 		PlayerQuest->InteractNPC = InteractNPC;
 	}
-
-	InteractItems.Empty();
 }
 
 void AMainPlayer::AddInteractedItemAll()
@@ -285,22 +309,26 @@ void AMainPlayer::SaveGame(FString SlotName)
 	Inventory->SaveInventoryData(SaveGameInstance);
 	PlayerQuest->SaveQuestData(SaveGameInstance);
 
-	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SlotName, 0);
+	if (SlotName.Equals(""))
+	{
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, CurSlotName, 0);
+	}
+
+	else
+	{
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SlotName, 0);
+	}
 }
 
 
-void AMainPlayer::LoadGame(FString SlotName)
+void AMainPlayer::LoadGame()
 {
-	CurSlotName = SlotName;
-
 	USaveGameManager* LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::CreateSaveGameObject(USaveGameManager::StaticClass()));
-	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
+	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(CurSlotName, 0));
 
 	PlayerStatus->LoadPlayerStatData(LoadGameInstance);
 	Inventory->LoadInventoryData(LoadGameInstance);
 	PlayerQuest->LoadQuestData(LoadGameInstance);
-
-	LoadLevel(true);
 }
 
 FPlayerStatTable AMainPlayer::LoadData(FString SlotName)
@@ -309,25 +337,4 @@ FPlayerStatTable AMainPlayer::LoadData(FString SlotName)
 	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
 
 	return LoadGameInstance->PlayerStat;
-}
-
-void AMainPlayer::LoadLevel(bool bIsLobby)
-{
-	USaveGameManager* LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::CreateSaveGameObject(USaveGameManager::StaticClass()));
-	LoadGameInstance = Cast<USaveGameManager>(UGameplayStatics::LoadGameFromSlot(CurSlotName, 0));
-
-	SwitchLevel(*LoadGameInstance->LevelName);
-
-	//SetActorLocation(LoadGameInstance->Location);
-	//SetActorRotation(LoadGameInstance->Rotation);
-}
-
-void AMainPlayer::SwitchLevel(FString LevelName)
-{
-	UWorld* World = GetWorld();
-
-	if (World)
-	{
-		UGameplayStatics::OpenLevel(World, FName(*LevelName));
-	}
 }

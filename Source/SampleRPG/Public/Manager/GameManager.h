@@ -12,6 +12,7 @@
 #include "Manager/SaveGameManager.h"
 #include "Manager/LevelManager.h"
 #include "Manager/ItemManager.h"
+#include "Manager/MonsterManager.h"
 #include "Manager/NpcManager.h"
 #include "Manager/QuestManager.h"
 #include "Manager/PatternManager.h"
@@ -23,6 +24,14 @@
  * Manager BP와 Class들을 모아놓음.
 */
 
+UENUM(BlueprintType)
+enum class ELevelType : uint8
+{
+	ELT_Lobby UMETA(DisplayName = "Lobby"),
+	ELT_Village UMETA(DisplayName = "Village"),
+	ELT_Dungeon UMETA(DisplayName = "Dungeon")
+};
+
 UCLASS()
 class SAMPLERPG_API AGameManager : public AActor
 {
@@ -31,6 +40,9 @@ class SAMPLERPG_API AGameManager : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AGameManager();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameManager|Properties")
+	class  URGameInstance* GameInstance;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameManager|Properties")
 	class AMainPlayer* MainPlayer;
@@ -72,6 +84,18 @@ public:
 
 
 	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
+	TSubclassOf<class ALevelManager> LevelManagerBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
+	class ALevelManager* LevelManager;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
+	TSubclassOf<class AMonsterManager> MonsterManagerBP;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
+	class AMonsterManager* MonsterManager;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
 	TSubclassOf<class ANpcManager> NpcManagerBP;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
@@ -98,16 +122,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
 	class ASkillManager* SkillManager;
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameManager|Components")
-	TSubclassOf<class ALevelManager> LevelManagerBP;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GameManager|Components")
-	class ALevelManager* LevelManager;
 
 #pragma endregion
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GameManager|HUD")
-	bool bIsLobbyLevel;
+	ELevelType LevelType;
 
 protected:
 	// Called when the game starts or when spawned

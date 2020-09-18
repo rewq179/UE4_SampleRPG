@@ -2,6 +2,8 @@
 
 #include "GameManager.h"
 
+#include "Manager/RGameInstance.h"
+
 #include "Player/MainPlayer.h"
 
 #include "Engine/World.h"
@@ -12,14 +14,14 @@ AGameManager::AGameManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	bIsLobbyLevel = false;
 }
 
 // Called when the game starts or when spawned
 void AGameManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GameInstance = Cast<URGameInstance>(GetGameInstance());
 
 	if (MainPlayer)
 	{
@@ -83,6 +85,12 @@ void AGameManager::InitComponents()
 			DungeonManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 
 			DungeonManager->SetDungeonDataAll();
+			DungeonManager->SetTriggerDataAll();
+
+			if (LevelType == ELevelType::ELT_Dungeon)
+			{
+				DungeonManager->SetDungeonTrigger();
+			}
 		}
 	}
 
@@ -97,6 +105,29 @@ void AGameManager::InitComponents()
 			ItemManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 
 			ItemManager->SetRewardDataAll();
+		}
+	}
+
+	if (LevelManagerBP)
+	{
+		LevelManager = GetWorld()->SpawnActor<ALevelManager>(LevelManagerBP);
+
+		if (LevelManager)
+		{
+			LevelManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		}
+	}
+
+	if (MonsterManagerBP)
+	{
+		MonsterManager = GetWorld()->SpawnActor<AMonsterManager>(MonsterManagerBP);
+
+		if (MonsterManager)
+		{
+			MonsterManager->GameManager = this;
+			MonsterManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+			DungeonManager->MonsterManager = MonsterManager;
 		}
 	}
 

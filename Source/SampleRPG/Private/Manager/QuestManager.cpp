@@ -75,7 +75,7 @@ void AQuestManager::SetQuestDataAll()
 
 UTexture2D* AQuestManager::GetRewardIcon(int32 ItemID)
 {
-	return GameManager->ItemManager->GetItemData(ItemID).Icon;
+	return GameManager->ItemManager->GetItemIcon(ItemID);
 }
 
 void AQuestManager::AcceptQuest(FQuestTable Quest)

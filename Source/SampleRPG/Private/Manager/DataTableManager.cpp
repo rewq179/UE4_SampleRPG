@@ -66,10 +66,10 @@ ADataTableManager::ADataTableManager()
 		SkillTableData = SkillTable.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UDataTable> TriggerTable(TEXT("DataTable'/Game/DataTable/TriggerTable.TriggerTable'"));
-	if (TriggerTable.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UDataTable> TriggerRawTable(TEXT("DataTable'/Game/DataTable/TriggerRawTable.TriggerRawTable'"));
+	if (TriggerRawTable.Succeeded())
 	{
-		TriggerTableData = TriggerTable.Object;
+		TriggerRawTableData = TriggerRawTable.Object;
 	}
 }
 

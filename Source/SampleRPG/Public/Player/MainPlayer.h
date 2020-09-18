@@ -100,10 +100,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Interact")
 	class ANpcController* InteractNPC;
 
-	// Save & Load //
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|Interact")
+	class ADungeonEnter* InteractDungeon;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|SaveLoad")
-	TMap<int32, FPlayerStatTable> PlayerStatMap;
+	// Save & Load //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MainPlayer|SaveLoad")
 	FString CurSlotName;
@@ -114,6 +114,7 @@ protected:
 
 public:	
 	void InitComponents();
+	void InitData();
 
 	// Input Key //
 
@@ -140,14 +141,11 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SaveGame(FString SlotName);
+
 	UFUNCTION(BlueprintCallable)
-	void LoadGame(FString SlotName);
+	void LoadGame();
 
 
 	UFUNCTION(BlueprintCallable)
 	FPlayerStatTable LoadData(FString SlotName);
-
-	void LoadLevel(bool bIsLobby);
-
-	void SwitchLevel(FString LevelName);
 };

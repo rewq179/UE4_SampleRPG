@@ -65,37 +65,9 @@ void AMonster::SetMonsterData()
 
 	if (GameManager)
 	{
-		FMonsterTable* MonsterTableRow = GameManager->DataTableManager->GetMonsterTableData(MonsterID);
+		Status = GameManager->MonsterManager->GetMonsterData(MonsterID);
 
-		if (MonsterTableRow)
-		{
-			Status.Name = (*MonsterTableRow).Name;
-
-			Status.ID = (*MonsterTableRow).ID;
-			Status.MonsterClass = (*MonsterTableRow).MonsterClass;
-			Status.AttackCount = (*MonsterTableRow).AttackCount;
-			Status.PatternID = (*MonsterTableRow).PatternID;
-			Status.bHasCharging = (*MonsterTableRow).bHasCharging;
-			Status.Name = (*MonsterTableRow).Name;
-			Status.Level = (*MonsterTableRow).Level;
-			Status.CurHP = (*MonsterTableRow).CurHP;
-			Status.MaxHP = (*MonsterTableRow).MaxHP;
-			Status.CurGroggy = (*MonsterTableRow).CurGroggy;
-			Status.MaxGroggy = (*MonsterTableRow).MaxGroggy;
-			Status.Damage = (*MonsterTableRow).Damage;
-			Status.Deffence = (*MonsterTableRow).Deffence;
-			Status.NormalSpeed = (*MonsterTableRow).NormalSpeed;
-			Status.FollowSpeed = (*MonsterTableRow).FollowSpeed;
-			Status.DetectRange = (*MonsterTableRow).DetectRange;
-			Status.AttackRange = (*MonsterTableRow).AttackRange;
-			Status.Exp = (*MonsterTableRow).Exp;	
-			Status.Gold = (*MonsterTableRow).Gold;
-			Status.ByProductID = (*MonsterTableRow).ByProductID;
-			Status.RewardID = (*MonsterTableRow).RewardID;
-
-			GetCharacterMovement()->MaxWalkSpeed = Status.NormalSpeed;
-		}
-
+		GetCharacterMovement()->MaxWalkSpeed = Status.NormalSpeed;
 		CombatManager = GameManager->CombatManager;
 	}
 

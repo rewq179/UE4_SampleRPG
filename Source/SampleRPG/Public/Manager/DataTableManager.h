@@ -437,58 +437,58 @@ public:
 		int32 RewardID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 ID_0;
+		int32 ID_0 = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 Count_0;
+		int32 Count_0 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		float Percent_0;
+		float Percent_0 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 ID_1;
+		int32 ID_1 = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 Count_1;
+		int32 Count_1 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		float Percent_1;
+		float Percent_1 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 ID_2;
+		int32 ID_2 = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 Count_2;
+		int32 Count_2 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		float Percent_2;
+		float Percent_2 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 ID_3;
+		int32 ID_3 = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 Count_3;
+		int32 Count_3 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		float Percent_3;
+		float Percent_3 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 ID_4;
+		int32 ID_4 = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 Count_4;
+		int32 Count_4 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		float Percent_4;
+		float Percent_4 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 ID_5;
+		int32 ID_5 = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		int32 Count_5;
+		int32 Count_5 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-		float Percent_5;
+		float Percent_5 = 0;
 };
 
 
@@ -641,6 +641,54 @@ enum class ETriggerType : uint8
 	ETT_Clear UMETA(DisplayName = "Clear")
 };
 
+USTRUCT(BlueprintType)
+struct FTriggerRawTable : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 TriggerID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		ETriggerClass TriggerClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		ETriggerType TriggerType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		bool bOnGoing = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		bool bIsClear = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		FString BlockID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		FString MonsterID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		FString PointID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 ID_0 = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 CurCount_0 = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 MaxCount_0 = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 ID_1 = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 CurCount_1 = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 MaxCount_1 = -1;
+};
 
 USTRUCT(BlueprintType)
 struct FTriggerTable : public FTableRowBase
@@ -658,31 +706,37 @@ public:
 		ETriggerType TriggerType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
-		int32 BlockID = -1;
+		bool bOnGoing = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
-		int32 MonsterID = -1;
+		bool bIsClear = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
-		int32 PointID = -1;
+		TArray<int32> BlockIDs;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		TArray<int32> MonsterIDs;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		TArray<int32> PointIDs;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
 		int32 ID_0 = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
-		int32 Count_0 = -1;
+		int32 CurCount_0 = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
+		int32 MaxCount_0 = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
 		int32 ID_1 = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
-		int32 Count_1 = -1;
+		int32 CurCount_1 = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
-		int32 ID_2 = -1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriggerTable")
-		int32 Count_2 = -1;
+		int32 MaxCount_1 = -1;
 };
 #pragma endregion
 
@@ -701,8 +755,16 @@ public:
 		FText Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		FString LevelName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
 		FString TriggerID;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		FString RewardID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		FString ItemID;
 };
 
 USTRUCT(BlueprintType)
@@ -718,7 +780,16 @@ public:
 		FText Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		FString LevelName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
 		TArray<int32> TriggerIDs;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		TArray<int32> RewardIDs;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DialogueTable")
+		TArray<int32> ItemIDs;
 };
 
 #pragma endregion
@@ -748,7 +819,7 @@ public:
 	class UDataTable* QuestTableData;
 	class UDataTable* RewardRawTableData; // RewardTable의 가공전 칼럼 => 가공후(ID_0, Count_0, Percent_0 => Box 구조체(BoxID, BoxCount, BoxPercent)
 	class UDataTable* SkillTableData;
-	class UDataTable* TriggerTableData;
+	class UDataTable* TriggerRawTableData;
 
 public:
 
@@ -781,8 +852,8 @@ public:
 	FORCEINLINE FSkillTable* GetSkillTableData(int32 SkillID) {
 		return SkillTableData->FindRow<FSkillTable>(FName(*(FString::FormatAsNumber(SkillID))), FString(""));
 	}
-	FORCEINLINE FTriggerTable* GetTriggerTableData(int32 TriggerID) {
-		return TriggerTableData->FindRow<FTriggerTable>(FName(*(FString::FormatAsNumber(TriggerID))), FString(""));
+	FORCEINLINE FTriggerRawTable* GetTriggerRawTableData(int32 TriggerID) {
+		return TriggerRawTableData->FindRow<FTriggerRawTable>(FName(*(FString::FormatAsNumber(TriggerID))), FString(""));
 	}
 
 	// Hud //

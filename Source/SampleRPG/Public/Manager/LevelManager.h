@@ -18,11 +18,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LevelManager|ManagerClass")
 	class AGameManager* GameManager;
 
-	// Properties //
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LevelManager|Properties")
-	class AMainPlayer* MainPlayer;
-
 	// Transition //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "LevelManager|Transition")
@@ -30,17 +25,12 @@ public:
 
 	class UBillboardComponent* Billboard;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LevelManager|Transition")
-	FName LevelName;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	UFUNCTION() // 만약 자식 클래스에서 재정의하면 UFUNCTION()을 제거해야한다.
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	UFUNCTION()
-	void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
+	UFUNCTION(BlueprintCallable)
+	void LoadLevel(FString LevelName);
 };

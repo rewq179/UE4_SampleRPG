@@ -112,6 +112,7 @@ void ACombatManager::MonsterDeath(AMonster* Monster)
 	RemoveWidgetMonster(Monster);
 
 	GameManager->ItemManager->GetMonsterItem(Monster->Status.ByProductID, Monster->Status.RewardID, Monster->GetActorLocation());
+	GameManager->DungeonManager->CheckTriggerCount(Monster->Status.ID);
 }
 
 // 버프 적용 //

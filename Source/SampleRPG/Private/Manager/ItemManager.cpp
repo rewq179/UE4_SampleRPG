@@ -31,8 +31,6 @@ void  AItemManager::SetItemData(AItem* Item, int32 ItemID)
 	
 	if (ItemTableData)
 	{
-		Item->ItemData.Name = (*ItemTableData).Name;
-
 		Item->ItemData.ItemID = (*ItemTableData).ItemID;
 		Item->ItemData.ItemClass = (*ItemTableData).ItemClass;
 		Item->ItemData.ItemType = (*ItemTableData).ItemType;
@@ -74,9 +72,9 @@ AItem* AItemManager::CreateItemActor(int32 ItemID, int32 Count)
 	return Item;
 }
 
-void AItemManager::SpawnItemActor(int32 ITemID, int32 Count, FVector Location)
+void AItemManager::SpawnItemActor(int32 ItemID, int32 Count, FVector Location)
 {
-	AItem* Item = CreateItemActor(ITemID, Count);
+	AItem* Item = CreateItemActor(ItemID, Count);
 
 	Item->SetActorLocation(Location);
 	Item->SetActiveText(true);

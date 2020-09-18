@@ -6,6 +6,9 @@
 #include "Components/BoxComponent.h"
 #include "Components/BillboardComponent.h"
 
+#include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
+
 // Sets default values
 ALevelManager::ALevelManager()
 {
@@ -23,29 +26,14 @@ ALevelManager::ALevelManager()
 void ALevelManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	Transition->OnComponentBeginOverlap.AddDynamic(this, &ALevelManager::OnOverlapBegin);
-	Transition->OnComponentEndOverlap.AddDynamic(this, &ALevelManager::OnOverlapEnd);
 }
 
-void ALevelManager::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+void ALevelManager::LoadLevel(FString LevelName)
 {
-	if (OtherActor)
+	UWorld* World = GetWorld();
+
+	if (World)
 	{
-		MainPlayer = Cast<AMainPlayer>(OtherActor);
-
-		if (MainPlayer)
-		{
-
-		}
-	}
-}
-
-
-void ALevelManager::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor == MainPlayer)
-	{
-		MainPlayer = nullptr;
+		UGameplayStatics::OpenLevel(World, FName(*LevelName));
 	}
 }

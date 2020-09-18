@@ -25,21 +25,38 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|ManagerClass")
 	class AGameManager* GameManager;
 
-	/* DataTable */
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DungeonManager|DataTable")
-	TMap<int32, FDungeonTable> DungeonDataMap;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|ManagerClass")
+	class AMonsterManager* MonsterManager;
 
 	// Components //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Components")
 	class AMainPlayer* MainPlayer;
 
-	//
+	/* DataTable */
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Components")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DungeonManager|DataTable")
+	TMap<int32, FDungeonTable> DungeonDataMap;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DungeonManager|DataTable")
+	TMap<int32, FTriggerTable> TriggerDataMap;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
+	int32 CurDungeonID;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
 	TMap<int32, class ASpawnPoint*> SpawnPointMap;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
+	TMap<int32, class ABlockingTrigger*> BlockingTriggerMap;
+
+	/* Triggers */
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Trigger")
+	TMap<int32, FTriggerTable> CurTriggerMaps;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Trigger")
+	int32 SelectID;
 
 protected:
 	// Called when the game starts or when spawned
@@ -50,14 +67,36 @@ public:
 	FDungeonTable GetDungeonData(int32 DungeonID);
 	void SetDungeonData(int32 DungeonID);
 	void SetDungeonDataAll();
+	void StringToIntDungeonArray(int32 DungeonID, FString Data, int32 Column);
 
-	void StringToIntArray(int32 DungeonID, FString Data);
+	FTriggerTable GetTriggerData(int32 TriggerID);
+
+	void SetTriggerData(int32 TriggerID);
+	void SetTriggerDataAll();
+	void StringToIntTriggerArray(int32 TriggerID, FString Data, int32 Column);
+
 
 	// Monster Spawn //
 
-	UFUNCTION(BlueprintCallable)
 	void AddSpawnPoint(int32 Index, class ASpawnPoint* SpawnPoint);
-	
-	void CheckTrigger(int32 TriggerID);
-	void CheckTriggerAll();
+	void AddBlockingTrigger(int32 Index, class ABlockingTrigger* BlockingTrigger);
+
+	void SetDungeonTrigger();
+
+	void CheckTrigger(int32 TargetID);
+	void CheckTriggerCount(int32 TargetID);
+
+	bool CanActiveTrigger();
+
+	void SetActiveTrigger();
+	void SpawnMonsterInPoint(int32 MonsterID, int32 PointID);
+	void SetOverlapBlock(int32 BlockID);
+
+	/* Dungeon HUD */
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetActiveClearHUD();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetActiveDungeonHUD(FDungeonTable DungeonData);
 };
