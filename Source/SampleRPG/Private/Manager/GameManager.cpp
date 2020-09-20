@@ -115,6 +115,8 @@ void AGameManager::InitComponents()
 		if (LevelManager)
 		{
 			LevelManager->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+			DungeonManager->LevelManager = LevelManager;
 		}
 	}
 

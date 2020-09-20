@@ -265,8 +265,7 @@ void AMonster::ChargingAnimEnd()
 
 void AMonster::DeathAnimEnd()
 {
-	GetMesh()->bPauseAnims = true;
-	GetMesh()->bNoSkeletonUpdate = true;
+	Destroy();
 }
 
 // Set Collision or Compoennt //

@@ -19,7 +19,7 @@ class SAMPLERPG_API URGameInstance : public UGameInstance
 	
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameInstance|Components")
-	FDungeonTable CurDungeon;
+	int32 DungeonID;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameInstance|Components")
 	FString SlotName;

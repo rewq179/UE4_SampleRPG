@@ -47,7 +47,10 @@ void ADungeonEnter::SetDungeonData()
 
 	if (GameManager)
 	{
-		DungeonData = GameManager->DungeonManager->GetDungeonData(DungeonID);
+		for (int32 Index = 0; Index < DungeonIDs.Num(); Index++)
+		{
+			DungeonDatas.Add(GameManager->DungeonManager->GetDungeonData(DungeonIDs[Index]));
+		}
 	}
 }
 

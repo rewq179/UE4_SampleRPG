@@ -262,7 +262,7 @@ void AMainPlayer::InteractObject()
 {
 	if (InteractDungeon)
 	{
-		GameManager->DungeonManager->SetActiveDungeonHUD(InteractDungeon->DungeonData);
+		GameManager->DungeonManager->SetActiveDungeonHUD(InteractDungeon);
 	}
 
 	else if (InteractItems.Num() > 0)

@@ -244,13 +244,23 @@ void APlayerStatus::Death()
 	MainPlayer->bIsDead = true;
 
 	MainPlayer->PlayerCombat->PlayMontage(FName("Death"), 0.7f);
+
+	MainPlayer->PlayerCombat->CombatManager->PlayerDeath();
 }
+
 void APlayerStatus::Revive()
 {
-	Stat.CurHP = Stat.MaxHP;
+	if (MainPlayer->PlayerCombat->CombatManager->CanPlayerRevive())
+	{
+		MainPlayer->bIsDead = false;
+		MainPlayer->bCanMove = true;
+		MainPlayer->bIsAttackAnim = false;
 
-	MainPlayer->GetMesh()->bPauseAnims = false;
-	MainPlayer->GetMesh()->bNoSkeletonUpdate = false;
+		Stat.CurHP = Stat.MaxHP;
+
+		MainPlayer->GetMesh()->bPauseAnims = false;
+		MainPlayer->GetMesh()->bNoSkeletonUpdate = false;
+	}
 }
 
 // Buff & Debuff Skill //
@@ -299,6 +309,11 @@ void  APlayerStatus::SavePlayerStatData(USaveGameManager* SaveGameInstance)
 void APlayerStatus::LoadPlayerStatData(USaveGameManager* LoadGameInstance)
 {
 	Stat = GetPlayerStatData(LoadGameInstance->PlayerStat);
+
+	if (Stat.CurHP <= 0)
+	{
+		Stat.CurHP = 1;
+	}
 }
 
 FPlayerStatTable APlayerStatus::GetPlayerStatData(FPlayerStatTable Stat)

@@ -27,13 +27,6 @@ ACombatManager::ACombatManager()
 	LifeTime = 0.f;
 }
 
-// Called when the game starts or when spawned
-void ACombatManager::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
 void ACombatManager::ApplyDamageHP(AActor* DamagedActor, float BaseDamage, AActor* DamageCauser, EAttackType AttackType, bool bIsPlayerDamaged, bool bIsPercent)
 {
 	if (DamagedActor && (BaseDamage != 0.f))
@@ -105,6 +98,24 @@ float ACombatManager::GetPercentBaseDamage(float Percent, float MaxValue)
 
 // 몬스터 보상 //
 
+void ACombatManager::PlayerDeath()
+{
+	GameManager->DungeonManager->SetReviveData();
+}
+
+bool ACombatManager::CanPlayerRevive()
+{
+	if (GameManager->DungeonManager->ReviveCount > 0)
+	{
+		GameManager->DungeonManager->ReviveCount--;
+
+		return true;
+	}
+
+	return false;
+}
+
+
 void ACombatManager::MonsterDeath(AMonster* Monster)
 {
 	MainPlayer->PlayerStatus->AddExp(Monster->Status.Exp);
@@ -112,7 +123,7 @@ void ACombatManager::MonsterDeath(AMonster* Monster)
 	RemoveWidgetMonster(Monster);
 
 	GameManager->ItemManager->GetMonsterItem(Monster->Status.ByProductID, Monster->Status.RewardID, Monster->GetActorLocation());
-	GameManager->DungeonManager->CheckTriggerCount(Monster->Status.ID);
+	GameManager->DungeonManager->CheckTrigger(Monster->Status.ID);
 }
 
 // 버프 적용 //
@@ -122,7 +133,6 @@ void ACombatManager::SetBuffToTarget(AActor* Target, int32 SkillID, bool bIsPlay
 	if (bIsPlayer)
 	{
 		auto MainPlayer = Cast<AMainPlayer>(Target);
-
 
 	}
 

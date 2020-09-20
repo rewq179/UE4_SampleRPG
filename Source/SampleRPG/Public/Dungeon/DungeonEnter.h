@@ -35,10 +35,10 @@ public:
 	// DataTable //
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DungeonEnter|DataTable")
-	int32 DungeonID;
+	TArray<int32> DungeonIDs;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonEnter|DataTable")
-	FDungeonTable DungeonData;
+	TArray<FDungeonTable> DungeonDatas;
 
 
 protected:

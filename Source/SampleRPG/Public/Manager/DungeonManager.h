@@ -28,6 +28,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|ManagerClass")
 	class AMonsterManager* MonsterManager;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|ManagerClass")
+	class ALevelManager* LevelManager;
+
 	// Components //
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Components")
@@ -41,6 +44,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DungeonManager|DataTable")
 	TMap<int32, FTriggerTable> TriggerDataMap;
 
+	/* Revive */
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Revive")
+	int32 ReviveTime;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Revive")
+	int32 ReviveCount;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Revive")
+	float LifeTime;
+
+	FTimerHandle TimerHandle;
+
+	/* Dungeon */
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
 	int32 CurDungeonID;
 
@@ -53,17 +71,21 @@ public:
 	/* Triggers */
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Trigger")
-	TMap<int32, FTriggerTable> CurTriggerMaps;
+	TArray<FTriggerTable> CurTriggerMaps;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Trigger")
-	int32 SelectID;
+	int32 SelectID; // Trigger ID
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
+	UFUNCTION(BlueprintCallable)
+	void LoadLevel(FString LevelName);
 	
+	/* Getter & Setter */
+
 	FDungeonTable GetDungeonData(int32 DungeonID);
 	void SetDungeonData(int32 DungeonID);
 	void SetDungeonDataAll();
@@ -75,28 +97,42 @@ public:
 	void SetTriggerDataAll();
 	void StringToIntTriggerArray(int32 TriggerID, FString Data, int32 Column);
 
+	/* Dungeon Playing Data */
+	void SetReviveData();
 
-	// Monster Spawn //
+	void DecreaseReviveTime();
+	
+	UFUNCTION(BlueprintCallable)
+	void StopTimer();
+
+	/* Add Dungeon's Spawn Point, Block */
 
 	void AddSpawnPoint(int32 Index, class ASpawnPoint* SpawnPoint);
 	void AddBlockingTrigger(int32 Index, class ABlockingTrigger* BlockingTrigger);
 
+	/* Dungeon's Trigger */
+
 	void SetDungeonTrigger();
 
 	void CheckTrigger(int32 TargetID);
-	void CheckTriggerCount(int32 TargetID);
+
+	void ActiveInstantTrigger();
 
 	bool CanActiveTrigger();
 
+	/* Active Trigger */
+
 	void SetActiveTrigger();
-	void SpawnMonsterInPoint(int32 MonsterID, int32 PointID);
-	void SetOverlapBlock(int32 BlockID);
+
+	void GiveClearReward();
 
 	/* Dungeon HUD */
+	UFUNCTION(BlueprintImplementableEvent)
+	void SetActiveReviveHUD();
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void SetActiveClearHUD();
+	void SetActiveDungeonClearHUD();
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void SetActiveDungeonHUD(FDungeonTable DungeonData);
+	void SetActiveDungeonHUD(class ADungeonEnter* DungeonEnter);
 };

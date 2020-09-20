@@ -92,6 +92,10 @@ void AItemManager::SetRewardData(int32 RewardID)
 	if (RewardRawTableData)
 	{
 		RewardDataMap[RewardID].RewardID = (*RewardRawTableData).RewardID;
+		RewardDataMap[RewardID].Name = (*RewardRawTableData).Name;
+
+		RewardDataMap[RewardID].bIsPackaging= (*RewardRawTableData).bIsPackaging;
+		RewardDataMap[RewardID].Percent = (*RewardRawTableData).Percent;
 
 		RewardDataMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_0, (*RewardRawTableData).Count_0, (*RewardRawTableData).Percent_0));
 
@@ -114,6 +118,10 @@ void AItemManager::SetRewardData(int32 RewardID)
 		{
 			RewardDataMap[RewardID].Boxes.Add(RewardBox((*RewardRawTableData).ID_4, (*RewardRawTableData).Count_4, (*RewardRawTableData).Percent_4));
 		}
+		
+		RewardDataMap[RewardID].Pack_ID = (*RewardRawTableData).Pack_ID;
+		RewardDataMap[RewardID].Pack_Percent = (*RewardRawTableData).Pack_Percent;
+
 	}
 }
 
@@ -139,39 +147,65 @@ FRewardBox AItemManager::RewardBox(int32 ID, int32 Count, float Percent)
 
 void AItemManager::GetMonsterItem(int32 ProductID, int32 RewardID, FVector Location)
 {
-	if (GetItemInRewardBox(ProductID, Location))
+	if (RewardID != -1)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Product! !!"));
+		GetItemInRewardBox(ProductID, Location);
 	}
 
 	Location += FVector(20.f, 20.f, 0.f);
-	
-	if (GetItemInRewardBox(RewardID, Location))
+
+	if (RewardID != -1)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Reward! !!"));
+		GetItemInRewardBox(RewardID, Location);
 	}
 }
 
-bool AItemManager::GetItemInRewardBox(int32 RewardID, FVector Location)
+void AItemManager::GetItemInRewardBox(int32 RewardID, FVector Location)
 {
 	FRewardTable RewardData = GetRewardData(RewardID);
 
-	int32 Rand = FMath::RandRange(0, 10000);
-	int32 TotalSum = 0;
+	int32 BoxIndex = GetBoxIndex(RewardData);
+
+	if (BoxIndex >= 0) // 당첨
+	{
+		SpawnItemActor(RewardData.Boxes[BoxIndex].BoxID, RewardData.Boxes[BoxIndex].BoxCount, GetGroundSurfaceLocation(Location));
+	}
+
+	else if (BoxIndex == -2) // 패키지 돌리기
+	{
+		RewardData = GetRewardData(RewardData.Pack_ID);
+
+		BoxIndex = GetBoxIndex(RewardData);
+
+		SpawnItemActor(RewardData.Boxes[BoxIndex].BoxID, RewardData.Boxes[BoxIndex].BoxCount, GetGroundSurfaceLocation(Location));
+	}
+}
+
+int32 AItemManager::GetBoxIndex(FRewardTable RewardData)
+{
+	int32 Rand = FMath::RandRange(0, (int)RewardData.Percent * 100);
+	int32 High = 0;
 
 	for (int32 BoxIndex = 0; BoxIndex < RewardData.Boxes.Num(); BoxIndex++)
 	{
-		TotalSum += RewardData.Boxes[BoxIndex].BoxPercent * 100;
+		High += RewardData.Boxes[BoxIndex].BoxPercent * 100;
 
-		if (Rand < TotalSum)
+		if (Rand < High) // 숫자 In
 		{
-			SpawnItemActor(RewardData.Boxes[BoxIndex].BoxID, RewardData.Boxes[BoxIndex].BoxCount, GetGroundSurfaceLocation(Location));
+			UE_LOG(LogTemp, Log, TEXT("Num : %d <= %d"), Rand, High);
 
-			return true;
+			if (RewardData.Boxes[BoxIndex].BoxID == -2) // 꽝
+			{
+				UE_LOG(LogTemp, Log, TEXT("FAIL!!"));
+
+				return -1; // 꽝
+			}
+
+			return BoxIndex;
 		}
 	}
 
-	return false;
+	return -2; // 패키지 다시 돌리기
 }
 
 FVector AItemManager::GetGroundSurfaceLocation(FVector Loctaion)

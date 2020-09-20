@@ -4,13 +4,17 @@
 #include "Manager/GameManager.h"
 #include "Manager/RGameInstance.h"
 #include "Manager/MonsterManager.h"
+#include "Manager/LevelManager.h"
 
 #include "Monster.h"
+#include "MainPlayer.h"
 
 #include "Dungeon/BlockingTrigger.h"
 #include "Dungeon/SpawnPoint.h"
 
 #include "Engine/World.h"
+#include "TimerManager.h"
+
 
 // Sets default values
 ADungeonManager::ADungeonManager()
@@ -18,16 +22,25 @@ ADungeonManager::ADungeonManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	SelectID = 0;
+	ReviveTime = 10;
+	ReviveCount = 1;
 }
 
 // Called when the game starts or when spawned
 void ADungeonManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	CurDungeonID = 0;
-	SelectID = -1;
 }
+
+void ADungeonManager::LoadLevel(FString LevelName)
+{
+	MainPlayer->SaveGame("");
+
+	LevelManager->LoadLevel(LevelName);
+}
+
+/* Getter & Setter */
 
 FDungeonTable ADungeonManager::GetDungeonData(int32 DungeonID)
 {
@@ -156,7 +169,40 @@ void ADungeonManager::SetTriggerDataAll()
 	{
 		SetTriggerData(Count);
 	}
+
+
 }
+
+/* Dungeon Playing Data */
+
+void ADungeonManager::SetReviveData()
+{
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ADungeonManager::DecreaseReviveTime, 1.f, true, 0.f);
+
+	SetActiveReviveHUD();
+}
+
+void ADungeonManager::DecreaseReviveTime()
+{
+	LifeTime += GetWorldTimerManager().GetTimerElapsed(TimerHandle);
+
+	if (LifeTime > ReviveTime)
+	{
+		GetWorldTimerManager().ClearTimer(TimerHandle);
+		LifeTime = 0.f;
+
+		LoadLevel("Default");
+	}
+}
+
+void ADungeonManager::StopTimer()
+{
+	LifeTime = 0.f;
+
+	GetWorldTimerManager().ClearTimer(TimerHandle);
+}
+
+/* Add Dungeon's Spawn Point, Block */
 
 void ADungeonManager::AddSpawnPoint(int32 Index, ASpawnPoint* SpawnPoint)
 {
@@ -178,14 +224,15 @@ void ADungeonManager::AddBlockingTrigger(int32 Index, ABlockingTrigger* Blocking
 	BlockingTriggerMap.Add(Index, BlockingTrigger);
 }
 
+/* Dungeon's Trigger */
 
 void ADungeonManager::SetDungeonTrigger()
 {
-	CurDungeonID = GameManager->GameInstance->CurDungeon.DungeonID;
+	CurDungeonID = GameManager->GameInstance->DungeonID;
 
 	for (auto TriggerID : DungeonDataMap[CurDungeonID].TriggerIDs)
 	{
-		CurTriggerMaps.Add(TriggerID, GetTriggerData(TriggerID));
+		CurTriggerMaps.Add(GetTriggerData(TriggerID));
 	}
 }
 
@@ -196,12 +243,7 @@ void ADungeonManager::CheckTrigger(int32 TargetID)
 		CurTriggerMaps[SelectID].bOnGoing = true;
 	}
 
-	if (CurTriggerMaps[SelectID].TriggerClass == ETriggerClass::ETC_Instant) // 즉시 발동 트리거면 바로 재생
-	{
-		SetActiveTrigger();
-
-		return;
-	}
+	ActiveInstantTrigger();
 
 	if (CurTriggerMaps[SelectID].ID_0 == TargetID)
 	{
@@ -212,17 +254,31 @@ void ADungeonManager::CheckTrigger(int32 TargetID)
 			SetActiveTrigger();
 		}
 	}
+}
 
-	if(CurTriggerMaps[SelectID].ID_1 == TargetID)
+void ADungeonManager::ActiveInstantTrigger()
+{
+	if (CurTriggerMaps[SelectID].TriggerClass == ETriggerClass::ETC_Instant) // 즉시 발동 트리거면 바로 재생
 	{
-		CurTriggerMaps[SelectID].CurCount_1++;
-
-		if (CanActiveTrigger()) // 조건 검사후 만족시 트리거 발동
-		{
-			SetActiveTrigger();
-		}
+		SetActiveTrigger();
 	}
 }
+
+
+bool ADungeonManager::CanActiveTrigger()
+{
+	if (CurTriggerMaps[SelectID].bOnGoing && !CurTriggerMaps[SelectID].bIsClear)
+	{
+		if (CurTriggerMaps[SelectID].CurCount_0 >= CurTriggerMaps[SelectID].MaxCount_0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/* Active Trigger */
 
 void ADungeonManager::SetActiveTrigger()
 {
@@ -234,65 +290,35 @@ void ADungeonManager::SetActiveTrigger()
 	case ETriggerType::ETT_Block:
 		for (int32 Index = 0; Index < CurTriggerMaps[SelectID].BlockIDs.Num(); Index++)
 		{
-			SetOverlapBlock(CurTriggerMaps[SelectID].BlockIDs[Index]);
+			BlockingTriggerMap[CurTriggerMaps[SelectID].BlockIDs[Index]]->SetOverlap();
 		}
 		break;
 
 	case ETriggerType::ETT_Spawn:
 		for (int32 Index = 0; Index < CurTriggerMaps[SelectID].MonsterIDs.Num(); Index++)
 		{
-			SpawnMonsterInPoint(CurTriggerMaps[SelectID].MonsterIDs[Index], CurTriggerMaps[SelectID].PointIDs[Index]);
+			MonsterManager->SpawnMonsterInLocation(CurTriggerMaps[SelectID].MonsterIDs[Index], SpawnPointMap[CurTriggerMaps[SelectID].PointIDs[Index]]->GetActorLocation());
 		}
 		break;
 
 	case ETriggerType::ETT_Clear:
-		SetActiveClearHUD();
+		GiveClearReward();
 		break;
 	}
 
-	SelectID++;
-}
-
-bool ADungeonManager::CanActiveTrigger()
-{
-	if (CurTriggerMaps[SelectID].bOnGoing && !CurTriggerMaps[SelectID].bIsClear)
+	if (SelectID < CurTriggerMaps.Num())
 	{
-		if (CurTriggerMaps[SelectID].CurCount_0 >= CurTriggerMaps[SelectID].MaxCount_0 && CurTriggerMaps[SelectID].CurCount_1 >= CurTriggerMaps[SelectID].MaxCount_1)
-		{
-			return true;
-		}
+		SelectID++;
+
+		ActiveInstantTrigger();
 	}
-
-	return false;
 }
 
-
-
-
-void ADungeonManager::CheckTriggerCount(int32 TargetID)
+void ADungeonManager::GiveClearReward()
 {
-	if (SelectID == -1)
-	{
-		SelectID = CurTriggerMaps[0].TriggerID;
+	int32 Rand = FMath::RandRange(0, DungeonDataMap[CurDungeonID].RewardIDs.Num() - 1);
 
-		CheckTrigger(TargetID);
-	}
+	GameManager->ItemManager->GetItemInRewardBox(DungeonDataMap[CurDungeonID].RewardIDs[Rand], MainPlayer->GetActorLocation());
 
-	CheckTrigger(TargetID);
+	SetActiveDungeonClearHUD();
 }
-
-void ADungeonManager::SetOverlapBlock(int32 BlockID)
-{
-	BlockingTriggerMap[BlockID]->SetOverlap();
-}
-
-void ADungeonManager::SpawnMonsterInPoint(int32 MonsterID, int32 PointID)
-{
-	MonsterManager->SpawnMonsterInLocation(MonsterID, SpawnPointMap[PointID]->GetActorLocation());
-}
-
-
-//void ADungeonManager::SpawnDungeonInLocation()
-//{
-//
-//}

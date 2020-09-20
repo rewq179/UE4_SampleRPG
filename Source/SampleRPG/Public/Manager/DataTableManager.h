@@ -437,6 +437,15 @@ public:
 		int32 RewardID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		FText Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		bool bIsPackaging = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		float Percent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
 		int32 ID_0 = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
@@ -489,6 +498,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
 		float Percent_5 = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 Pack_ID = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		float Pack_Percent = 0;
+
 };
 
 
@@ -502,7 +518,22 @@ public:
 		int32 RewardID;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
-	TArray<FRewardBox> Boxes;
+		FText Name;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		bool bIsPackaging;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		float Percent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		TArray<FRewardBox> Boxes;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		int32 Pack_ID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RewardTable")
+		float Pack_Percent;
 };
 #pragma endregion
 

@@ -63,7 +63,9 @@ public:
 	// Kill Monster And Spawn Monster's Drop Items //
 
 	void GetMonsterItem(int32 ProductID, int32 RewardID, FVector Location);
-	bool GetItemInRewardBox(int32 RewardID, FVector Location);
+	void GetItemInRewardBox(int32 RewardID, FVector Location);
+	int32 GetBoxIndex(FRewardTable RewardData);
 
 	FVector GetGroundSurfaceLocation(FVector Loctaion);
 };
+

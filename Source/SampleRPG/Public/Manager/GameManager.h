@@ -42,7 +42,7 @@ public:
 	AGameManager();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameManager|Properties")
-	class  URGameInstance* GameInstance;
+	class URGameInstance* GameInstance;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameManager|Properties")
 	class AMainPlayer* MainPlayer;

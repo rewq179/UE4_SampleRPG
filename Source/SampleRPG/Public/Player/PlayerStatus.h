@@ -153,6 +153,7 @@ public:
 
 	// Combat //
 
+	UFUNCTION(BlueprintCallable)
 	void AdjustHP(float DamageAmount, bool CanDie);
 	void AdjustST(float DamageAmount);
 
@@ -160,6 +161,7 @@ public:
 	void TakeDamageST(float DamageAmount);
 	
 	void Death();
+	UFUNCTION(BlueprintCallable)
 	void Revive();
 
 	// Buff & Debuff Skill //

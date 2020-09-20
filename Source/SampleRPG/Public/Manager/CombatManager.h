@@ -57,11 +57,7 @@ public:
 	float LifeTime;
 
 	FTimerHandle TimerHandle;
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
+	
 public:	
 	// 데미지 적용 //
 
@@ -73,6 +69,8 @@ public:
 	
 	// 몬스터 보상 //
 
+	void PlayerDeath();
+	bool CanPlayerRevive();
 	void MonsterDeath(class AMonster* Monster);
 
 	// 버프 적용 //
