@@ -265,6 +265,13 @@ void AMonster::ChargingAnimEnd()
 
 void AMonster::DeathAnimEnd()
 {
+	MonsterAI->Destroy();
+
+	if (MonsterPattern)
+	{
+		MonsterPattern->Destroy();
+	}
+
 	Destroy();
 }
 

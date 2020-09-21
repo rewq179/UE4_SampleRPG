@@ -35,7 +35,6 @@ void ADungeonEnter::BeginPlay()
 	InteractCollision->OnComponentEndOverlap.AddDynamic(this, &ADungeonEnter::OnOverlapEnd);
 }
 
-
 void ADungeonEnter::SetDungeonData()
 {
 	AMainPlayer* Player = Cast<AMainPlayer>(UGameplayStatics::GetPlayerPawn(this, 0));

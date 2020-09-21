@@ -45,4 +45,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "SaveGameManager|GameData")
 	TMap<int32, bool> PlayerQuestMap;
+
+	UPROPERTY(EditDefaultsOnly, Category = "SaveGameManager|GameData")
+	TMap<int32, int32> PlayerQuestCountMap;
 };

@@ -115,8 +115,6 @@ public:
 
 	void UpdateWidgetMonster();
 
-	int32 GetPriorityByClass(EMonsterClass Class);
-	
 	// Player Interp //
 
 	void InterpToMonster(float DeltaTime); // 캐릭터가 공격대상을 바라보게함

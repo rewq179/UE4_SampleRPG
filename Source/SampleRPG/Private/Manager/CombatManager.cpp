@@ -13,6 +13,7 @@
 #include "Player/Inventory.h"
 #include "Player/PlayerStatus.h"
 #include "Player/PlayerCombat.h"
+#include "Player/PlayerQuest.h"
 
 #include "Kismet/GameplayStatics.h"
 
@@ -96,11 +97,16 @@ float ACombatManager::GetPercentBaseDamage(float Percent, float MaxValue)
 	return MaxValue * 0.01f * Percent;
 }
 
-// 몬스터 보상 //
+// Revive & Death //
 
 void ACombatManager::PlayerDeath()
 {
-	GameManager->DungeonManager->SetReviveData();
+	GameManager->DungeonManager->StartReviveTimer();
+}
+
+void ACombatManager::PlayerRevive()
+{
+	GameManager->DungeonManager->StopReviveTimer();
 }
 
 bool ACombatManager::CanPlayerRevive()
@@ -122,8 +128,10 @@ void ACombatManager::MonsterDeath(AMonster* Monster)
 	MainPlayer->Inventory->AddGold(Monster->Status.Gold);
 	RemoveWidgetMonster(Monster);
 
+	MainPlayer->PlayerQuest->IncreaseCount(EQuestType::EQT_Kill, Monster->Status.ID, 1);
+	
 	GameManager->ItemManager->GetMonsterItem(Monster->Status.ByProductID, Monster->Status.RewardID, Monster->GetActorLocation());
-	GameManager->DungeonManager->CheckTrigger(Monster->Status.ID);
+	GameManager->DungeonManager->CheckCurTrigger(Monster->Status.ID);
 }
 
 // 버프 적용 //

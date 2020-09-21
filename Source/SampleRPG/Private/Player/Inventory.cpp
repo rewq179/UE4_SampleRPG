@@ -38,6 +38,8 @@ void AInventory::AddItem(AItem* Item)
 	int32 TotalCount = Item->Count;
 	int32 MaxCount = Item->ItemData.MaxCount;
 
+	Item->SetActorLocation(FVector(2000.f, 1000.f, 2000.f));
+
 	Item->SetItemOwner(MainPlayer);
 	MainPlayer->PlayerQuest->IncreaseCount(EQuestType::EQT_Collect, Item->ItemID, Item->Count);
 
@@ -72,8 +74,6 @@ void AInventory::AddItem(AItem* Item)
 
 		else
 		{
-			Item->SetActorLocation(FVector(255.f));
-
 			Spaces.Add(Item);
 		}
 	}
@@ -108,7 +108,7 @@ void AInventory::DevideItemCount(AItem* Item, int32 TotalCount)
 	while (TotalCount > 0)
 	{
 		AItem* DevideItem = ItemManager->CreateItemActor(Item->ItemID, 1);
-		DevideItem->SetActorLocation(FVector(255.f));
+		DevideItem->SetActorLocation(FVector(2000.f, 1000.f, 2000.f));
 
 		if (TotalCount > Item->ItemData.MaxCount)
 		{
@@ -319,6 +319,8 @@ void AInventory::UnEquipItem(int32 SlotIndex)
 	{
 		MainPlayer->bIsEquip = false;
 	}
+
+	Equipments[SlotIndex]->AttachToActor(ItemManager, FAttachmentTransformRules::KeepRelativeTransform);
 
 	AddItem(Equipments[SlotIndex]);
 	Equipments[SlotIndex] = nullptr;

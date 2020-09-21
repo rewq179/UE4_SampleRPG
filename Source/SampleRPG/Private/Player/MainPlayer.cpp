@@ -71,8 +71,6 @@ void AMainPlayer::BeginPlay()
 
 	InitComponents();
 	InitData();
-
-	Inventory->AddGold(10000);
 }
 
 void AMainPlayer::InitComponents()
@@ -197,6 +195,13 @@ void AMainPlayer::LeftClickDown()
 			}
 		}
 	}
+}
+
+void AMainPlayer::ClickCheat()
+{
+	Inventory->AddGold(1000);
+	
+	PlayerStatus->AddExp(20);
 }
 
 void AMainPlayer::MoveForward(float Value)

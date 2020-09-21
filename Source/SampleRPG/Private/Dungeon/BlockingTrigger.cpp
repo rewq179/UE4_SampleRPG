@@ -16,8 +16,6 @@ ABlockingTrigger::ABlockingTrigger()
 	PrimaryActorTick.bCanEverTick = true;
 
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("Collision"));
-
-
 }
 
 // Called when the game starts or when spawned
@@ -35,7 +33,7 @@ void ABlockingTrigger::BeginPlay()
 	GameManager->DungeonManager->AddBlockingTrigger(BlockID, this);
 }
 
-void ABlockingTrigger::SetOverlap()
+void ABlockingTrigger::SetCollisionOverlap()
 {
 	BoxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	BoxCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);

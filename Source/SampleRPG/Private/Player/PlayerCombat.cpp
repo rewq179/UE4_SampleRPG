@@ -153,8 +153,6 @@ void APlayerCombat::UpdateWidgetMonster()
 
 		for (int32 j = i + 1; j < WidgetMonsters.Num(); j++)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Pri : %d"), (int32)WidgetMonsters[MinIndex]->Status.MonsterClass);
-
 			if ((int32)WidgetMonsters[MinIndex]->Status.MonsterClass < (int32)WidgetMonsters[j]->Status.MonsterClass)
 			{
 				MinIndex = j;
@@ -165,24 +163,6 @@ void APlayerCombat::UpdateWidgetMonster()
 	}
 
 	TargetMonster = WidgetMonsters[0];
-}
-
-int32 APlayerCombat::GetPriorityByClass(EMonsterClass Class)
-{
-	switch (Class)
-	{
-	case EMonsterClass::EMC_Normal:
-		return 1;
-
-	case EMonsterClass::EMC_Elite:
-		return 2;
-
-	case EMonsterClass::EMC_Boss:
-		return 3;
-
-	default:
-		return -1;
-	}
 }
 
 // Player Interp //

@@ -122,6 +122,9 @@ public:
 	
 	void LeftClickDown(); // 마우스 좌클릭
 
+	UFUNCTION(BlueprintCallable)
+	void ClickCheat();
+
 	// Movement // 
 
 	void MoveForward(float Value);

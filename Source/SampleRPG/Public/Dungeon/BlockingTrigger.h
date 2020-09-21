@@ -6,6 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "BlockingTrigger.generated.h"
 
+/**
+* 던전에서 막혀있던 벽이 특정 트리거로 인해, 통과가 되도록 만들어준다.
+*/
+
+
 UCLASS()
 class SAMPLERPG_API ABlockingTrigger : public AActor
 {
@@ -29,5 +34,5 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	void SetOverlap();
+	void SetCollisionOverlap(); // 겹침 허용
 };

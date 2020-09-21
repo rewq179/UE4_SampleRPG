@@ -154,7 +154,6 @@ void APlayerStatus::AdjustHP(float DamageAmount, bool CanDie)
 	// 상태이상이나 함정을 밟았을때 방어력 무시로 들어가도록 만들어놓은 함수
 	
 	Stat.CurHP += DamageAmount;
-	UE_LOG(LogTemp, Log, TEXT("HP Amount : %f"), DamageAmount);
 
 	if (Stat.CurHP > Stat.MaxHP)
 	{
@@ -178,7 +177,6 @@ void APlayerStatus::AdjustHP(float DamageAmount, bool CanDie)
 void APlayerStatus::AdjustST(float DamageAmount)
 {
 	Stat.CurStamina += DamageAmount;
-	UE_LOG(LogTemp, Log, TEXT("ST Amount : %f"), DamageAmount);
 
 	if (Stat.CurStamina > Stat.MaxStamina)
 	{
@@ -252,6 +250,8 @@ void APlayerStatus::Revive()
 {
 	if (MainPlayer->PlayerCombat->CombatManager->CanPlayerRevive())
 	{
+		MainPlayer->PlayerCombat->CombatManager->PlayerRevive();
+
 		MainPlayer->bIsDead = false;
 		MainPlayer->bCanMove = true;
 		MainPlayer->bIsAttackAnim = false;
@@ -270,8 +270,12 @@ void APlayerStatus::SetDebuffToPlayer(EAttackType AttackType)
 	if (AttackType == EAttackType::EAT_Poison || AttackType == EAttackType::EAT_Frostbite)
 	{
 		MainPlayer->PlayerCombat->CombatManager->SetDebuffToPlayer(AttackType);
+	}
 
-		SetSystemText();
+	if (AttackType == EAttackType::EAT_KnockDown)
+	{
+		MainPlayer->PlayerCombat->PlayMontage("KnockDown", 1.f);
+		MainPlayer->bCanMove = false;
 	}
 }
 

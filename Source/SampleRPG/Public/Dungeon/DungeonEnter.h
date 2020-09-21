@@ -9,6 +9,10 @@
 
 #include "DungeonEnter.generated.h"
 
+/**
+* 마을에서 던전으로 이동시켜주는 오브젝트다.
+*/
+
 UCLASS()
 class SAMPLERPG_API ADungeonEnter : public AActor
 {
@@ -21,16 +25,18 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "DungeonEnter|ManagerClass")
 	class AGameManager* GameManager;
 
-	// Properties //
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonEnter|Properties")
-	UStaticMeshComponent* Mesh;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "DungeonEnter|Properties")
-	class USphereComponent* InteractCollision; // 영역에 들어왔는지 체크
+	/* Properties */
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonEnter|Properties")
 	class AMainPlayer* MainPlayer;
+
+	// Component //
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonEnter|Components")
+	UStaticMeshComponent* Mesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "DungeonEnter|Components")
+	class USphereComponent* InteractCollision; // 영역에 들어왔는지 체크
 
 	// DataTable //
 	

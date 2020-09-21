@@ -45,15 +45,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|ManagerClass")
 	class ASkillManager* SkillManager;
 
-	// Combat //
+	// Properties //
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Combat")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Properties")
 	class AMainPlayer* MainPlayer;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Combat")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Properties")
 	class AMonster* CombatMonster;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Combat")
+	/* Timer */
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CombatManager|Timer")
 	float LifeTime;
 
 	FTimerHandle TimerHandle;
@@ -67,9 +69,10 @@ public:
 	void ApplyDamageST(AActor* DamagedActor, float BaseDamage, bool bIsPercent);
 	float GetPercentBaseDamage(float Percent, float MaxValue);
 	
-	// 몬스터 보상 //
+	// Revive & Death //
 
 	void PlayerDeath();
+	void PlayerRevive();
 	bool CanPlayerRevive();
 	void MonsterDeath(class AMonster* Monster);
 

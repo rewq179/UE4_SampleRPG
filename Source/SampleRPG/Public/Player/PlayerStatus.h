@@ -168,9 +168,6 @@ public:
 
 	void SetDebuffToPlayer(EAttackType AttackType);
 	
-	UFUNCTION(BlueprintImplementableEvent)
-	void SetSystemText();
-
 	// Anim Blueprint & Montage //
 
 	UFUNCTION(BlueprintCallable)

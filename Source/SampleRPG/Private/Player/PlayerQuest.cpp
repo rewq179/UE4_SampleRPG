@@ -116,8 +116,11 @@ void APlayerQuest::IncreaseCount(EQuestType QuestType, int32 TargetID, int32 Cou
 			if (Quests[QuestKey[Index]].CurCount >= Quests[QuestKey[Index]].MaxCount)
 			{
 				Quests[QuestKey[Index]].bCanClear = true;
-				
-				QuestManager->NpcManager->SetQuestSymbol(Quests[QuestKey[Index]].NpcID, ESymbolType::EST_Question);
+
+				if (MainPlayer->GameManager->LevelType != ELevelType::ELT_Dungeon)
+				{
+					QuestManager->NpcManager->SetQuestSymbol(Quests[QuestKey[Index]].NpcID, ESymbolType::EST_Question);
+				}
 			}
 		}
 	}
@@ -137,6 +140,7 @@ void APlayerQuest::SaveQuestData(class USaveGameManager* SaveGameInstance)
 		else
 		{
 			SaveGameInstance->PlayerQuestMap.Add(QuestID, false);
+			SaveGameInstance->PlayerQuestCountMap.Add(QuestID, Quests[QuestID].CurCount);
 		}
 	}
 }
@@ -157,6 +161,23 @@ void APlayerQuest::LoadQuestData(class USaveGameManager* LoadGameInstance)
 			if (RecentQuest.bIsClear)
 			{
 				RecentQuest.CurCount = RecentQuest.MaxCount;
+			}
+
+			else
+			{
+				RecentQuest.CurCount = LoadGameInstance->PlayerQuestCountMap[Quest.Key];
+
+				if (RecentQuest.CurCount >= RecentQuest.MaxCount)
+				{
+					RecentQuest.CurCount = RecentQuest.MaxCount;
+
+					RecentQuest.bCanClear = true;
+
+					if (MainPlayer->GameManager->LevelType != ELevelType::ELT_Dungeon)
+					{
+						QuestManager->NpcManager->SetQuestSymbol(RecentQuest.NpcID, ESymbolType::EST_Question);
+					}
+				}
 			}
 
 			AddQuest();

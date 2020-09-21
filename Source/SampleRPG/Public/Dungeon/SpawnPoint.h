@@ -6,6 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "SpawnPoint.generated.h"
 
+/**
+* 던전에서 몬스터가 생성되는 위치이다.
+*/
+
+
 UCLASS()
 class SAMPLERPG_API ASpawnPoint : public AActor
 {
@@ -18,7 +23,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpawnPoint|ManagerClass")
 	class AGameManager* GameManager;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SpawnPoint|Location")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SpawnPoint|Point")
 	int32 PointID;
 
 protected:

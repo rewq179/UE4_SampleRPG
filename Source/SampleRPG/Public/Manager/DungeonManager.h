@@ -10,7 +10,7 @@
 #include "DungeonManager.generated.h"
 
 /**
-* 던전의 TriggerVolume, 몬스터 Spawn, 보상을 관리하는 클래스.
+* 던전과 트리거의 DataTable을 보관하며, 현재 던전의 트리거(Block,Spawn,Clear)들을 관리한다.
 */
 
 UCLASS()
@@ -21,6 +21,8 @@ class SAMPLERPG_API ADungeonManager : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ADungeonManager();
+	
+	/* Manager Class */
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|ManagerClass")
 	class AGameManager* GameManager;
@@ -31,9 +33,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|ManagerClass")
 	class ALevelManager* LevelManager;
 
-	// Components //
+	// Properties //
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Properties")
 	class AMainPlayer* MainPlayer;
 
 	/* DataTable */
@@ -43,6 +45,23 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DungeonManager|DataTable")
 	TMap<int32, FTriggerTable> TriggerDataMap;
+
+	/* Current Dungeon Data */
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
+	int32 CurDungeonID;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
+	int32 CurTriggerID;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
+	TArray<FTriggerTable> CurTriggerMaps;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
+	TMap<int32, class ASpawnPoint*> SpawnPointMap;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
+	TMap<int32, class ABlockingTrigger*> BlockingTriggerMap;
 
 	/* Revive */
 
@@ -57,29 +76,6 @@ public:
 
 	FTimerHandle TimerHandle;
 
-	/* Dungeon */
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
-	int32 CurDungeonID;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
-	TMap<int32, class ASpawnPoint*> SpawnPointMap;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Dungeon")
-	TMap<int32, class ABlockingTrigger*> BlockingTriggerMap;
-
-	/* Triggers */
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Trigger")
-	TArray<FTriggerTable> CurTriggerMaps;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DungeonManager|Trigger")
-	int32 SelectID; // Trigger ID
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
 public:	
 	UFUNCTION(BlueprintCallable)
 	void LoadLevel(FString LevelName);
@@ -92,18 +88,9 @@ public:
 	void StringToIntDungeonArray(int32 DungeonID, FString Data, int32 Column);
 
 	FTriggerTable GetTriggerData(int32 TriggerID);
-
 	void SetTriggerData(int32 TriggerID);
 	void SetTriggerDataAll();
 	void StringToIntTriggerArray(int32 TriggerID, FString Data, int32 Column);
-
-	/* Dungeon Playing Data */
-	void SetReviveData();
-
-	void DecreaseReviveTime();
-	
-	UFUNCTION(BlueprintCallable)
-	void StopTimer();
 
 	/* Add Dungeon's Spawn Point, Block */
 
@@ -114,17 +101,26 @@ public:
 
 	void SetDungeonTrigger();
 
-	void CheckTrigger(int32 TargetID);
-
-	void ActiveInstantTrigger();
+	void CheckCurTrigger(int32 TargetID);
 
 	bool CanActiveTrigger();
 
 	/* Active Trigger */
+	
+	void ActiveInstantTrigger();
 
-	void SetActiveTrigger();
+	void ActiveTrigger();
 
 	void GiveClearReward();
+
+	/* Revive */
+
+	void StartReviveTimer();
+
+	void CheckReviveTime();
+	
+	UFUNCTION(BlueprintCallable)
+	void StopReviveTimer();
 
 	/* Dungeon HUD */
 	UFUNCTION(BlueprintImplementableEvent)
